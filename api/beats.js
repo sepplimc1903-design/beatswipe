@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   const TABLE_ID = 'tblkdiwaGP5e5xAot';
 
   try {
-    const url = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}?filterByFormula=AND({Status}="Approved",{Title}!="",{Producer}!="")`;
+    const url = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}?filterByFormula={Status}="Approved"`;
     const response = await fetch(url, {
       headers: { 'Authorization': `Bearer ${AIRTABLE_TOKEN}` }
     });
