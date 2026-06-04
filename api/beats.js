@@ -8,12 +8,15 @@ export default async function handler(req, res) {
   const TABLE_ID = 'tblkdiwaGP5e5xAot';
 
   try {
-    const url = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}?filterByFormula={Status}="Approved"`;
+    const url = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}`;
     const response = await fetch(url, {
       headers: { 'Authorization': `Bearer ${AIRTABLE_TOKEN}` }
     });
 
-    if (!response.ok) throw new Error('Airtable error');
+    if (!response.ok) {
+      const err = await response.json();
+      return res.status(500).json({ error: err });
+    }
 
     const data = await response.json();
 
