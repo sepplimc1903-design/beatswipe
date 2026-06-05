@@ -31,7 +31,7 @@ export default async function handler(req, res) {
       genre:    r.fields['Genre']        || 'Other',
       color:    r.fields['Color']        || '#BA7517',
       mp3:      r.fields['Preview URL']  || '',
-      buy:      r.fields['Buy Link']     || 'https://beatstars.com'
+      buy:      r.fields['Buy Link']     || ''
     }));
 
     res.status(200).json({ beats });
