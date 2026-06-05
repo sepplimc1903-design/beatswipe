@@ -1,0 +1,2696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>BeatSwipe – Beat Discovery</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    :root {
+      --accent:       #F43F5E;
+      --accent-dark:  #be123c;
+      --accent-light: #1f0a10;
+      --accent-mid:   #FB7185;
+      --navy:         #0a0f1e;
+      --bg:           #0d1221;
+      --bg-2:         #111827;
+      --bg-3:         #1e293b;
+      --text:         #f1f5f9;
+      --text-2:       #94a3b8;
+      --text-3:       #475569;
+      --border:       rgba(255,255,255,0.07);
+      --border-2:     rgba(255,255,255,0.13);
+    }
+
+    html { height: 100%; }
+    body {
+      min-height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+      color: var(--text);
+      background: var(--navy);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* ── DESKTOP BACKGROUND ── */
+    .bg-desktop { position: fixed; inset: 0; z-index: 0; background: var(--navy); overflow: hidden; }
+    .bg-desktop::before {
+      content: ''; position: absolute; width: 900px; height: 900px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(244,63,94,0.14) 0%, rgba(244,63,94,0.03) 45%, transparent 70%);
+      top: -300px; left: -200px;
+      animation: orbFloat 8s ease-in-out infinite alternate;
+    }
+    .bg-desktop::after {
+      content: ''; position: absolute; width: 700px; height: 700px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(56,189,248,0.07) 0%, transparent 65%);
+      bottom: -200px; right: -150px;
+      animation: orbFloat 10s ease-in-out infinite alternate-reverse;
+    }
+    @keyframes orbFloat {
+      from { transform: translate(0,0) scale(1); }
+      to   { transform: translate(30px,20px) scale(1.05); }
+    }
+    .bg-grid {
+      position: absolute; inset: 0;
+      background-image: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 44px 44px;
+    }
+    .bg-noise {
+      position: absolute; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      background-size: 200px 200px; opacity: 0.4; pointer-events: none;
+    }
+    .bg-label-left, .bg-label-right { display: none; position: absolute; top: 50%; transform: translateY(-50%); font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; opacity: 0.18; }
+    .bg-label-left { left: 40px; color: #FB7185; writing-mode: vertical-rl; }
+    .bg-label-right { right: 40px; color: #38BDF8; writing-mode: vertical-rl; }
+    @media (min-width: 900px) { .bg-label-left, .bg-label-right { display: block; } }
+
+    /* ── SHELL ── */
+    .shell { width: 100%; max-width: 440px; height: 100vh; height: 100dvh; background: var(--bg); display: flex; flex-direction: column; position: relative; z-index: 1; overflow: hidden; }
+
+    /* ── DESKTOP LAYOUT ── */
+    .desktop-layout { width: 100%; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1; }
+    .desktop-left { display: none; }
+    .desktop-right { display: flex; align-items: center; justify-content: center; width: 100%; }
+
+    @media (min-width: 600px) {
+      body { padding: 32px 20px; align-items: center; min-height: 100vh; }
+      .desktop-right { width: auto; }
+      .shell {
+        min-height: 860px; height: 860px; max-height: 92vh;
+        border-radius: 44px;
+        border: 0.5px solid rgba(255,255,255,0.1);
+        box-shadow: 0 0 0 1px rgba(255,255,255,0.04), 0 40px 120px rgba(0,0,0,0.7), 0 0 0 0.5px rgba(244,63,94,0.2), 0 0 120px rgba(244,63,94,0.06);
+        overflow: hidden;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      body { padding: 40px 60px; justify-content: center; }
+      .desktop-layout { gap: 72px; max-width: 1200px; margin: 0 auto; align-items: center; justify-content: center; }
+      .desktop-left {
+        display: flex; flex-direction: column; flex: 1;
+        max-width: 520px; gap: 0;
+      }
+      .desktop-right { flex-shrink: 0; }
+      .shell { width: 390px; max-width: 390px; }
+    }
+
+    /* LEFT PANEL ELEMENTS */
+    .dl-logo {
+      font-size: 15px; font-weight: 700; color: var(--text-2);
+      letter-spacing: 0.5px; margin-bottom: 32px;
+      text-transform: uppercase; letter-spacing: 2px;
+    }
+    .dl-logo span { color: var(--accent-mid); }
+    .dl-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--accent-light); color: var(--accent-mid);
+      font-size: 11px; font-weight: 600; padding: 5px 14px;
+      border-radius: 100px; margin-bottom: 24px;
+      border: 0.5px solid rgba(244,63,94,0.2);
+      width: fit-content;
+    }
+    .dl-headline {
+      font-size: clamp(42px, 5vw, 64px);
+      font-weight: 800; line-height: 1.08;
+      letter-spacing: -2px; color: var(--text);
+      margin-bottom: 22px;
+    }
+    .dl-headline span { color: var(--accent-mid); }
+    .dl-sub {
+      font-size: 16px; color: var(--text-2); line-height: 1.7;
+      margin-bottom: 40px; max-width: 420px;
+    }
+    .dl-stats {
+      display: flex; gap: 32px; margin-bottom: 40px;
+      padding-bottom: 40px; border-bottom: 0.5px solid var(--border);
+    }
+    .dl-stat-num { font-size: 36px; font-weight: 800; color: var(--accent-mid); letter-spacing: -1px; line-height: 1; margin-bottom: 4px; }
+    .dl-stat-lbl { font-size: 12px; color: var(--text-3); font-weight: 500; text-transform: uppercase; letter-spacing: 1px; }
+    .dl-features { display: flex; flex-direction: column; gap: 14px; margin-bottom: 32px; }
+    .dl-feat {
+      display: flex; align-items: center; gap: 14px;
+      font-size: 14px; color: var(--text-2); font-weight: 500;
+    }
+    .dl-feat i {
+      font-size: 18px; color: var(--accent-mid);
+      width: 36px; height: 36px; border-radius: 10px;
+      background: var(--accent-light); display: flex;
+      align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .dl-genres { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 40px; }
+    .dl-genre-pill {
+      padding: 6px 14px; border-radius: 100px;
+      font-size: 12px; font-weight: 500;
+      border: 0.5px solid var(--border-2); color: var(--text-3);
+      background: var(--bg-2);
+    }
+    .dl-footer { font-size: 12px; color: var(--text-3); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .dl-dot { color: var(--text-3); }
+    .dl-legal { color: var(--text-3); cursor: pointer; text-decoration: none; transition: color 0.2s; }
+    .dl-legal:hover { color: var(--accent-mid); }
+
+    /* NAV */
+    .nav-bar { display: flex; border-top: 0.5px solid var(--border); background: var(--bg); flex-shrink: 0; padding-bottom: env(safe-area-inset-bottom); }
+    .nav-tab { flex: 1; padding: 10px 0 8px; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; background: none; border: none; color: var(--text-2); font-size: 10px; font-weight: 500; letter-spacing: 0.3px; transition: color 0.2s; }
+    .nav-tab.active { color: var(--accent-mid); }
+    .nav-tab i { font-size: 22px; }
+    .nav-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--accent-mid); opacity: 0; transition: opacity 0.2s; }
+    .nav-tab.active .nav-dot { opacity: 1; }
+
+    /* SCREENS */
+    .screen { display: none; flex: 1; flex-direction: column; overflow: hidden; min-height: 0; }
+    .screen.active { display: flex; }
+
+    /* TOP BAR */
+    .top-bar { display: flex; align-items: center; justify-content: space-between; padding: 20px 22px 14px; flex-shrink: 0; }
+    .wordmark { font-size: 19px; font-weight: 700; color: var(--text); letter-spacing: -0.4px; }
+    .wordmark b { color: var(--accent-mid); }
+    .top-badge { font-size: 11px; color: var(--accent-mid); background: var(--accent-light); padding: 3px 10px; border-radius: 100px; font-weight: 600; }
+
+    /* LANDING */
+    .land-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .hero { padding: 28px 22px 24px; text-align: center; }
+    .hero-badge { display: inline-block; background: var(--accent-light); color: var(--accent-mid); font-size: 11px; font-weight: 600; padding: 4px 14px; border-radius: 100px; margin-bottom: 18px; letter-spacing: 0.3px; }
+    .hero-title { font-size: 30px; font-weight: 700; line-height: 1.18; margin-bottom: 14px; letter-spacing: -0.7px; }
+    .hero-title span { color: var(--accent-mid); }
+    .hero-sub { font-size: 15px; color: var(--text-2); line-height: 1.65; margin-bottom: 28px; }
+    .hero-btns { display: flex; flex-direction: column; gap: 10px; }
+    .btn-primary { padding: 14px; border-radius: 14px; background: var(--accent); border: none; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 0.2s; }
+    .btn-primary:hover { opacity: 0.88; }
+    .btn-secondary { padding: 14px; border-radius: 14px; background: none; border: 0.5px solid var(--border-2); color: var(--text); font-size: 15px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s; }
+    .btn-secondary:hover { background: var(--bg-2); }
+    .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; border-top: 0.5px solid var(--border); border-bottom: 0.5px solid var(--border); }
+    .stat-cell { padding: 18px 12px; text-align: center; border-right: 0.5px solid var(--border); }
+    .stat-cell:last-child { border-right: none; }
+    .stat-num { font-size: 22px; font-weight: 700; color: var(--accent-mid); margin-bottom: 2px; }
+    .stat-lbl { font-size: 11px; color: var(--text-2); }
+    .features { padding: 18px 22px; display: flex; flex-direction: column; gap: 10px; }
+    .feature-card { background: var(--bg-2); border-radius: 14px; border: 0.5px solid var(--border); padding: 16px; display: flex; gap: 14px; align-items: flex-start; }
+    .feat-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--accent-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .feat-icon i { font-size: 20px; color: var(--accent-mid); }
+    .feat-title { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+    .feat-desc { font-size: 13px; color: var(--text-2); line-height: 1.5; }
+    .cta-strip { padding: 18px 22px 24px; display: flex; flex-direction: column; gap: 8px; }
+    .cta-label { font-size: 12px; color: var(--text-3); text-align: center; }
+
+    /* DISCOVER */
+    .cat-row { display: flex; gap: 6px; padding: 0 22px 14px; overflow-x: auto; flex-shrink: 0; scrollbar-width: none; }
+    .cat-row::-webkit-scrollbar { display: none; }
+    .cat-pill { padding: 7px 16px; border-radius: 100px; font-size: 13px; font-weight: 500; border: 0.5px solid var(--border-2); background: none; color: var(--text-2); cursor: pointer; white-space: nowrap; transition: all 0.2s; flex-shrink: 0; }
+    .cat-pill.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .card-wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 20px 8px; overflow: hidden; min-height: 0; }
+    .beat-card { width: 100%; background: var(--bg-2); border-radius: 24px; border: 0.5px solid var(--border); padding: 22px; transition: transform 0.38s cubic-bezier(0.22,1,0.36,1), opacity 0.38s ease; will-change: transform; user-select: none; -webkit-user-select: none; }
+    .beat-card.dragging { transition: none; cursor: grabbing; }
+    .beat-card.fly-left { transform: translateX(-150%) rotate(-14deg); opacity: 0; pointer-events: none; }
+    .beat-card.fly-right { transform: translateX(150%) rotate(14deg); opacity: 0; pointer-events: none; }
+    /* swipe overlays */
+    .swipe-label { position: absolute; top: 20px; padding: 6px 16px; border-radius: 8px; font-size: 18px; font-weight: 800; letter-spacing: 1px; opacity: 0; pointer-events: none; transition: opacity 0.08s; border: 3px solid; }
+    .swipe-label-skip  { left: 18px;  color: #e05252; border-color: #e05252; transform: rotate(-8deg); }
+    .swipe-label-save  { right: 18px; color: var(--accent-mid); border-color: var(--accent-mid); transform: rotate(8deg); }
+    .card-head { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; position: relative; }
+    .cover-box { width: 60px; height: 60px; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .track-name { font-size: 20px; font-weight: 700; margin-bottom: 3px; line-height: 1.15; letter-spacing: -0.4px; }
+    .track-by { font-size: 13px; color: var(--text-2); font-weight: 400; }
+    .type-pill { position: absolute; top: 0; right: 0; font-size: 10px; font-weight: 600; padding: 3px 10px; border-radius: 100px; background: var(--bg-3); border: 0.5px solid var(--border-2); color: var(--text-3); letter-spacing: 0.2px; }
+    .tag-row { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+    .tag { background: var(--bg-3); border: 0.5px solid var(--border); border-radius: 100px; padding: 5px 12px; font-size: 12px; color: var(--text-2); font-weight: 500; }
+
+    /* ── MP3 PLAYER ── */
+    .player-area { background: var(--bg-3); border-radius: 16px; border: 0.5px solid var(--border); overflow: hidden; }
+    .waveform-wrap { padding: 16px 16px 10px; cursor: pointer; }
+    .waveform { height: 54px; display: flex; align-items: center; gap: 2px; }
+    .wbar { flex: 1; border-radius: 2px; min-height: 3px; transition: height 0.12s ease, opacity 0.12s ease; }
+    .player-controls { display: flex; align-items: center; gap: 10px; padding: 0 14px 14px; }
+    .play-btn {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: var(--accent); border: none;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0;
+      transition: transform 0.15s cubic-bezier(0.175,0.885,0.32,1.275);
+      box-shadow: 0 4px 16px rgba(244,63,94,0.5);
+    }
+    .play-btn:active { transform: scale(0.88); }
+    .play-btn i { font-size: 18px; color: #fff; margin-left: 2px; }
+    .play-btn.playing i { margin-left: 0; }
+    .progress-wrap { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+    .progress-bar { height: 3px; background: var(--border-2); border-radius: 100px; cursor: pointer; position: relative; }
+    .progress-fill { height: 100%; background: var(--accent-mid); border-radius: 100px; width: 0%; transition: width 0.25s linear; pointer-events: none; }
+    .time-row { display: flex; justify-content: space-between; }
+    .time-lbl { font-size: 10px; color: var(--text-3); }
+    .buy-link { display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: var(--accent-mid); text-decoration: none; flex-shrink: 0; transition: opacity 0.2s; }
+    .buy-link:hover { opacity: 0.75; }
+
+    /* YOUTUBE PLAYER */
+    .yt-wrap { border-radius: 14px; overflow: hidden; border: 0.5px solid var(--border); background: #000; position: relative; aspect-ratio: 16/9; max-height: 178px; }
+    .yt-wrap iframe { width: 100%; height: 100%; border: none; display: block; }
+    .yt-overlay { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.3) 100%); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: opacity 0.25s; border-radius: 14px; }
+    .yt-overlay:hover { background: linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.2) 100%); }
+    .yt-play-icon { width: 54px; height: 54px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 24px rgba(244,63,94,0.55); transition: transform 0.2s cubic-bezier(0.175,0.885,0.32,1.275); }
+    .yt-overlay:hover .yt-play-icon { transform: scale(1.1); }
+    .yt-play-icon i { font-size: 22px; color: #fff; margin-left: 3px; }
+    .yt-footer { display: flex; align-items: center; justify-content: space-between; padding: 10px 2px 4px; }
+    .yt-hint { font-size: 11px; color: var(--text-3); display: flex; align-items: center; gap: 4px; }
+    .yt-link { font-size: 11px; color: var(--text-3); text-decoration: none; display: flex; align-items: center; gap: 4px; transition: color 0.2s; }
+    .yt-link:hover { color: var(--accent-mid); }
+
+    .swipe-hint { display: flex; justify-content: center; gap: 28px; padding: 6px 0 2px; flex-shrink: 0; }
+    .hint { font-size: 11px; color: var(--text-3); display: flex; align-items: center; gap: 4px; }
+    .action-row { display: flex; align-items: center; justify-content: center; gap: 24px; padding: 14px 22px 20px; flex-shrink: 0; }
+    .act-btn { border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.15s cubic-bezier(0.175,0.885,0.32,1.275), opacity 0.15s; }
+    .act-btn:active { transform: scale(0.84); }
+    .btn-skip { width: 64px; height: 64px; background: #1a1a1a; border: 1.5px solid rgba(224,82,82,0.5) !important; box-shadow: 0 4px 20px rgba(224,82,82,0.15); }
+    .btn-skip i { font-size: 26px; color: #e05252; }
+    .btn-save { width: 72px; height: 72px; background: var(--accent); border: none !important; box-shadow: 0 6px 28px rgba(244,63,94,0.45), 0 0 0 6px rgba(244,63,94,0.14); }
+    .btn-save i { font-size: 30px; color: #fff; }
+    .empty-card { text-align: center; padding: 40px 20px; color: var(--text-2); font-size: 14px; line-height: 1.6; }
+    .empty-card i { font-size: 38px; display: block; margin-bottom: 12px; color: var(--text-3); }
+
+    /* CRATE */
+    .crate-header { padding: 20px 22px 10px; display: flex; align-items: baseline; justify-content: space-between; flex-shrink: 0; }
+    .crate-title { font-size: 20px; font-weight: 700; }
+    .crate-sub { font-size: 12px; color: var(--text-2); }
+    .crate-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 18px 16px; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+    .crate-card { background: var(--bg-2); border-radius: 16px; border: 0.5px solid var(--border); padding: 14px; }
+    .crate-top { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+    .mini-cover { width: 46px; height: 46px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .crate-name { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
+    .crate-meta { font-size: 12px; color: var(--text-2); }
+    .buy-btn { width: 100%; padding: 12px; border-radius: 10px; background: var(--accent); color: #fff; border: none; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; transition: opacity 0.15s; }
+    .buy-btn:hover { opacity: 0.88; }
+    .crate-empty { text-align: center; padding: 50px 20px; color: var(--text-2); font-size: 14px; line-height: 1.6; }
+    .crate-empty i { font-size: 34px; display: block; margin-bottom: 12px; color: var(--text-3); }
+
+    /* SUBMIT */
+    .submit-header { padding: 20px 22px 16px; flex-shrink: 0; }
+    .submit-title { font-size: 20px; font-weight: 700; margin-bottom: 5px; }
+    .submit-sub { font-size: 13px; color: var(--text-2); line-height: 1.55; }
+    .submit-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 22px 20px; min-height: 0; }
+    .field-group { margin-bottom: 14px; }
+    .field-label { font-size: 12px; color: var(--text-2); margin-bottom: 6px; display: block; font-weight: 600; letter-spacing: 0.2px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    input, select, textarea { width: 100%; padding: 11px 13px; border-radius: 10px; border: 0.5px solid var(--border-2); background: var(--bg-2); color: var(--text); font-size: 14px; font-family: inherit; outline: none; transition: border-color 0.2s, box-shadow 0.2s; -webkit-appearance: none; appearance: none; }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(244,63,94,0.2); }
+    textarea { resize: none; height: 72px; line-height: 1.5; }
+    select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2398989d' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+    .submit-btn { width: 100%; padding: 14px; border-radius: 12px; background: var(--accent); border: none; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 6px; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .submit-btn:hover { opacity: 0.88; }
+    .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .success-msg { background: var(--accent-light); border-radius: 12px; padding: 16px; margin-top: 14px; display: none; text-align: center; }
+    .success-msg i { font-size: 28px; color: var(--accent-mid); display: block; margin-bottom: 8px; }
+    .success-msg p { font-size: 13px; color: var(--accent-mid); line-height: 1.55; }
+
+    /* ── PRODUCER PROFILE SCREEN ── */
+    .producer-screen-wrap { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; min-height: 0; }
+    .producer-back { display: flex; align-items: center; gap: 8px; padding: 16px 22px 0; cursor: pointer; color: var(--accent-mid); font-size: 13px; font-weight: 600; background: none; border: none; }
+    .producer-back i { font-size: 18px; }
+    .producer-hero { padding: 20px 22px 18px; display: flex; align-items: center; gap: 16px; }
+    .producer-avatar-lg { width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 2.5px solid var(--accent); }
+    .producer-avatar-lg i { font-size: 32px; color: var(--accent-mid); }
+    .producer-hero-name { font-size: 22px; font-weight: 700; letter-spacing: -0.4px; margin-bottom: 3px; }
+    .producer-hero-meta { font-size: 13px; color: var(--text-2); margin-bottom: 8px; }
+    .producer-tags { display: flex; gap: 5px; flex-wrap: wrap; }
+    .producer-tag { background: var(--accent-light); color: var(--accent-mid); font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 100px; }
+    .producer-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; border-top: 0.5px solid var(--border); border-bottom: 0.5px solid var(--border); margin: 0 0 18px; }
+    .producer-stat { padding: 14px 12px; text-align: center; border-right: 0.5px solid var(--border); }
+    .producer-stat:last-child { border-right: none; }
+    .producer-stat-num { font-size: 20px; font-weight: 700; color: var(--accent-mid); }
+    .producer-stat-lbl { font-size: 10px; color: var(--text-2); margin-top: 1px; }
+    .producer-beats-title { font-size: 14px; font-weight: 700; padding: 0 22px 10px; color: var(--text-2); letter-spacing: 0.3px; text-transform: uppercase; font-size: 11px; }
+    .producer-beats-list { padding: 0 18px 80px; display: flex; flex-direction: column; gap: 10px; }
+    .producer-beat-row { background: var(--bg-2); border-radius: 14px; border: 0.5px solid var(--border); padding: 14px; display: flex; align-items: center; gap: 12px; }
+    .producer-beat-icon { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .producer-beat-name { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+    .producer-beat-meta { font-size: 12px; color: var(--text-2); }
+    .producer-beat-actions { margin-left: auto; display: flex; gap: 8px; }
+    .pbeat-save { width: 34px; height: 34px; border-radius: 50%; background: var(--accent-light); border: none; color: var(--accent-mid); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s; }
+    .pbeat-save:hover { background: var(--accent); color: #fff; }
+    .pbeat-buy { width: 34px; height: 34px; border-radius: 50%; background: var(--bg-3); border: 0.5px solid var(--border-2); color: var(--text-2); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
+    .pbeat-buy:hover { border-color: var(--accent); color: var(--accent-mid); }
+    .producer-empty { text-align: center; padding: 40px 20px; color: var(--text-2); font-size: 14px; }
+    .producer-empty i { font-size: 34px; display: block; margin-bottom: 10px; color: var(--text-3); }
+    /* Producer list (all producers) */
+    .producers-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 18px 20px; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+    .producer-row { background: var(--bg-2); border-radius: 16px; border: 0.5px solid var(--border); padding: 14px 16px; display: flex; align-items: center; gap: 14px; cursor: pointer; transition: border-color 0.2s; }
+    .producer-row:hover { border-color: var(--accent); }
+    .producer-row-avatar { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1.5px solid var(--accent); }
+    .producer-row-avatar i { font-size: 22px; color: var(--accent-mid); }
+    .producer-row-name { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+    .producer-row-meta { font-size: 12px; color: var(--text-2); }
+    .producer-row-arrow { margin-left: auto; color: var(--text-3); font-size: 18px; }
+
+    /* ── SWIPE ANIMATIONS ── */
+    @keyframes wobbleBack {
+      0%   { transform: translateX(0) rotate(0deg); }
+      25%  { transform: translateX(-8px) rotate(-2deg); }
+      50%  { transform: translateX(6px) rotate(1.5deg); }
+      75%  { transform: translateX(-3px) rotate(-0.8deg); }
+      100% { transform: translateX(0) rotate(0deg); }
+    }
+    .beat-card.wobble { animation: wobbleBack 0.45s cubic-bezier(0.22,1,0.36,1); }
+    @keyframes emojiPop {
+      0%   { transform: translate(-50%,-50%) scale(0.4); opacity: 0; }
+      40%  { transform: translate(-50%,-50%) scale(1.3); opacity: 1; }
+      70%  { transform: translate(-50%,-50%) scale(0.95); opacity: 1; }
+      100% { transform: translate(-50%,-50%) scale(1.1); opacity: 0; }
+    }
+    .swipe-emoji {
+      position: fixed; top: 40%; left: 50%;
+      transform: translate(-50%,-50%);
+      font-size: 72px; pointer-events: none; z-index: 200;
+      animation: emojiPop 0.65s ease forwards;
+    }
+
+    /* ── FAQ ── */
+    .faq-section { padding: 8px 22px 24px; }
+    .faq-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.3px; }
+    .faq-item { border-bottom: 0.5px solid var(--border); }
+    .faq-q {
+      width: 100%; background: none; border: none; color: var(--text);
+      font-size: 14px; font-weight: 500; text-align: left;
+      padding: 14px 0; display: flex; justify-content: space-between; align-items: center;
+      cursor: pointer; gap: 10px; line-height: 1.4;
+    }
+    .faq-q i { font-size: 16px; color: var(--text-3); flex-shrink: 0; transition: transform 0.25s; }
+    .faq-q.open i { transform: rotate(45deg); color: var(--accent-mid); }
+    .faq-a {
+      font-size: 13px; color: var(--text-2); line-height: 1.65;
+      max-height: 0; overflow: hidden; transition: max-height 0.35s ease, padding 0.25s;
+      padding: 0;
+    }
+    .faq-a.open { max-height: 200px; padding-bottom: 14px; }
+
+    /* ── IMPRESSUM LINKS IN PROFILE ── */
+    .legal-links { display: flex; flex-direction: column; gap: 0; margin-top: 16px; background: var(--bg-2); border-radius: 16px; border: 0.5px solid var(--border); overflow: hidden; }
+    .legal-link { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; color: var(--text-2); font-size: 14px; cursor: pointer; border-bottom: 0.5px solid var(--border); transition: background 0.15s; text-decoration: none; }
+    .legal-link:last-child { border-bottom: none; }
+    .legal-link:hover { background: var(--bg-3); color: var(--text); }
+    .legal-link i { font-size: 16px; color: var(--text-3); }
+
+    /* ── IMPRESSUM MODAL ── */
+    .info-modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: none; align-items: flex-end; justify-content: center; backdrop-filter: blur(6px); }
+    .info-modal-backdrop.open { display: flex; }
+    .info-modal-sheet { background: var(--bg-2); border-radius: 28px 28px 0 0; width: 100%; max-width: 440px; padding: 0 0 env(safe-area-inset-bottom); border-top: 0.5px solid var(--border-2); animation: slideUp 0.3s cubic-bezier(0.22,1,0.36,1); max-height: 80vh; display: flex; flex-direction: column; }
+    .info-modal-body { overflow-y: auto; padding: 0 22px 24px; flex: 1; }
+    .info-modal-body h3 { font-size: 15px; font-weight: 700; margin: 18px 0 6px; color: var(--text); }
+    .info-modal-body p, .info-modal-body a { font-size: 13px; color: var(--text-2); line-height: 1.65; }
+    .info-modal-body a { color: var(--accent-mid); text-decoration: none; }
+
+    /* ── FILTER MODAL ── */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; display: none; align-items: flex-end; justify-content: center; backdrop-filter: blur(4px); }
+    .modal-backdrop.open { display: flex; }
+    .modal-sheet { background: var(--bg-2); border-radius: 28px 28px 0 0; width: 100%; max-width: 440px; padding: 0 0 env(safe-area-inset-bottom); border-top: 0.5px solid var(--border-2); animation: slideUp 0.3s cubic-bezier(0.22,1,0.36,1); }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .modal-handle { width: 36px; height: 4px; border-radius: 2px; background: var(--bg-3); margin: 12px auto 0; }
+    .modal-head { padding: 16px 22px 12px; display: flex; align-items: center; justify-content: space-between; }
+    .modal-title { font-size: 17px; font-weight: 700; }
+    .modal-close { background: var(--bg-3); border: none; color: var(--text-2); width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; }
+    .modal-body { padding: 0 22px 22px; display: flex; flex-direction: column; gap: 16px; }
+    .filter-label { font-size: 12px; font-weight: 600; color: var(--text-2); margin-bottom: 8px; letter-spacing: 0.2px; }
+    .filter-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+    .filter-pill { padding: 7px 15px; border-radius: 100px; font-size: 13px; font-weight: 500; border: 0.5px solid var(--border-2); background: none; color: var(--text-2); cursor: pointer; transition: all 0.18s; }
+    .filter-pill.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .modal-apply { width: 100%; padding: 14px; border-radius: 14px; background: var(--accent); border: none; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+    .modal-apply:hover { opacity: 0.88; }
+
+    /* ── PROFILE SCREEN ── */
+    .profile-wrap { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 22px 24px; min-height: 0; }
+    .auth-box { background: var(--bg-2); border-radius: 20px; border: 0.5px solid var(--border); padding: 24px; margin-top: 8px; }
+    .auth-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+    .auth-sub { font-size: 13px; color: var(--text-2); margin-bottom: 20px; line-height: 1.5; }
+    .auth-tabs { display: flex; background: var(--bg-3); border-radius: 10px; padding: 3px; margin-bottom: 18px; gap: 3px; }
+    .auth-tab { flex: 1; padding: 8px; border-radius: 8px; border: none; background: none; color: var(--text-2); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+    .auth-tab.active { background: var(--bg); color: var(--text); font-weight: 600; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+    .auth-field { margin-bottom: 12px; }
+    .auth-btn { width: 100%; padding: 13px; border-radius: 12px; background: var(--accent); border: none; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 4px; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .auth-btn:hover { opacity: 0.88; }
+    .auth-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .auth-msg { font-size: 12px; margin-top: 10px; text-align: center; min-height: 18px; }
+    .auth-msg.error { color: #e05252; }
+    .auth-msg.success { color: #4caf50; }
+    .profile-card { background: var(--bg-2); border-radius: 20px; border: 0.5px solid var(--border); padding: 20px; margin-top: 8px; display: flex; align-items: center; gap: 14px; }
+    .profile-avatar { width: 52px; height: 52px; border-radius: 50%; background: var(--accent-light); border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .profile-avatar i { font-size: 24px; color: var(--accent-mid); }
+    .profile-email { font-size: 13px; color: var(--text-2); margin-top: 2px; word-break: break-all; }
+    .profile-name { font-size: 16px; font-weight: 600; }
+    .logout-btn { width: 100%; padding: 13px; border-radius: 12px; background: none; border: 0.5px solid var(--border-2); color: var(--text-2); font-size: 14px; font-weight: 500; cursor: pointer; margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; }
+    .logout-btn:hover { border-color: #e05252; color: #e05252; }
+    .crate-sync-badge { font-size: 11px; color: var(--accent-mid); background: var(--accent-light); padding: 2px 8px; border-radius: 100px; margin-left: 6px; font-weight: 600; }
+
+    /* ── AVATAR CROP MODAL ── */
+    .crop-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 300; display: none; align-items: center; justify-content: center; flex-direction: column; padding: 24px; }
+    .crop-backdrop.open { display: flex; }
+    .crop-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 16px; text-align: center; }
+    .crop-container { position: relative; width: 280px; height: 280px; border-radius: 50%; overflow: hidden; border: 3px solid var(--accent); background: #000; cursor: grab; flex-shrink: 0; }
+    .crop-container:active { cursor: grabbing; }
+    .crop-container img { position: absolute; transform-origin: center center; user-select: none; -webkit-user-select: none; pointer-events: none; }
+    .crop-overlay { position: absolute; inset: 0; border-radius: 50%; box-shadow: 0 0 0 9999px rgba(0,0,0,0.6); pointer-events: none; }
+    .crop-zoom-wrap { display: flex; align-items: center; gap: 12px; margin-top: 20px; width: 280px; }
+    .crop-zoom-wrap i { font-size: 18px; color: var(--text-3); }
+    .crop-zoom-wrap input[type=range] { flex: 1; accent-color: var(--accent); height: 4px; }
+    .crop-btns { display: flex; gap: 10px; margin-top: 20px; width: 280px; }
+    .crop-cancel { flex: 1; padding: 13px; border-radius: 12px; background: var(--bg-3); border: 0.5px solid var(--border-2); color: var(--text-2); font-size: 14px; font-weight: 600; cursor: pointer; }
+    .crop-save { flex: 1; padding: 13px; border-radius: 12px; background: var(--accent); border: none; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+
+    /* ── PRODUCER PROFILE EDIT ── */
+    .profile-edit-box { background: var(--bg-2); border-radius: 20px; border: 0.5px solid var(--border); padding: 20px; margin-top: 8px; }
+    .profile-edit-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .profile-edit-title i { color: var(--accent-mid); }
+    .avatar-pick { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+    .avatar-circle { width: 64px; height: 64px; border-radius: 50%; background: var(--accent-light); border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 26px; font-weight: 700; color: var(--accent-mid); cursor: pointer; overflow: hidden; position: relative; }
+    .avatar-circle img { width: 100%; height: 100%; object-fit: cover; }
+    .avatar-circle .avatar-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; border-radius: 50%; }
+    .avatar-circle:hover .avatar-overlay { opacity: 1; }
+    .avatar-overlay i { font-size: 18px; color: #fff; }
+    .social-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    .social-field { position: relative; }
+    .social-field i { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); font-size: 16px; color: var(--text-3); pointer-events: none; }
+    .social-field input { padding-left: 34px; }
+    .save-profile-btn { width: 100%; padding: 13px; border-radius: 12px; background: var(--accent); border: none; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 0.2s; margin-top: 4px; }
+    .save-profile-btn:hover { opacity: 0.88; }
+    .save-profile-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .profile-saved-msg { font-size: 12px; color: #4caf50; text-align: center; margin-top: 8px; display: none; }
+
+    /* ── MP3 FILE UPLOAD ── */
+    .upload-drop {
+      border: 1.5px dashed var(--border-2); border-radius: 14px;
+      background: var(--bg-2); padding: 22px 16px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 8px; cursor: pointer; transition: border-color 0.2s, background 0.2s;
+      text-align: center; position: relative;
+    }
+    .upload-drop:hover, .upload-drop.dragover { border-color: var(--accent); background: var(--accent-light); }
+    .upload-drop input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .upload-drop i { font-size: 28px; color: var(--accent-mid); }
+    .upload-drop-title { font-size: 14px; font-weight: 600; color: var(--text); }
+    .upload-drop-sub { font-size: 12px; color: var(--text-3); }
+    .upload-file-selected { display: flex; align-items: center; gap: 10px; background: var(--accent-light); border: 0.5px solid rgba(244,63,94,0.3); border-radius: 12px; padding: 12px 14px; margin-top: 8px; }
+    .upload-file-selected i { font-size: 20px; color: var(--accent-mid); flex-shrink: 0; }
+    .upload-file-name { font-size: 13px; font-weight: 500; color: var(--accent-mid); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .upload-file-size { font-size: 11px; color: var(--text-3); flex-shrink: 0; }
+    .upload-remove { background: none; border: none; color: var(--text-3); cursor: pointer; font-size: 16px; padding: 0 0 0 6px; flex-shrink: 0; transition: color 0.15s; }
+    .upload-remove:hover { color: #e05252; }
+    .upload-progress-wrap { margin-top: 8px; display: none; }
+    .upload-progress-bar { height: 4px; background: var(--border-2); border-radius: 100px; overflow: hidden; }
+    .upload-progress-fill { height: 100%; background: var(--accent-mid); border-radius: 100px; width: 0%; transition: width 0.2s linear; }
+    .upload-progress-lbl { font-size: 11px; color: var(--text-3); margin-top: 5px; text-align: center; }
+    .upload-error { font-size: 12px; color: #e05252; margin-top: 6px; display: none; }
+  </style>
+</head>
+<body>
+
+<div class="bg-desktop">
+  <div class="bg-grid"></div>
+  <div class="bg-noise"></div>
+  <div class="bg-label-left">Skip · Skip · Skip</div>
+  <div class="bg-label-right">Save · Save · Save</div>
+</div>
+
+<div class="desktop-layout">
+  <!-- LEFT PANEL — desktop only -->
+  <div class="desktop-left">
+    <div class="dl-logo">Beat<span>Swipe</span></div>
+    <div class="dl-badge">Beat Discovery · Free Forever</div>
+    <h1 class="dl-headline">Find your next<br><span>fire beat</span><br>in seconds.</h1>
+    <p class="dl-sub">Swipe through curated beats from independent producers. Like what you hear — save it, license it. No algorithms. No ads. Just heat.</p>
+
+    <div class="dl-stats">
+      <div class="dl-stat">
+        <div class="dl-stat-num" id="dlStatBeats">–</div>
+        <div class="dl-stat-lbl">Beats</div>
+      </div>
+      <div class="dl-stat">
+        <div class="dl-stat-num" id="dlStatProducers">–</div>
+        <div class="dl-stat-lbl">Producers</div>
+      </div>
+      <div class="dl-stat">
+        <div class="dl-stat-num">Free</div>
+        <div class="dl-stat-lbl">Always</div>
+      </div>
+    </div>
+
+    <div class="dl-features">
+      <div class="dl-feat"><i class="ti ti-arrows-shuffle"></i><span>Swipe to discover</span></div>
+      <div class="dl-feat"><i class="ti ti-adjustments-horizontal"></i><span>Filter by genre</span></div>
+      <div class="dl-feat"><i class="ti ti-flame"></i><span>Save to your crate</span></div>
+      <div class="dl-feat"><i class="ti ti-link"></i><span>License in one tap</span></div>
+    </div>
+
+    <div class="dl-genres">
+      <span class="dl-genre-pill">Trap</span>
+      <span class="dl-genre-pill">Drill</span>
+      <span class="dl-genre-pill">R&amp;B</span>
+      <span class="dl-genre-pill">Lo-Fi</span>
+      <span class="dl-genre-pill">Afrobeats</span>
+      <span class="dl-genre-pill">Synthwave</span>
+      <span class="dl-genre-pill">Boom Bap</span>
+      <span class="dl-genre-pill">Acoustic</span>
+    </div>
+
+    <div class="dl-footer">
+      Made for artists · by artists
+      <span class="dl-dot">·</span>
+      <a onclick="openInfoModal('impressumModal')" class="dl-legal">Impressum</a>
+      <span class="dl-dot">·</span>
+      <a onclick="openInfoModal('privacyModal')" class="dl-legal">Datenschutz</a>
+    </div>
+  </div>
+
+  <!-- RIGHT — the app shell -->
+  <div class="desktop-right">
+<div class="shell">
+
+  <!-- LANDING -->
+  <div class="screen active" id="landScreen">
+    <div class="top-bar">
+      <div class="wordmark">Beat<b>Swipe</b></div>
+      <div class="top-badge">Beta</div>
+    </div>
+    <div class="land-scroll">
+      <div class="hero">
+        <div class="hero-badge">Beat discovery, reinvented</div>
+        <div class="hero-title">Find your next <span>fire beat</span> in seconds</div>
+        <div class="hero-sub">Swipe through curated beats and loops from independent producers. Like what you hear — save it, license it.</div>
+        <div class="hero-btns">
+          <button class="btn-primary" onclick="goTo('discoverScreen','navDiscover')"><i class="ti ti-headphones"></i> Start discovering</button>
+          <button class="btn-secondary" onclick="goTo('submitScreen','navSubmit')"><i class="ti ti-upload"></i> Submit your beats</button>
+        </div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-cell"><div class="stat-num" id="statBeats">–</div><div class="stat-lbl">Beats</div></div>
+        <div class="stat-cell"><div class="stat-num" id="statProducers">–</div><div class="stat-lbl">Producers</div></div>
+        <div class="stat-cell"><div class="stat-num">Free</div><div class="stat-lbl">Always</div></div>
+      </div>
+      <div class="features">
+        <div class="feature-card">
+          <div class="feat-icon"><i class="ti ti-arrows-shuffle"></i></div>
+          <div><div class="feat-title">Swipe to discover</div><div class="feat-desc">No endless lists. Hear a beat, decide instantly — skip or save to your crate.</div></div>
+        </div>
+        <div class="feature-card">
+          <div class="feat-icon"><i class="ti ti-adjustments-horizontal"></i></div>
+          <div><div class="feat-title">Filter by genre</div><div class="feat-desc">Trap, Drill, R&amp;B, Lo-Fi, Afrobeats and more — filter the feed directly in the Discover tab.</div></div>
+        </div>
+        <div class="feature-card">
+          <div class="feat-icon"><i class="ti ti-link"></i></div>
+          <div><div class="feat-title">License in one tap</div><div class="feat-desc">Found something? Go straight to the producer's store — BeatStars, Splice, SoundCloud or wherever they sell.</div></div>
+        </div>
+      </div>
+      <div class="faq-section">
+        <div class="faq-title">Frequently asked questions</div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">Is BeatSwipe free to use?<i class="ti ti-plus"></i></button>
+          <div class="faq-a">Yes — always. Discovering, swiping, and saving beats is completely free. You only pay when you license a beat directly from the producer.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">How do I license a beat?<i class="ti ti-plus"></i></button>
+          <div class="faq-a">Save a beat to your Crate, then tap the buy button. It takes you straight to the producer's store — BeatStars, Splice, SoundCloud, or their own site. We don't handle payments ourselves.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">Can I submit my own beats?<i class="ti ti-plus"></i></button>
+          <div class="faq-a">Absolutely. Hit the Submit tab, fill in your info and preview link (YouTube or SoundCloud), and we'll review it within 48 hours. It's free for all producers.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">Do I need an account?<i class="ti ti-plus"></i></button>
+          <div class="faq-a">No account needed to discover and swipe. Create a free account to sync your Crate across devices — so you never lose a saved beat.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">What genres are on BeatSwipe?<i class="ti ti-plus"></i></button>
+          <div class="faq-a">Trap, Drill, R&B, Lo-Fi, Afrobeats, Synthwave, Boom Bap, Acoustic and more. Use the filter in Discover to narrow it down to exactly what you need.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">Does BeatSwipe take a cut from sales?<i class="ti ti-plus"></i></button>
+          <div class="faq-a">No. We use affiliate links where available, but the beat price you see on the producer's store is what you pay — no extra fees from us.</div>
+        </div>
+      </div>
+      <div class="cta-strip">
+        <button class="btn-primary" onclick="goTo('discoverScreen','navDiscover')"><i class="ti ti-player-play"></i> Open the app</button>
+        <div class="cta-label">Free to use · No account needed</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DISCOVER -->
+  <div class="screen" id="discoverScreen">
+    <div class="top-bar">
+      <div class="wordmark">Beat<b>Swipe</b></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button onclick="openFilterModal()" style="width:32px;height:32px;border-radius:9px;background:var(--bg-2);border:0.5px solid var(--border-2);color:var(--text-2);display:flex;align-items:center;justify-content:center;cursor:pointer" id="filterIconBtn" aria-label="Filter">
+          <i class="ti ti-adjustments-horizontal" style="font-size:16px"></i>
+        </button>
+        <div class="top-badge" id="cardCounter">1 / 3</div>
+      </div>
+    </div>
+    <div class="cat-row" id="catRow">
+      <button class="cat-pill active" data-cat="full">Full Beats</button>
+      <button class="cat-pill" data-cat="loops">Loops</button>
+      <button class="cat-pill" data-cat="drums">Drums</button>
+      <button class="cat-pill" data-cat="samples">Samples</button>
+    </div>
+    <div class="card-wrap" id="cardWrap"></div>
+    <div class="swipe-hint">
+      <span class="hint"><i class="ti ti-x" style="font-size:13px;color:#e05252"></i> skip</span>
+      <span class="hint"><i class="ti ti-flame" style="font-size:13px;color:var(--accent-mid)"></i> save to crate</span>
+    </div>
+    <div class="action-row">
+      <button class="act-btn btn-skip" onclick="doSwipe('left')" aria-label="Skip"><i class="ti ti-x"></i></button>
+      <button class="act-btn btn-save" onclick="doSwipe('right')" aria-label="Save"><i class="ti ti-flame"></i></button>
+    </div>
+  </div>
+
+  <!-- CRATE -->
+  <div class="screen" id="crateScreen">
+    <div class="crate-header">
+      <div class="crate-title">Your crate</div>
+      <div class="crate-sub" id="crateCountLbl">0 beats saved</div>
+    </div>
+    <div class="crate-body" id="crateBody">
+      <div class="crate-empty"><i class="ti ti-music-off"></i>Nothing here yet.<br>Go swipe some beats!</div>
+    </div>
+  </div>
+
+  <!-- SUBMIT -->
+  <div class="screen" id="submitScreen">
+    <div class="submit-header">
+      <div class="submit-title">Submit your beats</div>
+      <div class="submit-sub">We'll review your submission and add it to the feed. Free for all producers.</div>
+    </div>
+    <div class="submit-scroll">
+      <div class="field-group">
+        <label class="field-label">Producer name *</label>
+        <input type="text" id="f-producer" placeholder="Your name or alias">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Track title *</label>
+        <input type="text" id="f-title" placeholder="e.g. Midnight Drive">
+      </div>
+      <div class="field-group field-row">
+        <div>
+          <label class="field-label">BPM *</label>
+          <input type="number" id="f-bpm" placeholder="140">
+        </div>
+        <div>
+          <label class="field-label">Key</label>
+          <input type="text" id="f-key" placeholder="F# Min">
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Genre *</label>
+        <select id="f-genre">
+          <option value="">Select genre...</option>
+          <option>Trap</option><option>Drill</option><option>R&B</option>
+          <option>Lo-Fi</option><option>Afrobeats</option><option>Synthwave</option>
+          <option>Acoustic</option><option>Boom Bap</option><option>Other</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Type *</label>
+        <select id="f-type">
+          <option value="">Select type...</option>
+          <option>Full Beat</option>
+          <option>Loop</option>
+          <option>Drum Kit</option>
+          <option>Sample</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Preview type *</label>
+        <select id="f-preview-type" onchange="updatePreviewLabel()">
+          <option value="">Select type...</option>
+          <option value="YouTube">YouTube</option>
+          <option value="SoundCloud">SoundCloud</option>
+          <option value="MP3">MP3 — direkt hochladen</option>
+        </select>
+      </div>
+
+      <!-- URL preview (YouTube / SoundCloud) -->
+      <div class="field-group" id="preview-url-group" style="display:none">
+        <label class="field-label" id="preview-url-label">Preview URL *</label>
+        <input type="url" id="f-preview" placeholder="https://...">
+        <div id="preview-hint" style="font-size:11px;color:var(--text-3);margin-top:5px"></div>
+      </div>
+
+      <!-- MP3 File Upload -->
+      <div class="field-group" id="preview-mp3-group" style="display:none">
+        <label class="field-label">MP3 Datei hochladen *</label>
+
+        <!-- shown when NOT logged in -->
+        <div id="uploadLoginHint" style="display:none;background:var(--bg-2);border:0.5px solid var(--border-2);border-radius:14px;padding:18px 16px;text-align:center">
+          <i class="ti ti-lock" style="font-size:26px;color:var(--accent-mid);display:block;margin-bottom:8px"></i>
+          <div style="font-size:14px;font-weight:600;margin-bottom:4px">Account erforderlich</div>
+          <div style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.5">Erstelle einen kostenlosen Account um MP3s direkt hochzuladen.</div>
+          <button onclick="goTo('profileScreen','navProfile')" style="padding:10px 22px;border-radius:10px;background:var(--accent);border:none;color:#fff;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+            <i class="ti ti-user"></i> Jetzt registrieren
+          </button>
+        </div>
+
+        <!-- shown when logged in -->
+        <div id="uploadLoggedIn" style="display:none">
+          <div class="upload-drop" id="uploadDrop" onclick="document.getElementById('f-mp3-file').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+            <input type="file" id="f-mp3-file" accept="audio/mpeg,.mp3" style="display:none" onchange="handleFileSelect(event)">
+            <i class="ti ti-file-music"></i>
+            <div class="upload-drop-title">MP3 hier reinziehen oder klicken</div>
+            <div class="upload-drop-sub">Nur MP3 · max. 15 MB</div>
+          </div>
+          <div class="upload-file-selected" id="uploadFileSelected" style="display:none">
+            <i class="ti ti-file-music"></i>
+            <span class="upload-file-name" id="uploadFileName">–</span>
+            <span class="upload-file-size" id="uploadFileSize">–</span>
+            <button class="upload-remove" onclick="removeFile()" title="Entfernen"><i class="ti ti-x"></i></button>
+          </div>
+          <div class="upload-progress-wrap" id="uploadProgressWrap">
+            <div class="upload-progress-bar"><div class="upload-progress-fill" id="uploadProgressFill"></div></div>
+            <div class="upload-progress-lbl" id="uploadProgressLbl">Uploading...</div>
+          </div>
+          <div class="upload-error" id="uploadError"></div>
+          <div id="uploadDebug" style="display:none;background:var(--bg-3);border-radius:10px;padding:10px 12px;margin-top:8px;border:0.5px solid var(--border-2)"></div>
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Wo kann man den Beat kaufen? <span style="color:var(--text-3);font-weight:400">(optional)</span></label>
+        <input type="url" id="f-buy" placeholder="BeatStars, Splice, Instagram, Website...">
+        <div style="font-size:11px;color:var(--text-3);margin-top:5px">BeatStars, Splice, deine Website, Instagram — alles möglich</div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Anything else?</label>
+        <textarea id="f-note" placeholder="Additional info, collab requests..."></textarea>
+      </div>
+      <button class="submit-btn" onclick="submitForm()"><i class="ti ti-send"></i> Submit for review</button>
+      <div class="success-msg" id="successMsg">
+        <i class="ti ti-circle-check"></i>
+        <p>Submission received! We'll review your beat and add it to the feed within 48h.</p>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- PRODUCER PROFILE -->
+  <div class="screen" id="producerProfileScreen">
+    <div class="top-bar">
+      <div class="wordmark">Beat<b>Swipe</b></div>
+      <div class="top-badge" id="producerProfileBadge">Producer</div>
+    </div>
+    <div class="producer-screen-wrap">
+      <button class="producer-back" onclick="goBackFromProducer()">
+        <i class="ti ti-arrow-left"></i> Back
+      </button>
+      <div id="producerProfileContent"></div>
+    </div>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="screen" id="profileScreen">
+    <div class="top-bar">
+      <div class="wordmark">Beat<b>Swipe</b></div>
+      <div class="top-badge">Account</div>
+    </div>
+    <div class="profile-wrap" id="profileWrap">
+      <!-- filled by JS -->
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="nav-bar">
+    <button class="nav-tab active" id="navHome" onclick="goTo('landScreen','navHome')"><i class="ti ti-home"></i>Home<div class="nav-dot"></div></button>
+    <button class="nav-tab" id="navDiscover" onclick="goTo('discoverScreen','navDiscover')"><i class="ti ti-headphones"></i>Discover<div class="nav-dot"></div></button>
+    <button class="nav-tab" id="navCrate" onclick="goTo('crateScreen','navCrate')"><i class="ti ti-shopping-cart"></i>Crate<div class="nav-dot"></div></button>
+    <button class="nav-tab" id="navSubmit" onclick="goTo('submitScreen','navSubmit')"><i class="ti ti-upload"></i>Submit<div class="nav-dot"></div></button>
+    <button class="nav-tab" id="navProfile" onclick="goTo('profileScreen','navProfile')"><i class="ti ti-user"></i>Profile<div class="nav-dot"></div></button>
+  </div>
+
+  <!-- IMPRESSUM MODAL -->
+  <div class="info-modal-backdrop" id="impressumModal" onclick="closeInfoIfBackdrop(event,'impressumModal')">
+    <div class="info-modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-head">
+        <div class="modal-title">Impressum</div>
+        <button class="modal-close" onclick="closeInfoModal('impressumModal')"><i class="ti ti-x" style="font-size:14px"></i></button>
+      </div>
+      <div class="info-modal-body">
+        <h3>Angaben gemäß § 5 TMG</h3>
+        <p>BeatSwipe<br>Inhaber: [Dein Name]<br>[Straße Hausnummer]<br>[PLZ Ort], Österreich</p>
+        <h3>Kontakt</h3>
+        <p>E-Mail: <a href="mailto:hello@beatswipe.app">hello@beatswipe.app</a></p>
+        <h3>Haftungsausschluss</h3>
+        <p>BeatSwipe ist eine Entdeckungsplattform. Wir sind nicht Partei bei Lizenzverträgen zwischen Käufern und Produzenten. Alle Transaktionen erfolgen direkt über die verlinkten Drittplattformen.</p>
+        <h3>Urheberrecht</h3>
+        <p>Die durch BeatSwipe erstellten Inhalte unterliegen dem Urheberrecht. Beats und Samples sind Eigentum der jeweiligen Produzenten.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATENSCHUTZ MODAL -->
+  <div class="info-modal-backdrop" id="privacyModal" onclick="closeInfoIfBackdrop(event,'privacyModal')">
+    <div class="info-modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-head">
+        <div class="modal-title">Datenschutz</div>
+        <button class="modal-close" onclick="closeInfoModal('privacyModal')"><i class="ti ti-x" style="font-size:14px"></i></button>
+      </div>
+      <div class="info-modal-body">
+        <h3>Verantwortlicher</h3>
+        <p>BeatSwipe — <a href="mailto:hello@beatswipe.app">hello@beatswipe.app</a></p>
+        <h3>Daten die wir speichern</h3>
+        <p>Nur wenn du ein Konto erstellst: E-Mail-Adresse und deine gespeicherten Beats (Crate). Diese werden verschlüsselt in Supabase gespeichert und nicht an Dritte weitergegeben.</p>
+        <h3>Cookies & Tracking</h3>
+        <p>BeatSwipe verwendet keine Tracking-Cookies und keine Werbe-Netzwerke. Wir analysieren keine persönlichen Nutzungsdaten.</p>
+        <h3>Drittanbieter</h3>
+        <p>Beim Klicken auf externe Links (BeatStars, Splice etc.) gelten deren Datenschutzbestimmungen. Wir haben keinen Einfluss auf diese Plattformen.</p>
+        <h3>Deine Rechte</h3>
+        <p>Du kannst jederzeit die Löschung deines Kontos und aller gespeicherten Daten per Mail beantragen: <a href="mailto:hello@beatswipe.app">hello@beatswipe.app</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTER MODAL -->
+  <div class="modal-backdrop" id="filterModal" onclick="closeFilterIfBackdrop(event)">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-head">
+        <div class="modal-title">Filter beats</div>
+        <button class="modal-close" onclick="closeFilterModal()"><i class="ti ti-x" style="font-size:14px"></i></button>
+      </div>
+      <div class="modal-body">
+        <div>
+          <div class="filter-label">GENRE</div>
+          <div class="filter-pills" id="genrePills">
+            <button class="filter-pill active" data-genre="all">All</button>
+            <button class="filter-pill" data-genre="Trap">Trap</button>
+            <button class="filter-pill" data-genre="Drill">Drill</button>
+            <button class="filter-pill" data-genre="R&B">R&amp;B</button>
+            <button class="filter-pill" data-genre="Lo-Fi">Lo-Fi</button>
+            <button class="filter-pill" data-genre="Afrobeats">Afrobeats</button>
+            <button class="filter-pill" data-genre="Synthwave">Synthwave</button>
+            <button class="filter-pill" data-genre="Boom Bap">Boom Bap</button>
+            <button class="filter-pill" data-genre="Acoustic">Acoustic</button>
+            <button class="filter-pill" data-genre="Other">Other</button>
+          </div>
+        </div>
+        <button class="modal-apply" onclick="applyFilter()"><i class="ti ti-player-play"></i> Start swiping</button>
+      </div>
+    </div>
+  </div>
+  <!-- AVATAR CROP MODAL -->
+  <div class="crop-backdrop" id="cropBackdrop">
+    <div class="crop-title">Profilbild zuschneiden</div>
+    <div class="crop-container" id="cropContainer">
+      <img id="cropImg" draggable="false">
+      <div class="crop-overlay"></div>
+    </div>
+    <div class="crop-zoom-wrap">
+      <i class="ti ti-zoom-out"></i>
+      <input type="range" id="cropZoom" min="1" max="3" step="0.01" value="1">
+      <i class="ti ti-zoom-in"></i>
+    </div>
+    <div class="crop-btns">
+      <button class="crop-cancel" onclick="closeCrop()">Abbrechen</button>
+      <button class="crop-save" onclick="confirmCrop()"><i class="ti ti-check"></i> Speichern</button>
+    </div>
+  </div>
+
+</div><!-- /shell -->
+  </div><!-- /desktop-right -->
+</div><!-- /desktop-layout -->
+
+<script>
+// ─── BEAT DATABASE ─────────────────────────────────────────────────────────
+// Beats werden live von Airtable geladen (nur Status = Approved)
+let db = { full: [], loops: [], drums: [], samples: [] };
+let _rawDb = { full: [], loops: [], drums: [], samples: [] }; // unfiltered copy
+
+function typeTocat(type) {
+  if (!type) return 'full';
+  const t = type.toLowerCase();
+  if (t.includes('drum') || t.includes('kit')) return 'drums';
+  if (t.includes('sample')) return 'samples';
+  if (t.includes('loop') || t.includes('instrumental')) return 'loops';
+  return 'full';
+}
+
+async function loadBeats() {
+  const wrap = document.getElementById('cardWrap');
+  if (wrap) wrap.innerHTML = `<div class="empty-card"><i class="ti ti-loader" style="animation:spin 1s linear infinite"></i><br>Loading beats...</div>`;
+  try {
+    const res = await fetch('/api/beats');
+    const data = await res.json();
+    if (data.beats && data.beats.length) {
+      db = { full: [], loops: [], drums: [], samples: [] };
+      data.beats.forEach(b => db[typeTocat(b.type)].push(b));
+      _rawDb = JSON.parse(JSON.stringify(db)); // save unfiltered copy
+      updateStats();
+    }
+  } catch(e) { console.log('API fallback'); }
+  restoreSwipeState();
+  // If all categories are "done" but beats exist, it means new beats were added — reset
+  const allDone = Object.keys(db).every(k => !db[k].length || catIdx[k] >= db[k].length);
+  if (allDone && Object.values(db).flat().length > 0) {
+    Object.keys(catIdx).forEach(k => catIdx[k] = 0);
+    saveSwipeState();
+  }
+  renderCard();
+}
+
+// Fallback hardcoded beats (werden überschrieben wenn API antwortet)
+const _fallback = {
+  full: [
+    {
+      id:'f1', title:'Midnight Drive', producer:'MetroVibe',
+      type:'Full Beat', bpm:'140 BPM', key:'F# Min', genre:'Trap', color:'#F43F5E',
+      mp3:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+      buy:'https://beatstars.com'
+    },
+    {
+      id:'f2', title:'Summer Breeze', producer:'OVO_Type',
+      type:'Full Beat', bpm:'105 BPM', key:'C Maj', genre:'R&B', color:'#534AB7',
+      mp3:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
+      buy:'https://beatstars.com'
+    },
+    {
+      id:'f3', title:'Night Vision', producer:'GhostProd',
+      type:'Full Beat', bpm:'135 BPM', key:'A Min', genre:'Drill', color:'#185FA5',
+      mp3:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
+      buy:'https://beatstars.com'
+    }
+  ],
+  inst: [
+    {
+      id:'i1', title:'Guitar Loop 04', producer:'StringsGod',
+      type:'Instrumental', bpm:'90 BPM', key:'E Min', genre:'Acoustic', color:'#1D9E75',
+      mp3:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3',
+      buy:'https://beatstars.com'
+    },
+    {
+      id:'i2', title:'Dark Synth Brass', producer:'CyberPunk',
+      type:'Instrumental', bpm:'120 BPM', key:'D Min', genre:'Synthwave', color:'#993556',
+      mp3:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3',
+      buy:'https://beatstars.com'
+    }
+  ],
+  drums: [
+    {
+      id:'d1', title:'Drill Bop Break', producer:'UK_Ghost',
+      type:'Drums', bpm:'142 BPM', key:'N/A', genre:'Drill', color:'#993C1D',
+      mp3:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3',
+      buy:'https://beatstars.com'
+    },
+    {
+      id:'d2', title:'LoFi Percussion', producer:'ChillBeats',
+      type:'Drums', bpm:'85 BPM', key:'N/A', genre:'Lo-Fi', color:'#185FA5',
+      mp3:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3',
+      buy:'https://beatstars.com'
+    }
+  ]
+};
+// Use fallback if db is empty after API load
+function ensureFallback() {
+  if (!db.full.length && !db.inst.length && !db.drums.length) {
+    db = _fallback;
+  }
+}
+
+// ─── AUDIO STATE ──────────────────────────────────────────────────────────
+let cat = 'full', crate = [];
+// Per-category swipe index
+const catIdx = { full: 0, loops: 0, drums: 0, samples: 0 };
+// Track skipped beat IDs per category (not saved ones)
+const skippedIds = { full: [], loops: [], drums: [], samples: [] };
+// Proxy: idx always points to current cat's index
+Object.defineProperty(window, 'idx', {
+  get() { return catIdx[cat]; },
+  set(v) { catIdx[cat] = v; }
+});
+let audio = null;       // current HTMLAudioElement
+let vizTimer = null;    // waveform animation interval
+let isPlaying = false;
+
+// ─── AUDIO ENGINE ─────────────────────────────────────────────────────────
+function loadTrack(mp3Url) {
+  stopTrack();
+  audio = new Audio(mp3Url);
+  audio.preload = 'metadata';
+
+  audio.addEventListener('timeupdate', onTimeUpdate);
+  audio.addEventListener('ended', onEnded);
+  audio.addEventListener('loadedmetadata', () => {
+    const dur = document.getElementById('timeDur');
+    if (dur) dur.textContent = fmtTime(audio.duration);
+  });
+}
+
+function togglePlay() {
+  if (!audio) return;
+  if (isPlaying) {
+    audio.pause();
+    setPlayState(false);
+  } else {
+    audio.play().catch(() => {});
+    setPlayState(true);
+  }
+}
+
+function stopTrack() {
+  if (audio) {
+    audio.pause();
+    audio.src = '';
+    audio = null;
+  }
+  setPlayState(false);
+  clearInterval(vizTimer);
+}
+
+function setPlayState(playing) {
+  isPlaying = playing;
+  const btn = document.getElementById('playBtn');
+  if (btn) {
+    btn.classList.toggle('playing', playing);
+    const icon = btn.querySelector('i');
+    if (icon) icon.className = playing ? 'ti ti-player-pause' : 'ti ti-player-play';
+    if (!playing && icon) icon.style.marginLeft = '0';
+    if (playing && icon) icon.style.marginLeft = '2px';
+  }
+  clearInterval(vizTimer);
+  vizTimer = setInterval(() => {
+    const bars = document.querySelectorAll('.wbar');
+    bars.forEach(b => {
+      const max = playing ? 54 : 16;
+      const min = playing ? 6 : 3;
+      b.style.height = Math.round(Math.random() * max + min) + 'px';
+      b.style.opacity = playing ? '1' : '0.55';
+    });
+  }, playing ? 100 : 600);
+}
+
+function onTimeUpdate() {
+  if (!audio) return;
+  const pct = (audio.currentTime / audio.duration) * 100 || 0;
+  const fill = document.getElementById('progressFill');
+  if (fill) fill.style.width = pct + '%';
+  const cur = document.getElementById('timeCur');
+  if (cur) cur.textContent = fmtTime(audio.currentTime);
+}
+
+function onEnded() {
+  setPlayState(false);
+  const fill = document.getElementById('progressFill');
+  if (fill) fill.style.width = '0%';
+  const cur = document.getElementById('timeCur');
+  if (cur) cur.textContent = '0:00';
+}
+
+function seekTo(e) {
+  if (!audio || !audio.duration) return;
+  const bar = e.currentTarget;
+  const rect = bar.getBoundingClientRect();
+  const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  audio.currentTime = pct * audio.duration;
+}
+
+function fmtTime(s) {
+  if (!s || isNaN(s)) return '0:00';
+  const m = Math.floor(s / 60);
+  return m + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+}
+
+// ─── NAVIGATION ───────────────────────────────────────────────────────────
+// goTo is defined after producer logic below — forward declaration placeholder
+
+// ─── CARD RENDER ──────────────────────────────────────────────────────────
+// ─── YOUTUBE HELPERS ──────────────────────────────────────────────────────
+function isSoundCloud(url) {
+  return url && url.includes('soundcloud.com');
+}
+
+function isYouTube(url) {
+  return url && (url.includes('youtube.com') || url.includes('youtu.be'));
+}
+
+function getYtId(url) {
+  const m = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+
+function startVideo() {
+  const overlay = document.getElementById('ytOverlay');
+  const frame   = document.getElementById('ytFrame');
+  if (!overlay || !frame) return;
+  frame.src = frame.getAttribute('data-src') + '&autoplay=1';
+  overlay.style.opacity = '0';
+  overlay.style.pointerEvents = 'none';
+}
+
+function renderCard() {
+  stopTrack();
+  const wrap = document.getElementById('cardWrap');
+  // Filter out beats already in crate from discover
+  const crateIds = new Set(crate.map(b => b.id));
+  const list = db[cat].filter(b => !crateIds.has(b.id));
+  // Sync idx to filtered list (clamp)
+  if (catIdx[cat] > list.length) catIdx[cat] = list.length;
+  const counter = document.getElementById('cardCounter');
+
+  if (!list.length || idx >= list.length) {
+    counter.textContent = list.length ? 'Done!' : '–';
+    // Build replay skipped button if there are skipped beats
+    const skippedCount = skippedIds[cat].length;
+    const replayBtn = skippedCount > 0 ? `
+      <button onclick="replaySkipped()" style="margin-top:14px;padding:12px 22px;border-radius:12px;background:var(--bg-3);border:0.5px solid var(--border-2);color:var(--text-2);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;width:100%;justify-content:center">
+        <i class="ti ti-rotate" style="font-size:16px;color:var(--accent-mid)"></i> Replay ${skippedCount} skipped beat${skippedCount===1?'':'s'}
+      </button>` : '';
+    wrap.innerHTML = `<div class="empty-card"><i class="ti ti-music-off"></i>All caught up!<br>Switch category or check back later.${replayBtn}</div>`;
+    return;
+  }
+
+  counter.textContent = (idx + 1) + ' / ' + list.length;
+  const d = list[idx];
+  const bars = Array(36).fill(0).map(() =>
+    `<div class="wbar" style="background:${d.color};height:${Math.round(Math.random()*14+3)}px;opacity:0.55"></div>`
+  ).join('');
+
+  const useYT = isYouTube(d.mp3);
+  const useSC = isSoundCloud(d.mp3);
+  const ytId  = useYT ? getYtId(d.mp3) : null;
+  const embedSrc = ytId ? `https://www.youtube.com/embed/${ytId}?rel=0&modestbranding=1&showinfo=0&color=white&iv_load_policy=3` : '';
+  const scEmbedSrc = useSC ? `https://w.soundcloud.com/player/?url=${encodeURIComponent(d.mp3)}&color=%23EF9F27&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false` : '';
+
+  const playerHTML = useYT ? `
+    <div class="yt-wrap">
+      <iframe id="ytFrame" data-src="${embedSrc}" src="${embedSrc}"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen></iframe>
+      <div class="yt-overlay" id="ytOverlay" onclick="startVideo()">
+        <div class="yt-play-icon"><i class="ti ti-player-play"></i></div>
+      </div>
+    </div>
+    <div class="yt-footer">
+      <span class="yt-hint"><i class="ti ti-brand-youtube" style="font-size:13px;color:#FF0000;vertical-align:middle;margin-right:3px"></i>Tap to preview</span>
+      <a href="${d.mp3}" target="_blank" class="yt-link">YouTube <i class="ti ti-external-link" style="font-size:11px"></i></a>
+    </div>` : useSC ? `
+    <div style="border-radius:14px;overflow:hidden;border:0.5px solid var(--border)">
+      <iframe
+        src="${scEmbedSrc}"
+        width="100%" height="120" scrolling="no" frameborder="no" allow="autoplay"
+        style="display:block;background:#000">
+      </iframe>
+    </div>
+    <div class="yt-footer">
+      <span class="yt-hint"><i class="ti ti-brand-soundcloud" style="font-size:13px;color:#FF5500;vertical-align:middle;margin-right:3px"></i>SoundCloud preview</span>
+      <a href="${d.mp3}" target="_blank" class="yt-link">Open <i class="ti ti-external-link" style="font-size:11px"></i></a>
+    </div>` : `
+    <div class="player-area">
+      <div class="waveform-wrap" onclick="togglePlay()">
+        <div class="waveform">${bars}</div>
+      </div>
+      <div class="player-controls">
+        <button class="play-btn" id="playBtn" onclick="togglePlay()" aria-label="Play/Pause">
+          <i class="ti ti-player-play" style="margin-left:2px"></i>
+        </button>
+        <div class="progress-wrap">
+          <div class="progress-bar" id="progressBar" onclick="seekTo(event)">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <div class="time-row">
+            <span class="time-lbl" id="timeCur">0:00</span>
+            <span class="time-lbl" id="timeDur">--:--</span>
+          </div>
+        </div>
+        <a href="${d.buy}" target="_blank" rel="noopener" class="buy-link">
+          <i class="ti ti-shopping-cart" style="font-size:15px"></i>Buy
+        </a>
+      </div>
+    </div>`;
+
+  wrap.innerHTML = `
+    <div class="beat-card" id="theCard">
+      <div class="card-head">
+        <span class="swipe-label swipe-label-skip" id="labelSkip">SKIP</span>
+        <span class="swipe-label swipe-label-save" id="labelSave">SAVE</span>
+        <div class="cover-box" style="background:${d.color}20;border:0.5px solid ${d.color}50">
+          <i class="ti ti-${d.type==='Drums'?'circle':'music'}" style="font-size:24px;color:${d.color}"></i>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div class="track-name">${d.title}</div>
+          <div class="track-by" style="cursor:pointer;color:var(--accent-mid)" onclick="openProducerProfile('${d.producer.replace(/'/g,"\\'")}')">by ${d.producer} <i class="ti ti-arrow-right" style="font-size:10px"></i></div>
+        </div>
+        <span class="type-pill">${d.type}</span>
+      </div>
+      <div class="tag-row">
+        <span class="tag">${d.bpm}</span>
+        <span class="tag">${d.key}</span>
+        <span class="tag">${d.genre}</span>
+      </div>
+      ${playerHTML}
+    </div>`;
+
+  // Idle waveform animation (only for MP3)
+  if (!useYT && !useSC) {
+    vizTimer = setInterval(() => {
+      document.querySelectorAll('.wbar').forEach(b => {
+        b.style.height = Math.round(Math.random() * 14 + 3) + 'px';
+      });
+    }, 600);
+    loadTrack(d.mp3);
+  }
+}
+
+// ─── SWIPE GESTURE (touch + mouse) ───────────────────────────────────────
+(function initSwipeGesture() {
+  let startX = 0, startY = 0, curX = 0, isDragging = false, isLocked = false;
+  const SWIPE_THRESHOLD = 80;   // px to trigger swipe
+  const MAX_ROTATION   = 18;    // degrees at full drag
+
+  function getCard() { return document.getElementById('theCard'); }
+
+  function onStart(x, y) {
+    const card = getCard();
+    if (!card || isLocked) return;
+    startX = x; startY = y; curX = 0; isDragging = true;
+    card.classList.add('dragging');
+  }
+
+  function onMove(x, y) {
+    if (!isDragging || isLocked) return;
+    const card = getCard();
+    if (!card) return;
+
+    const dx = x - startX;
+    const dy = y - startY;
+
+    // If vertical scroll dominates early, cancel drag
+    if (!curX && Math.abs(dy) > Math.abs(dx) + 8) {
+      isDragging = false;
+      card.classList.remove('dragging');
+      return;
+    }
+
+    curX = dx;
+    const rot = (dx / 320) * MAX_ROTATION;
+    card.style.transform = `translateX(${dx}px) rotate(${rot}deg)`;
+
+    // Label opacity
+    const pct = Math.min(Math.abs(dx) / SWIPE_THRESHOLD, 1);
+    const skipLabel = document.getElementById('labelSkip');
+    const saveLabel = document.getElementById('labelSave');
+    if (skipLabel) skipLabel.style.opacity = dx < 0 ? pct : 0;
+    if (saveLabel) saveLabel.style.opacity = dx > 0 ? pct : 0;
+
+    // Tint action buttons
+    const btnSkip = document.querySelector('.btn-skip');
+    const btnSave = document.querySelector('.btn-save');
+    if (btnSkip) btnSkip.style.opacity = dx < 0 ? 0.5 + pct * 0.5 : 0.5;
+    if (btnSave) btnSave.style.opacity = dx > 0 ? 0.5 + pct * 0.5 : 0.5;
+  }
+
+  function onEnd() {
+    if (!isDragging || isLocked) return;
+    isDragging = false;
+    const card = getCard();
+    if (!card) return;
+    card.classList.remove('dragging');
+
+    // Reset button opacity
+    document.querySelectorAll('.act-btn').forEach(b => b.style.opacity = '');
+
+    if (Math.abs(curX) >= SWIPE_THRESHOLD) {
+      isLocked = true;
+      doSwipe(curX > 0 ? 'right' : 'left');
+      setTimeout(() => { isLocked = false; }, 450);
+    } else {
+      // Snap back with wobble
+      card.style.transform = '';
+      card.classList.add('wobble');
+      const skipLabel = document.getElementById('labelSkip');
+      const saveLabel = document.getElementById('labelSave');
+      if (skipLabel) skipLabel.style.opacity = 0;
+      if (saveLabel) saveLabel.style.opacity = 0;
+      setTimeout(() => { card.classList.remove('wobble'); }, 460);
+    }
+  }
+
+  // ── TOUCH ──
+  document.addEventListener('touchstart', e => {
+    if (!e.target.closest('#theCard')) return;
+    // Don't hijack YouTube/SoundCloud iframes or buttons
+    if (e.target.closest('iframe,button,a,.progress-bar,.waveform-wrap')) return;
+    onStart(e.touches[0].clientX, e.touches[0].clientY);
+  }, { passive: true });
+
+  document.addEventListener('touchmove', e => {
+    if (!isDragging) return;
+    onMove(e.touches[0].clientX, e.touches[0].clientY);
+  }, { passive: true });
+
+  document.addEventListener('touchend', onEnd, { passive: true });
+
+  // ── MOUSE ──
+  document.addEventListener('mousedown', e => {
+    if (!e.target.closest('#theCard')) return;
+    if (e.target.closest('iframe,button,a,.progress-bar,.waveform-wrap')) return;
+    onStart(e.clientX, e.clientY);
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    onMove(e.clientX, e.clientY);
+  });
+
+  document.addEventListener('mouseup', onEnd);
+  document.addEventListener('mouseleave', onEnd);
+})();
+
+// ─── FAQ ──────────────────────────────────────────────────────────────────
+function toggleFaq(btn) {
+  const answer = btn.nextElementSibling;
+  const isOpen = btn.classList.contains('open');
+  document.querySelectorAll('.faq-q').forEach(b => { b.classList.remove('open'); b.nextElementSibling.classList.remove('open'); });
+  if (!isOpen) { btn.classList.add('open'); answer.classList.add('open'); }
+}
+
+// ─── INFO MODALS ──────────────────────────────────────────────────────────
+function openInfoModal(id) { document.getElementById(id).classList.add('open'); }
+function closeInfoModal(id) { document.getElementById(id).classList.remove('open'); }
+function closeInfoIfBackdrop(e, id) { if (e.target === document.getElementById(id)) closeInfoModal(id); }
+
+// ─── EMOJI POP ────────────────────────────────────────────────────────────
+function showEmojiPop(dir) {
+  const el = document.createElement('div');
+  el.className = 'swipe-emoji';
+  el.textContent = dir === 'right' ? '🔥' : '👋';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 700);
+}
+
+function doSwipe(dir) {
+  const card = document.getElementById('theCard');
+  if (!card) return;
+  stopTrack();
+  showEmojiPop(dir);
+  card.classList.add(dir === 'left' ? 'fly-left' : 'fly-right');
+  const item = db[cat][idx];
+  if (dir === 'right') {
+    if (!crate.find(i => i.id === item.id)) {
+      crate.push(item);
+      saveBeatToDB(item);
+    }
+    // Remove from skipped if it was there
+    skippedIds[cat] = skippedIds[cat].filter(id => id !== item.id);
+    renderCrate();
+  } else {
+    // Track as skipped
+    if (!skippedIds[cat].includes(item.id)) skippedIds[cat].push(item.id);
+  }
+  setTimeout(() => { idx++; saveSwipeState(); renderCard(); }, 380);
+}
+
+// ─── CRATE ────────────────────────────────────────────────────────────────
+function renderCrate() {
+  const body = document.getElementById('crateBody');
+  const lbl = document.getElementById('crateCountLbl');
+  lbl.textContent = crate.length + ' beat' + (crate.length === 1 ? '' : 's') + ' saved';
+  if (!crate.length) {
+    body.innerHTML = `<div class="crate-empty"><i class="ti ti-music-off"></i>Nothing here yet.<br>Go swipe some beats!</div>`;
+    return;
+  }
+  body.innerHTML = crate.map(d => {
+    const hasBuy = d.buy && d.buy.startsWith('http') && d.buy !== d.mp3;
+    const isYT = isYouTube(d.mp3);
+    const isSC = isSoundCloud(d.mp3);
+    let btnLabel, btnLink;
+    if (hasBuy) {
+      const buyUrl = d.buy.toLowerCase();
+      if (buyUrl.includes('beatstars.com'))        { btnLabel = `<i class="ti ti-external-link"></i> Get on BeatStars`; }
+      else if (buyUrl.includes('splice.com'))       { btnLabel = `<i class="ti ti-external-link"></i> Get on Splice`; }
+      else if (buyUrl.includes('loopmasters.com'))  { btnLabel = `<i class="ti ti-external-link"></i> Get on Loopmasters`; }
+      else if (buyUrl.includes('instagram.com'))    { btnLabel = `<i class="ti ti-brand-instagram"></i> DM on Instagram`; }
+      else if (buyUrl.includes('soundcloud.com'))   { btnLabel = `<i class="ti ti-brand-soundcloud"></i> Get on SoundCloud`; }
+      else if (buyUrl.includes('youtube.com') || buyUrl.includes('youtu.be')) { btnLabel = `<i class="ti ti-brand-youtube"></i> Watch on YouTube`; }
+      else { btnLabel = `<i class="ti ti-external-link"></i> Get this beat`; }
+      btnLink = d.buy;
+    } else if (isYT) {
+      btnLabel = `<i class="ti ti-brand-youtube"></i> Watch on YouTube`;
+      btnLink = d.mp3;
+    } else if (isSC) {
+      btnLabel = `<i class="ti ti-brand-soundcloud"></i> Listen on SoundCloud`;
+      btnLink = d.mp3;
+    } else {
+      btnLabel = null;
+      btnLink = null;
+    }
+    return `
+    <div class="crate-card">
+      <div class="crate-top">
+        <div class="mini-cover" style="background:${d.color}20;border:0.5px solid ${d.color}50">
+          <i class="ti ti-music" style="font-size:20px;color:${d.color}"></i>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div class="crate-name">${d.title}</div>
+          <div class="crate-meta" style="cursor:pointer" onclick="openProducerProfile('${d.producer.replace(/'/g,"\\'")}')"><span style="color:var(--accent-mid)">${d.producer}</span> · ${d.bpm} · ${d.genre}</div>
+        </div>
+      </div>
+      ${btnLink
+        ? `<button class="buy-btn" onclick="window.open('${btnLink}','_blank')">${btnLabel}</button>`
+        : `<div style="font-size:12px;color:var(--text-3);text-align:center;padding:8px 0"><i class="ti ti-info-circle" style="font-size:13px;vertical-align:middle;margin-right:4px"></i>Kontaktiere <span style="color:var(--accent-mid);cursor:pointer" onclick="openProducerProfile('${d.producer.replace(/'/g,"\'")}')">${d.producer}</span> für Lizenzinfos</div>`}
+    </div>`;
+  }).join('');
+}
+
+// ─── CATEGORY PILLS ───────────────────────────────────────────────────────
+document.getElementById('catRow').querySelectorAll('.cat-pill').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.cat-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    cat = btn.dataset.cat; renderCard();
+  };
+});
+
+// ─── MAKE.COM WEBHOOK ─────────────────────────────────────────────────────
+const WEBHOOK_URL = 'https://hook.eu1.make.com/emrsw3rs980mwsi3a1b3kyfcobec3ahb';
+
+// ─── PREVIEW TYPE TOGGLE ──────────────────────────────────────────────────
+let _mp3File = null;      // selected File object
+let _mp3PublicUrl = null; // uploaded Supabase URL
+
+const MAX_FILE_MB = 15;
+const ALLOWED_MIME = 'audio/mpeg';
+const SUPA_BUCKET  = 'beats';
+
+function updatePreviewLabel() {
+  const type = document.getElementById('f-preview-type').value;
+  const urlGroup = document.getElementById('preview-url-group');
+  const mp3Group = document.getElementById('preview-mp3-group');
+  const label    = document.getElementById('preview-url-label');
+  const hint     = document.getElementById('preview-hint');
+  const input    = document.getElementById('f-preview');
+
+  urlGroup.style.display = 'none';
+  mp3Group.style.display = 'none';
+
+  if (!type) return;
+
+  if (type === 'YouTube') {
+    urlGroup.style.display = 'block';
+    label.textContent = 'YouTube Link *';
+    input.placeholder = 'https://youtube.com/watch?v=...';
+    hint.textContent = 'z.B. https://youtube.com/watch?v=DXXofaoixFo';
+  } else if (type === 'SoundCloud') {
+    urlGroup.style.display = 'block';
+    label.textContent = 'SoundCloud Link *';
+    input.placeholder = 'https://soundcloud.com/...';
+    hint.textContent = 'Direktlink zum Track auf SoundCloud';
+  } else if (type === 'MP3') {
+    mp3Group.style.display = 'block';
+    const loginHint  = document.getElementById('uploadLoginHint');
+    const loggedInEl = document.getElementById('uploadLoggedIn');
+    if (currentUser) {
+      loginHint.style.display  = 'none';
+      loggedInEl.style.display = 'block';
+      if (!_mp3File) resetUploadUI();
+      setTimeout(debugUploadState, 300); // show debug info
+    } else {
+      loginHint.style.display  = 'block';
+      loggedInEl.style.display = 'none';
+    }
+  }
+}
+
+// ── Drag & Drop helpers ──
+function handleDragOver(e) {
+  e.preventDefault();
+  document.getElementById('uploadDrop').classList.add('dragover');
+}
+function handleDragLeave(e) {
+  document.getElementById('uploadDrop').classList.remove('dragover');
+}
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('uploadDrop').classList.remove('dragover');
+  const file = e.dataTransfer?.files?.[0];
+  if (file) validateAndSetFile(file);
+}
+function handleFileSelect(e) {
+  const file = e.target.files?.[0];
+  if (file) validateAndSetFile(file);
+}
+
+function validateAndSetFile(file) {
+  const errEl = document.getElementById('uploadError');
+  errEl.style.display = 'none';
+
+  if (file.type !== ALLOWED_MIME && !file.name.toLowerCase().endsWith('.mp3')) {
+    errEl.textContent = 'Nur MP3-Dateien erlaubt.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (file.size > MAX_FILE_MB * 1024 * 1024) {
+    errEl.textContent = `Datei zu groß — max. ${MAX_FILE_MB} MB.`;
+    errEl.style.display = 'block';
+    return;
+  }
+
+  _mp3File = file;
+  _mp3PublicUrl = null; // reset — needs new upload
+
+  // Show file info
+  document.getElementById('uploadDrop').style.display = 'none';
+  const sel = document.getElementById('uploadFileSelected');
+  sel.style.display = 'flex';
+  document.getElementById('uploadFileName').textContent = file.name;
+  document.getElementById('uploadFileSize').textContent = (file.size / (1024*1024)).toFixed(1) + ' MB';
+}
+
+function removeFile() {
+  _mp3File = null;
+  _mp3PublicUrl = null;
+  resetUploadUI();
+}
+
+function resetUploadUI() {
+  document.getElementById('uploadDrop').style.display = 'flex';
+  document.getElementById('uploadFileSelected').style.display = 'none';
+  document.getElementById('uploadProgressWrap').style.display = 'none';
+  document.getElementById('uploadProgressFill').style.width = '0%';
+  document.getElementById('uploadError').style.display = 'none';
+  // Safari fix: completely replace the file input so onchange fires reliably again
+  const oldInput = document.getElementById('f-mp3-file');
+  if (oldInput) {
+    const newInput = document.createElement('input');
+    newInput.type = 'file';
+    newInput.id = 'f-mp3-file';
+    newInput.accept = 'audio/mpeg,.mp3';
+    newInput.style.display = 'none';
+    newInput.onchange = handleFileSelect;
+    oldInput.parentNode.replaceChild(newInput, oldInput);
+  }
+}
+
+async function debugUploadState() {
+  const { data } = await supa.auth.getSession();
+  const session = data?.session;
+  const el = document.getElementById('uploadDebug');
+  if (!el) return;
+  el.style.display = 'block';
+  el.innerHTML = `
+    <div style="font-size:11px;line-height:1.7;color:var(--text-2)">
+      <b style="color:var(--accent-mid)">Debug Info:</b><br>
+      currentUser: <b style="color:${currentUser ? '#4caf50' : '#e05252'}">${currentUser ? currentUser.email : 'null'}</b><br>
+      session: <b style="color:${session ? '#4caf50' : '#e05252'}">${session ? session.user.email : 'null'}</b><br>
+      _mp3File: <b style="color:${_mp3File ? '#4caf50' : '#e05252'}">${_mp3File ? _mp3File.name + ' (' + (_mp3File.size/1024/1024).toFixed(1) + 'MB)' : 'null'}</b><br>
+      bucket: <b style="color:var(--text)">${SUPA_BUCKET}</b>
+    </div>`;
+}
+
+async function uploadMp3ToSupabase() {
+  if (!_mp3File) throw new Error('no file');
+
+  // Check currentUser first (instant, no network call)
+  if (!currentUser) throw new Error('Nicht eingeloggt — bitte zuerst einloggen.');
+
+  // Get token synchronously from localStorage — no async hanging
+  let accessToken = null;
+  try {
+    // Supabase stores session in localStorage under this key
+    const storageKey = `sb-${SUPA_URL.split('//')[1].split('.')[0]}-auth-token`;
+    const stored = localStorage.getItem(storageKey);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      accessToken = parsed?.access_token;
+      console.log('[BeatSwipe] Token from localStorage:', accessToken ? 'found' : 'missing');
+    }
+  } catch(e) {
+    console.warn('[BeatSwipe] localStorage read failed:', e.message);
+  }
+
+  // Fallback: try getSession with short timeout
+  if (!accessToken) {
+    try {
+      const { data } = await Promise.race([
+        supa.auth.getSession(),
+        new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 4000))
+      ]);
+      accessToken = data?.session?.access_token;
+    } catch(e) {
+      console.warn('[BeatSwipe] getSession fallback failed:', e.message);
+    }
+  }
+
+  if (!accessToken) throw new Error('Session abgelaufen — bitte kurz aus- und wieder einloggen.');
+  console.log('[BeatSwipe] Using token:', accessToken.slice(0,20) + '...');
+  const session = { access_token: accessToken };
+
+  const ext = _mp3File.name.split('.').pop();
+  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  console.log('[BeatSwipe] Uploading via REST, file:', fileName, 'size:', _mp3File.size);
+
+  // Show progress bar
+  const progressWrap = document.getElementById('uploadProgressWrap');
+  const progressFill = document.getElementById('uploadProgressFill');
+  const progressLbl  = document.getElementById('uploadProgressLbl');
+  progressWrap.style.display = 'block';
+  progressFill.style.width = '5%';
+  progressLbl.textContent = 'Uploading…';
+
+  // Use XHR instead of fetch — gives real progress events and no CORS issues
+  return await new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    const uploadUrl = `${SUPA_URL}/storage/v1/object/${SUPA_BUCKET}/${fileName}`;
+
+    xhr.upload.addEventListener('progress', e => {
+      if (e.lengthComputable) {
+        const pct = Math.round((e.loaded / e.total) * 95);
+        progressFill.style.width = pct + '%';
+        progressLbl.textContent = `Uploading… ${pct}%`;
+      }
+    });
+
+    xhr.addEventListener('load', () => {
+      console.log('[BeatSwipe] XHR status:', xhr.status, xhr.responseText);
+      if (xhr.status === 200 || xhr.status === 201) {
+        progressFill.style.width = '100%';
+        progressLbl.textContent = 'Upload complete ✓';
+        const publicUrl = `${SUPA_URL}/storage/v1/object/public/${SUPA_BUCKET}/${fileName}`;
+        resolve(publicUrl);
+      } else {
+        progressWrap.style.display = 'none';
+        let errMsg = 'Upload fehlgeschlagen (Status ' + xhr.status + ')';
+        try { errMsg = JSON.parse(xhr.responseText).message || errMsg; } catch(e) {}
+        reject(new Error(errMsg));
+      }
+    });
+
+    xhr.addEventListener('error', () => {
+      progressWrap.style.display = 'none';
+      reject(new Error('Netzwerkfehler beim Upload — Internetverbindung prüfen.'));
+    });
+
+    xhr.addEventListener('timeout', () => {
+      progressWrap.style.display = 'none';
+      reject(new Error('Upload timeout — Datei zu groß oder Verbindung zu langsam.'));
+    });
+
+    xhr.timeout = 120000; // 2 min timeout
+    xhr.open('POST', uploadUrl);
+    xhr.setRequestHeader('Authorization', `Bearer ${session.access_token}`);
+    xhr.setRequestHeader('x-upsert', 'true');
+    xhr.setRequestHeader('Cache-Control', '3600');
+    xhr.send(_mp3File);
+  });
+}
+
+// ─── SUBMIT ───────────────────────────────────────────────────────────────
+async function submitForm() {
+  const fields = ['f-producer','f-title','f-bpm','f-genre','f-type','f-preview-type'];
+  const vals = fields.map(id => document.getElementById(id).value.trim());
+  if (vals.some(v => !v)) { alert('Please fill in all required fields.'); return; }
+
+  const previewType = document.getElementById('f-preview-type').value;
+
+  // Validate preview input based on type
+  let previewUrl = '';
+  if (previewType === 'YouTube' || previewType === 'SoundCloud') {
+    previewUrl = document.getElementById('f-preview')?.value.trim() || '';
+    if (!previewUrl) { alert('Please enter a preview link.'); return; }
+  } else if (previewType === 'MP3') {
+    if (!_mp3File) { alert('Bitte eine MP3-Datei auswählen.'); return; }
+  }
+
+  const producer = document.getElementById('f-producer').value.trim();
+  const title    = document.getElementById('f-title').value.trim();
+  const bpm      = document.getElementById('f-bpm').value.trim();
+  const genre    = document.getElementById('f-genre').value.trim();
+  const type     = document.getElementById('f-type').value.trim();
+  const buyLink  = document.getElementById('f-buy').value.trim();
+  const key      = document.getElementById('f-key').value.trim();
+  const note     = document.getElementById('f-note').value.trim();
+
+  const btn = document.querySelector('.submit-btn');
+  btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Sending...';
+  btn.disabled = true;
+
+  try {
+    // Upload MP3 to Supabase Storage first if needed
+    if (previewType === 'MP3') {
+      const errEl = document.getElementById('uploadError');
+      errEl.style.display = 'none';
+      try {
+        previewUrl = await uploadMp3ToSupabase();
+        _mp3PublicUrl = previewUrl;
+      } catch(uploadErr) {
+        console.error('[BeatSwipe] Upload error:', uploadErr);
+        errEl.textContent = 'Upload fehlgeschlagen: ' + uploadErr.message;
+        errEl.style.display = 'block';
+        // Also scroll error into view so user sees it
+        errEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        btn.innerHTML = '<i class="ti ti-send"></i> Submit for review';
+        btn.disabled = false;
+        return;
+      }
+    }
+
+    const controller = new AbortController();
+    const webhookTimeout = setTimeout(() => controller.abort(), 10000);
+    let res;
+    try {
+      res = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
+        body: JSON.stringify({
+          Producer:    producer,
+          Title:       title,
+          BPM:         parseFloat(bpm) || 0,
+          Key:         key,
+          Genre:       genre,
+          Type:        type,
+          PreviewType: previewType,
+          PreviewURL:  previewUrl,
+          BuyLink:     buyLink,
+          Note:        note,
+          Status:      'New'
+        })
+      });
+    } catch(fetchErr) {
+      // If webhook times out or fails, still show success — file is already uploaded
+      console.warn('[BeatSwipe] Webhook failed (file already uploaded):', fetchErr.message);
+      res = { ok: true };
+    } finally {
+      clearTimeout(webhookTimeout);
+    }
+
+    if (!res.ok) {
+      console.warn('[BeatSwipe] Webhook returned non-ok, but file uploaded — treating as success');
+    }
+
+    // Success — show message briefly then reset form so user can submit again
+    const successMsg = document.getElementById('successMsg');
+    successMsg.style.display = 'block';
+    btn.innerHTML = '<i class="ti ti-send"></i> Submit for review';
+    btn.disabled = false;
+    btn.style.display = 'flex';
+
+    // Reset all fields
+    ['f-producer','f-title','f-bpm','f-key','f-genre','f-type','f-preview-type','f-preview','f-buy','f-note'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (el.tagName === 'SELECT') el.selectedIndex = 0;
+      else el.value = '';
+    });
+    document.getElementById('preview-url-group').style.display = 'none';
+    document.getElementById('preview-mp3-group').style.display = 'none';
+    _mp3File = null;
+    _mp3PublicUrl = null;
+    resetUploadUI();
+
+    // Hide success message after 4 seconds
+    setTimeout(() => { successMsg.style.display = 'none'; }, 4000);
+
+  } catch(e) {
+    console.error('[BeatSwipe] submitForm error:', e);
+    btn.innerHTML = '<i class="ti ti-send"></i> Submit for review';
+    btn.disabled = false;
+    // Show error visibly in the form instead of an alert
+    const errEl = document.getElementById('uploadError');
+    if (errEl) {
+      errEl.textContent = 'Fehler: ' + (e.message || 'Unbekannter Fehler');
+      errEl.style.display = 'block';
+      errEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+      alert('Fehler: ' + (e.message || 'Something went wrong'));
+    }
+  }
+}
+
+
+
+// ─── SUPABASE ──────────────────────────────────────────────────────────────
+const SUPA_URL = 'https://yprwklxolgrlyswqwkzr.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlwcndrbHhvbGdybHlzd3F3a3pyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NDE5MjUsImV4cCI6MjA5NjIxNzkyNX0.Or_pWAg1QuJ3TSVLdC8LKzp1PsYwTxcAfy_YcSAU2ZA';
+const supa = supabase.createClient(SUPA_URL, SUPA_KEY, {
+  auth: {
+    autoRefreshToken: true,      // Supabase refreshes token automatically
+    persistSession: true,
+    detectSessionInUrl: false
+  }
+});
+let currentUser = null;
+
+// Auth state listener
+supa.auth.onAuthStateChange(async (event, session) => {
+  if (event === 'SIGNED_OUT') {
+    currentUser = null;
+    return;
+  }
+  // TOKEN_REFRESHED fires when Supabase auto-renews — update currentUser silently
+  currentUser = session?.user || null;
+  if (event === 'TOKEN_REFRESHED') {
+    console.log('[BeatSwipe] Token auto-refreshed ✓');
+    return;
+  }
+  renderProfile();
+  if (currentUser) {
+    await syncCrateFromDB();
+    await loadUserProfile();
+  }
+});
+
+// ─── PROFILE RENDER ───────────────────────────────────────────────────────
+let authMode = 'login'; // 'login' | 'signup'
+
+let _userProfile = null; // cached profile data
+
+async function loadUserProfile() {
+  if (!currentUser) return;
+  const token = await getAccessToken();
+  if (!token) return;
+  try {
+    const res = await fetch(`${SUPA_URL}/rest/v1/profiles?id=eq.${currentUser.id}&limit=1`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'apikey': SUPA_KEY,
+        'Accept': 'application/json'
+      }
+    });
+    if (res.ok) {
+      const rows = await res.json();
+      _userProfile = rows[0] || {};
+    }
+  } catch(e) {
+    _userProfile = {};
+  }
+  renderProfile();
+}
+
+function getAvatarHTML(size = 64) {
+  if (_userProfile?.avatar_url) {
+    return `<img src="${_userProfile.avatar_url}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;border:2px solid var(--accent)">`;
+  }
+  const initials = (_userProfile?.producer_name || currentUser?.email || '?')[0].toUpperCase();
+  return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:var(--accent-light);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:${Math.round(size*0.38)}px;font-weight:700;color:var(--accent-mid);flex-shrink:0">${initials}</div>`;
+}
+
+function renderProfile() {
+  const wrap = document.getElementById('profileWrap');
+  if (!wrap) return;
+
+  if (currentUser) {
+    const p = _userProfile || {};
+    const displayName = p.producer_name || currentUser.email.split('@')[0];
+    wrap.innerHTML = `
+      <!-- Header card -->
+      <div class="profile-card" style="align-items:flex-start;gap:16px">
+        <div style="position:relative;cursor:pointer" onclick="document.getElementById('avatarFileInput').click()">
+          ${getAvatarHTML(56)}
+          <div style="position:absolute;bottom:0;right:0;width:20px;height:20px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center">
+            <i class="ti ti-camera" style="font-size:11px;color:#fff"></i>
+          </div>
+          <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="uploadAvatar(event)">
+        </div>
+        <div style="flex:1;min-width:0">
+          <div class="profile-name">${escHtml(displayName)}</div>
+          <div class="profile-email">${currentUser.email}</div>
+          ${p.bio ? `<div style="font-size:12px;color:var(--text-2);margin-top:4px;line-height:1.5">${escHtml(p.bio)}</div>` : ''}
+        </div>
+      </div>
+
+      <!-- Crate stats -->
+      <div style="background:var(--bg-2);border-radius:16px;border:0.5px solid var(--border);padding:16px;margin-top:10px;display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:13px;color:var(--text-2);margin-bottom:2px">Your crate</div>
+          <div style="font-size:20px;font-weight:700;color:var(--accent-mid)">${crate.length} beat${crate.length === 1 ? '' : 's'} <span class="crate-sync-badge">synced</span></div>
+        </div>
+        <i class="ti ti-shopping-cart" style="font-size:24px;color:var(--text-3)"></i>
+      </div>
+
+      <!-- Edit profile -->
+      <div class="profile-edit-box" style="margin-top:10px">
+        <div class="profile-edit-title"><i class="ti ti-edit"></i> Edit profile</div>
+
+        <div class="field-group">
+          <label class="field-label">Producer name</label>
+          <input type="text" id="ep-name" value="${escHtml(p.producer_name||'')}" placeholder="Your producer alias">
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Bio</label>
+          <textarea id="ep-bio" placeholder="Tell artists about your sound...">${escHtml(p.bio||'')}</textarea>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Social media & stores</label>
+          <div class="social-row">
+            <div class="social-field">
+              <i class="ti ti-brand-instagram"></i>
+              <input type="text" id="ep-instagram" value="${escHtml(p.instagram||'')}" placeholder="@username">
+            </div>
+            <div class="social-field">
+              <i class="ti ti-brand-soundcloud"></i>
+              <input type="text" id="ep-soundcloud" value="${escHtml(p.soundcloud||'')}" placeholder="soundcloud.com/...">
+            </div>
+            <div class="social-field">
+              <i class="ti ti-music"></i>
+              <input type="text" id="ep-beatstars" value="${escHtml(p.beatstars||'')}" placeholder="beatstars.com/...">
+            </div>
+            <div class="social-field">
+              <i class="ti ti-brand-youtube"></i>
+              <input type="text" id="ep-youtube" value="${escHtml(p.youtube||'')}" placeholder="youtube.com/...">
+            </div>
+          </div>
+        </div>
+
+        <button class="save-profile-btn" onclick="saveProfile()" id="saveProfileBtn">
+          <i class="ti ti-check"></i> Save profile
+        </button>
+        <div class="profile-saved-msg" id="profileSavedMsg">✓ Profile saved!</div>
+      </div>
+
+      <button onclick="clearLocalData()" style="width:100%;padding:11px;border-radius:12px;background:none;border:0.5px solid var(--border-2);color:var(--text-3);font-size:13px;font-weight:500;cursor:pointer;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:7px;transition:all 0.2s" onmouseover="this.style.borderColor='#e05252';this.style.color='#e05252'" onmouseout="this.style.borderColor='var(--border-2)';this.style.color='var(--text-3)'">
+        <i class="ti ti-trash" style="font-size:14px"></i> Lokale Daten löschen
+      </button>
+      <button class="logout-btn" style="margin-top:8px" onclick="signOut()"><i class="ti ti-logout"></i> Sign out</button>
+      <div class="legal-links" style="margin-top:10px">
+        <a class="legal-link" onclick="openInfoModal('impressumModal')">Impressum <i class="ti ti-chevron-right"></i></a>
+        <a class="legal-link" onclick="openInfoModal('privacyModal')">Datenschutz <i class="ti ti-chevron-right"></i></a>
+        <a class="legal-link" href="mailto:hello@beatswipe.app">Kontakt <i class="ti ti-mail"></i></a>
+      </div>
+    `;
+  } else {
+    wrap.innerHTML = `
+      <div class="auth-box">
+        <div class="auth-title">Join BeatSwipe</div>
+        <div class="auth-sub">Save your crate across devices and never lose a beat.</div>
+        <div class="auth-tabs">
+          <button class="auth-tab ${authMode==='login'?'active':''}" onclick="setAuthMode('login')">Sign in</button>
+          <button class="auth-tab ${authMode==='signup'?'active':''}" onclick="setAuthMode('signup')">Sign up</button>
+        </div>
+        <div class="auth-field">
+          <input type="email" id="authEmail" placeholder="your@email.com" style="width:100%">
+        </div>
+        <div class="auth-field">
+          <input type="password" id="authPass" placeholder="Password" style="width:100%">
+        </div>
+        <button class="auth-btn" onclick="handleAuth()" id="authBtn">
+          <i class="ti ti-arrow-right"></i> ${authMode === 'login' ? 'Sign in' : 'Create account'}
+        </button>
+        <div class="auth-msg" id="authMsg"></div>
+      </div>
+      <div class="legal-links">
+        <a class="legal-link" onclick="openInfoModal('impressumModal')">Impressum <i class="ti ti-chevron-right"></i></a>
+        <a class="legal-link" onclick="openInfoModal('privacyModal')">Datenschutz <i class="ti ti-chevron-right"></i></a>
+        <a class="legal-link" href="mailto:hello@beatswipe.app">Kontakt <i class="ti ti-mail"></i></a>
+      </div>
+    `;
+  }
+}
+
+function setAuthMode(mode) {
+  authMode = mode;
+  renderProfile();
+}
+
+async function handleAuth() {
+  const email = document.getElementById('authEmail')?.value.trim();
+  const pass = document.getElementById('authPass')?.value;
+  const btn = document.getElementById('authBtn');
+  const msg = document.getElementById('authMsg');
+  if (!email || !pass) { if(msg) msg.textContent = 'Please fill in all fields.'; return; }
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Loading...'; }
+  
+  let error;
+  if (authMode === 'login') {
+    ({ error } = await supa.auth.signInWithPassword({ email, password: pass }));
+  } else {
+    ({ error } = await supa.auth.signUp({ email, password: pass }));
+  }
+
+  if (error) {
+    if (msg) { msg.className = 'auth-msg error'; msg.textContent = error.message; }
+    if (btn) { btn.disabled = false; btn.innerHTML = `<i class="ti ti-arrow-right"></i> ${authMode === 'login' ? 'Sign in' : 'Create account'}`; }
+  } else if (authMode === 'signup') {
+    if (msg) { msg.className = 'auth-msg success'; msg.textContent = 'Check your email to confirm your account!'; }
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-arrow-right"></i> Create account'; }
+  }
+}
+
+async function signOut() {
+  const btn = document.querySelector('.logout-btn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Signing out...'; }
+
+  // Manually clear Supabase session from localStorage — most reliable method
+  try {
+    const storageKey = `sb-${SUPA_URL.split('//')[1].split('.')[0]}-auth-token`;
+    localStorage.removeItem(storageKey);
+    // Also clear any other supabase keys
+    Object.keys(localStorage).forEach(k => {
+      if (k.startsWith('sb-')) localStorage.removeItem(k);
+    });
+  } catch(e) {}
+
+  // Also tell Supabase server (best effort, don't wait too long)
+  try {
+    await Promise.race([
+      supa.auth.signOut(),
+      new Promise(r => setTimeout(r, 2000))
+    ]);
+  } catch(e) {}
+
+  currentUser = null;
+  _userProfile = null;
+  crate = [];
+  renderCrate();
+  renderProfile();
+}
+
+// ─── CRATE SYNC ───────────────────────────────────────────────────────────
+// ─── PROFILE SAVE / AVATAR ────────────────────────────────────────────────
+async function getAccessToken() {
+  // Read token directly from localStorage — fastest, no async hang
+  try {
+    const storageKey = `sb-${SUPA_URL.split('//')[1].split('.')[0]}-auth-token`;
+    const stored = localStorage.getItem(storageKey);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (parsed?.access_token) return parsed.access_token;
+    }
+  } catch(e) {}
+  // Fallback: getSession
+  try {
+    const { data } = await Promise.race([
+      supa.auth.getSession(),
+      new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 3000))
+    ]);
+    if (data?.session?.access_token) return data.session.access_token;
+  } catch(e) {}
+  return null;
+}
+
+async function saveProfile() {
+  if (!currentUser) return;
+  const btn = document.getElementById('saveProfileBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Saving...';
+
+  const token = await getAccessToken();
+  if (!token) {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-check"></i> Save profile';
+    alert('Session abgelaufen — bitte neu einloggen.');
+    return;
+  }
+
+  const updates = {
+    id: currentUser.id,
+    producer_name: document.getElementById('ep-name')?.value.trim() || null,
+    bio:           document.getElementById('ep-bio')?.value.trim() || null,
+    instagram:     document.getElementById('ep-instagram')?.value.trim() || null,
+    soundcloud:    document.getElementById('ep-soundcloud')?.value.trim() || null,
+    beatstars:     document.getElementById('ep-beatstars')?.value.trim() || null,
+    youtube:       document.getElementById('ep-youtube')?.value.trim() || null,
+    updated_at:    new Date().toISOString()
+  };
+
+  try {
+    // Direct REST API call — bypasses SDK completely
+    const res = await fetch(`${SUPA_URL}/rest/v1/profiles`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'apikey': SUPA_KEY,
+        'Prefer': 'resolution=merge-duplicates,return=minimal'
+      },
+      body: JSON.stringify(updates)
+    });
+
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-check"></i> Save profile';
+
+    if (res.ok) {
+      _userProfile = { ..._userProfile, ...updates };
+      const msg = document.getElementById('profileSavedMsg');
+      if (msg) { msg.style.display = 'block'; setTimeout(() => msg.style.display = 'none', 3000); }
+      renderProfile();
+    } else {
+      const errText = await res.text();
+      alert('Error saving: ' + errText);
+    }
+  } catch(e) {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-check"></i> Save profile';
+    alert('Error: ' + e.message);
+  }
+}
+
+// ─── AVATAR CROP ──────────────────────────────────────────────────────────
+let _cropFile = null;
+let _cropScale = 1;
+let _cropOffsetX = 0, _cropOffsetY = 0;
+let _cropDragging = false;
+let _cropLastX = 0, _cropLastY = 0;
+let _cropNaturalW = 0, _cropNaturalH = 0;
+
+function openCrop(file) {
+  _cropFile = file;
+  _cropScale = 1;
+  _cropOffsetX = 0;
+  _cropOffsetY = 0;
+
+  const img = document.getElementById('cropImg');
+  const url = URL.createObjectURL(file);
+  img.onload = () => {
+    _cropNaturalW = img.naturalWidth;
+    _cropNaturalH = img.naturalHeight;
+    // Fit image to fill the 280px circle initially
+    const minSide = Math.min(_cropNaturalW, _cropNaturalH);
+    const baseScale = 280 / minSide;
+    _cropScale = baseScale;
+    document.getElementById('cropZoom').min = baseScale;
+    document.getElementById('cropZoom').max = baseScale * 3;
+    document.getElementById('cropZoom').step = baseScale * 0.01;
+    document.getElementById('cropZoom').value = baseScale;
+    updateCropTransform();
+  };
+  img.src = url;
+  document.getElementById('cropBackdrop').classList.add('open');
+  document.getElementById('cropZoom').oninput = e => {
+    _cropScale = parseFloat(e.target.value);
+    updateCropTransform();
+  };
+}
+
+function updateCropTransform() {
+  const img = document.getElementById('cropImg');
+  const w = _cropNaturalW * _cropScale;
+  const h = _cropNaturalH * _cropScale;
+  // Clamp so image always covers the circle
+  const maxOffX = (w - 280) / 2;
+  const maxOffY = (h - 280) / 2;
+  _cropOffsetX = Math.max(-maxOffX, Math.min(maxOffX, _cropOffsetX));
+  _cropOffsetY = Math.max(-maxOffY, Math.min(maxOffY, _cropOffsetY));
+  img.style.width = w + 'px';
+  img.style.height = h + 'px';
+  img.style.left = (140 - w/2 + _cropOffsetX) + 'px';
+  img.style.top  = (140 - h/2 + _cropOffsetY) + 'px';
+}
+
+function closeCrop() {
+  document.getElementById('cropBackdrop').classList.remove('open');
+  _cropFile = null;
+  document.getElementById('avatarFileInput').value = '';
+}
+
+async function confirmCrop() {
+  // Draw cropped circle to canvas
+  const canvas = document.createElement('canvas');
+  canvas.width = 280; canvas.height = 280;
+  const ctx = canvas.getContext('2d');
+  // Clip to circle
+  ctx.beginPath();
+  ctx.arc(140, 140, 140, 0, Math.PI * 2);
+  ctx.clip();
+
+  const img = document.getElementById('cropImg');
+  const w = _cropNaturalW * _cropScale;
+  const h = _cropNaturalH * _cropScale;
+  const x = 140 - w/2 + _cropOffsetX;
+  const y = 140 - h/2 + _cropOffsetY;
+  ctx.drawImage(img, x, y, w, h);
+
+  canvas.toBlob(async blob => {
+    document.getElementById('cropBackdrop').classList.remove('open');
+    // Upload the cropped blob
+    await doAvatarUpload(blob);
+  }, 'image/jpeg', 0.92);
+}
+
+// Touch & mouse drag for crop
+(function() {
+  function getContainer() { return document.getElementById('cropContainer'); }
+
+  function onDown(x, y) {
+    _cropDragging = true;
+    _cropLastX = x; _cropLastY = y;
+  }
+  function onMove(x, y) {
+    if (!_cropDragging) return;
+    _cropOffsetX += x - _cropLastX;
+    _cropOffsetY += y - _cropLastY;
+    _cropLastX = x; _cropLastY = y;
+    updateCropTransform();
+  }
+  function onUp() { _cropDragging = false; }
+
+  document.addEventListener('mousedown', e => { if (e.target.closest('#cropContainer')) onDown(e.clientX, e.clientY); });
+  document.addEventListener('mousemove', e => onMove(e.clientX, e.clientY));
+  document.addEventListener('mouseup', onUp);
+  document.addEventListener('touchstart', e => { if (e.target.closest('#cropContainer')) onDown(e.touches[0].clientX, e.touches[0].clientY); }, {passive:true});
+  document.addEventListener('touchmove', e => { if (_cropDragging) { e.preventDefault(); onMove(e.touches[0].clientX, e.touches[0].clientY); } }, {passive:false});
+  document.addEventListener('touchend', onUp);
+})();
+
+async function uploadAvatar(e) {
+  const file = e.target.files?.[0];
+  if (!file || !currentUser) return;
+  if (file.size > 10 * 1024 * 1024) { alert('Max 10 MB.'); return; }
+  // Open crop dialog instead of uploading directly
+  openCrop(file);
+}
+
+async function doAvatarUpload(blob) {
+  if (!currentUser) return;
+
+  const token = await getAccessToken();
+  if (!token) { alert('Bitte neu einloggen.'); return; }
+
+  const fileName = `${currentUser.id}.jpg`;
+
+  try {
+    const uploadRes = await fetch(`${SUPA_URL}/storage/v1/object/avatars/${fileName}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'x-upsert': 'true',
+        'Cache-Control': '3600',
+        'Content-Type': 'image/jpeg'
+      },
+      body: blob
+    });
+
+    if (!uploadRes.ok) {
+      const err = await uploadRes.text();
+      // If jpeg not supported, retry as png
+      if (err.includes('invalid_mime_type')) {
+        const pngBlob = await new Promise(r => { const c = document.createElement('canvas'); c.width=280; c.height=280; const ctx=c.getContext('2d'); const img=document.getElementById('cropImg'); ctx.beginPath(); ctx.arc(140,140,140,0,Math.PI*2); ctx.clip(); const w=_cropNaturalW*_cropScale, h=_cropNaturalH*_cropScale, x=140-w/2+_cropOffsetX, y=140-h/2+_cropOffsetY; ctx.drawImage(img,x,y,w,h); c.toBlob(r,'image/png'); });
+        const retry = await fetch(`${SUPA_URL}/storage/v1/object/avatars/${fileName.replace('.jpg','.png')}`, { method:'POST', headers:{'Authorization':`Bearer ${token}`,'x-upsert':'true','Cache-Control':'3600','Content-Type':'image/png'}, body: pngBlob });
+        if (!retry.ok) { alert('Avatar upload fehlgeschlagen: ' + await retry.text()); return; }
+        const avatarUrl2 = `${SUPA_URL}/storage/v1/object/public/avatars/${fileName.replace('.jpg','.png')}?t=${Date.now()}`;
+        await fetch(`${SUPA_URL}/rest/v1/profiles`, { method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`,'apikey':SUPA_KEY,'Prefer':'resolution=merge-duplicates,return=minimal'}, body: JSON.stringify({ id: currentUser.id, avatar_url: avatarUrl2, updated_at: new Date().toISOString() }) });
+        _userProfile = { ..._userProfile, avatar_url: avatarUrl2 }; renderProfile(); return;
+      }
+      alert('Avatar upload fehlgeschlagen: ' + err); return;
+    }
+
+    const avatarUrl = `${SUPA_URL}/storage/v1/object/public/avatars/${fileName}?t=${Date.now()}`;
+
+    await fetch(`${SUPA_URL}/rest/v1/profiles`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'apikey': SUPA_KEY,
+        'Prefer': 'resolution=merge-duplicates,return=minimal'
+      },
+      body: JSON.stringify({ id: currentUser.id, avatar_url: avatarUrl, updated_at: new Date().toISOString() })
+    });
+
+    _userProfile = { ..._userProfile, avatar_url: avatarUrl };
+    renderProfile();
+  } catch(e) {
+    alert('Fehler: ' + e.message);
+  }
+}
+
+async function syncCrateFromDB() {
+  if (!currentUser) return;
+  const token = await getAccessToken();
+  if (!token) return;
+  try {
+    const res = await fetch(`${SUPA_URL}/rest/v1/crates?user_id=eq.${currentUser.id}&select=*`, {
+      headers: { 'Authorization': `Bearer ${token}`, 'apikey': SUPA_KEY, 'Accept': 'application/json' }
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data && data.length) {
+      data.forEach(row => {
+        try {
+          const beat = JSON.parse(row.beat_data);
+          if (!crate.find(i => i.id === beat.id)) crate.push(beat);
+        } catch(e) {}
+      });
+      renderCrate();
+    }
+  } catch(e) { console.warn('syncCrateFromDB error:', e); }
+}
+
+async function saveBeatToDB(beat) {
+  if (!currentUser) return;
+  const token = await getAccessToken();
+  if (!token) return;
+  try {
+    await fetch(`${SUPA_URL}/rest/v1/crates`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'apikey': SUPA_KEY,
+        'Prefer': 'resolution=merge-duplicates,return=minimal'
+      },
+      body: JSON.stringify({ user_id: currentUser.id, beat_id: beat.id, beat_data: JSON.stringify(beat) })
+    });
+  } catch(e) { console.warn('saveBeatToDB error:', e); }
+}
+
+// ─── FILTER MODAL ─────────────────────────────────────────────────────────
+let activeGenre = 'all';
+
+function openFilterModal() {
+  document.getElementById('filterModal').classList.add('open');
+}
+function closeFilterModal() {
+  document.getElementById('filterModal').classList.remove('open');
+}
+function closeFilterIfBackdrop(e) {
+  if (e.target === document.getElementById('filterModal')) closeFilterModal();
+}
+
+document.getElementById('genrePills').querySelectorAll('.filter-pill').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeGenre = btn.dataset.genre;
+  };
+});
+
+function applyFilter() {
+  closeFilterModal();
+  if (activeGenre === 'all') {
+    Object.keys(_rawDb).forEach(k => db[k] = [..._rawDb[k]]);
+  } else {
+    Object.keys(_rawDb).forEach(k => {
+      db[k] = _rawDb[k].filter(b => b.genre === activeGenre);
+    });
+  }
+  // Highlight filter button when a genre is active
+  const btn = document.getElementById('filterIconBtn');
+  if (btn) {
+    if (activeGenre !== 'all') {
+      btn.style.background = 'var(--accent-light)';
+      btn.style.borderColor = 'var(--accent)';
+      btn.style.color = 'var(--accent-mid)';
+    } else {
+      btn.style.background = 'var(--bg-2)';
+      btn.style.borderColor = 'var(--border-2)';
+      btn.style.color = 'var(--text-2)';
+    }
+  }
+  // Reset all category indices when filter changes
+  Object.keys(catIdx).forEach(k => catIdx[k] = 0);
+  saveSwipeState();
+  goTo('discoverScreen', 'navDiscover');
+}
+
+// ─── PRODUCER PROFILES ────────────────────────────────────────────────────
+let _prevScreen = 'discoverScreen';
+let _prevNav    = 'navDiscover';
+
+function getAllProducers() {
+  const allBeats = Object.values(_rawDb).flat();
+  const map = {};
+  allBeats.forEach(b => {
+    if (!map[b.producer]) {
+      map[b.producer] = { name: b.producer, beats: [], genres: new Set(), color: b.color };
+    }
+    map[b.producer].beats.push(b);
+    map[b.producer].genres.add(b.genre);
+  });
+  return Object.values(map).sort((a,b) => b.beats.length - a.beats.length);
+}
+
+function renderProducersList() {
+  const producers = getAllProducers();
+  const list = document.getElementById('producersList');
+  if (!list) return;
+  if (!producers.length) {
+    list.innerHTML = `<div class="producer-empty"><i class="ti ti-user-off"></i>No producers yet.</div>`;
+    return;
+  }
+  list.innerHTML = producers.map(p => {
+    const genres = [...p.genres].slice(0,3).join(' · ');
+    return `
+    <div class="producer-row" onclick="openProducerProfile('${escHtml(p.name)}')">
+      <div class="producer-row-avatar" style="background:${p.color}20;border-color:${p.color}80">
+        <i class="ti ti-user" style="color:${p.color}"></i>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div class="producer-row-name">${escHtml(p.name)}</div>
+        <div class="producer-row-meta">${p.beats.length} beat${p.beats.length===1?'':'s'} · ${genres}</div>
+      </div>
+      <i class="ti ti-chevron-right producer-row-arrow"></i>
+    </div>`;
+  }).join('');
+}
+
+function filterProducers() {
+  const q = document.getElementById('producerSearch')?.value.toLowerCase() || '';
+  const producers = getAllProducers().filter(p => p.name.toLowerCase().includes(q));
+  const list = document.getElementById('producersList');
+  if (!list) return;
+  if (!producers.length) {
+    list.innerHTML = `<div class="producer-empty"><i class="ti ti-search-off"></i>No producers found.</div>`;
+    return;
+  }
+  list.innerHTML = producers.map(p => {
+    const genres = [...p.genres].slice(0,3).join(' · ');
+    return `
+    <div class="producer-row" onclick="openProducerProfile('${escHtml(p.name)}')">
+      <div class="producer-row-avatar" style="background:${p.color}20;border-color:${p.color}80">
+        <i class="ti ti-user" style="color:${p.color}"></i>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div class="producer-row-name">${escHtml(p.name)}</div>
+        <div class="producer-row-meta">${p.beats.length} beat${p.beats.length===1?'':'s'} · ${genres}</div>
+      </div>
+      <i class="ti ti-chevron-right producer-row-arrow"></i>
+    </div>`;
+  }).join('');
+}
+
+function openProducerProfile(producerName, fromScreen, fromNav) {
+  // remember where we came from so Back works
+  const activeScreen = document.querySelector('.screen.active');
+  _prevScreen = activeScreen ? activeScreen.id : 'discoverScreen';
+  const activeNav = document.querySelector('.nav-tab.active');
+  _prevNav = activeNav ? activeNav.id : 'navDiscover';
+
+  stopTrack();
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('producerProfileScreen').classList.add('active');
+  // keep nav tab highlighted to where we came from
+  if (document.getElementById(_prevNav)) document.getElementById(_prevNav).classList.add('active');
+
+  renderProducerProfile(producerName);
+}
+
+function goBackFromProducer() {
+  stopTrack();
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(_prevScreen).classList.add('active');
+  document.getElementById(_prevNav).classList.add('active');
+  if (_prevScreen === 'discoverScreen') renderCard();
+}
+
+async function renderProducerProfile(producerName) {
+  const allBeats = Object.values(_rawDb).flat();
+  const beats = allBeats.filter(b => b.producer === producerName);
+  if (!beats.length) return;
+
+  const color = beats[0].color || 'var(--accent)';
+  const genres = [...new Set(beats.map(b => b.genre))];
+  const totalBeats = beats.length;
+
+  document.getElementById('producerProfileBadge').textContent = producerName;
+
+  // Load profile from Supabase by producer_name
+  let profile = {};
+  try {
+    const { data } = await supa.from('profiles').select('*').eq('producer_name', producerName).single();
+    if (data) profile = data;
+  } catch(e) {}
+
+  const genreTags = genres.map(g => `<span class="producer-tag">${escHtml(g)}</span>`).join('');
+
+  // Build social links row
+  const socialLinks = [];
+  if (profile.instagram) socialLinks.push(`<a href="${profile.instagram.startsWith('http') ? profile.instagram : 'https://instagram.com/' + profile.instagram.replace('@','')}" target="_blank" style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text-2);text-decoration:none;padding:6px 12px;background:var(--bg-3);border-radius:100px;border:0.5px solid var(--border-2)"><i class="ti ti-brand-instagram" style="font-size:14px;color:#E1306C"></i>Instagram</a>`);
+  if (profile.soundcloud) socialLinks.push(`<a href="${profile.soundcloud.startsWith('http') ? profile.soundcloud : 'https://soundcloud.com/' + profile.soundcloud}" target="_blank" style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text-2);text-decoration:none;padding:6px 12px;background:var(--bg-3);border-radius:100px;border:0.5px solid var(--border-2)"><i class="ti ti-brand-soundcloud" style="font-size:14px;color:#FF5500"></i>SoundCloud</a>`);
+  if (profile.beatstars) socialLinks.push(`<a href="${profile.beatstars.startsWith('http') ? profile.beatstars : 'https://' + profile.beatstars}" target="_blank" style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text-2);text-decoration:none;padding:6px 12px;background:var(--bg-3);border-radius:100px;border:0.5px solid var(--border-2)"><i class="ti ti-music" style="font-size:14px;color:var(--accent-mid)"></i>BeatStars</a>`);
+  if (profile.youtube) socialLinks.push(`<a href="${profile.youtube.startsWith('http') ? profile.youtube : 'https://' + profile.youtube}" target="_blank" style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text-2);text-decoration:none;padding:6px 12px;background:var(--bg-3);border-radius:100px;border:0.5px solid var(--border-2)"><i class="ti ti-brand-youtube" style="font-size:14px;color:#FF0000"></i>YouTube</a>`);
+  const socialRow = socialLinks.length ? `<div style="display:flex;flex-wrap:wrap;gap:7px;padding:0 22px 14px">${socialLinks.join('')}</div>` : '';
+
+  const beatRows = beats.map(b => {
+    const hasBuy = b.buy && b.buy.startsWith('http') && b.buy !== b.mp3;
+    const isYT = isYouTube(b.mp3);
+    const isSC = isSoundCloud(b.mp3);
+    let buyLink = hasBuy ? b.buy : (isYT || isSC ? b.mp3 : null);
+    let buyIcon = 'ti-external-link';
+    if (hasBuy) {
+      if (b.buy.includes('beatstars.com')) buyIcon = 'ti-external-link';
+      else if (b.buy.includes('instagram.com')) buyIcon = 'ti-brand-instagram';
+      else if (b.buy.includes('soundcloud.com')) buyIcon = 'ti-brand-soundcloud';
+    } else if (isYT) buyIcon = 'ti-brand-youtube';
+    else if (isSC) buyIcon = 'ti-brand-soundcloud';
+
+    const inCrate = crate.find(i => i.id === b.id);
+
+    return `
+    <div class="producer-beat-row">
+      <div class="producer-beat-icon" style="background:${b.color}20;border:0.5px solid ${b.color}50">
+        <i class="ti ti-music" style="font-size:18px;color:${b.color}"></i>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div class="producer-beat-name">${escHtml(b.title)}</div>
+        <div class="producer-beat-meta">${escHtml(b.bpm)} · ${escHtml(b.key)} · ${escHtml(b.genre)}</div>
+      </div>
+      <div class="producer-beat-actions">
+        <button class="pbeat-save" title="${inCrate ? 'In crate' : 'Save to crate'}" onclick="saveToCrateFromProfile('${escHtml(b.id)}',this)" style="${inCrate ? 'background:var(--accent);color:#fff' : ''}">
+          <i class="ti ti-flame" style="font-size:16px"></i>
+        </button>
+        ${buyLink ? `<button class="pbeat-buy" title="Get beat" onclick="window.open('${escHtml(buyLink)}','_blank')">
+          <i class="ti ${buyIcon}" style="font-size:15px"></i>
+        </button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  const avatarEl = profile.avatar_url
+    ? `<img src="${profile.avatar_url}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2.5px solid ${color};flex-shrink:0">`
+    : `<div class="producer-avatar-lg" style="background:${color}20;border-color:${color}80"><i class="ti ti-user" style="color:${color}"></i></div>`;
+
+  document.getElementById('producerProfileContent').innerHTML = `
+    <div class="producer-hero">
+      ${avatarEl}
+      <div style="flex:1;min-width:0">
+        <div class="producer-hero-name">${escHtml(producerName)}</div>
+        <div class="producer-hero-meta">${profile.bio ? escHtml(profile.bio) : 'Independent Producer'}</div>
+        <div class="producer-tags" style="margin-top:6px">${genreTags}</div>
+      </div>
+    </div>
+    ${socialRow}
+    <div class="producer-stats">
+      <div class="producer-stat">
+        <div class="producer-stat-num">${totalBeats}</div>
+        <div class="producer-stat-lbl">Beats</div>
+      </div>
+      <div class="producer-stat">
+        <div class="producer-stat-num">${genres.length}</div>
+        <div class="producer-stat-lbl">Genres</div>
+      </div>
+      <div class="producer-stat">
+        <div class="producer-stat-num">Free</div>
+        <div class="producer-stat-lbl">Preview</div>
+      </div>
+    </div>
+    <div class="producer-beats-title">All beats</div>
+    <div class="producer-beats-list">${beatRows}</div>
+  `;
+}
+
+function saveToCrateFromProfile(beatId, btn) {
+  const allBeats = Object.values(_rawDb).flat();
+  const beat = allBeats.find(b => b.id === beatId);
+  if (!beat) return;
+  if (!crate.find(i => i.id === beat.id)) {
+    crate.push(beat);
+    saveBeatToDB(beat);
+    renderCrate();
+  }
+  // visual feedback
+  btn.style.background = 'var(--accent)';
+  btn.style.color = '#fff';
+}
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// Patch goTo to also render producers list when navigating there
+const _origGoTo = goTo;
+// override goTo to handle producersScreen
+function goTo(screenId, navId) {
+  stopTrack();
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(screenId).classList.add('active');
+  document.getElementById(navId).classList.add('active');
+  if (screenId === 'discoverScreen') renderCard();
+  if (screenId === 'producersScreen') renderProducersList();
+}
+
+// Also add producer link in crate cards — patch renderCrate to add producer name as link
+// Done via a separate helper called inside existing renderCrate via a note:
+// (The existing renderCrate already works; we just add clickable producer name via CSS below)
+
+// ─── LIVE STATS ────────────────────────────────────────────────────────────
+function updateStats() {
+  const allBeats = Object.values(db).flat();
+  const beatCount = allBeats.length;
+  const producerCount = new Set(allBeats.map(b => b.producer)).size;
+  const fmt = (n, threshold) => n > 0 ? n + (n >= threshold ? '+' : '') : '–';
+  // in-app stats
+  const bEl = document.getElementById('statBeats');
+  const pEl = document.getElementById('statProducers');
+  if (bEl) bEl.textContent = fmt(beatCount, 10);
+  if (pEl) pEl.textContent = fmt(producerCount, 5);
+  // desktop left panel stats
+  const dlB = document.getElementById('dlStatBeats');
+  const dlP = document.getElementById('dlStatProducers');
+  if (dlB) dlB.textContent = fmt(beatCount, 10);
+  if (dlP) dlP.textContent = fmt(producerCount, 5);
+}
+
+// ─── REPLAY SKIPPED ──────────────────────────────────────────────────────
+function clearLocalData() {
+  if (!confirm('Swipe-Position zurücksetzen? Dein gespeicherter Crate bleibt erhalten.')) return;
+  Object.keys(catIdx).forEach(k => { catIdx[k] = 0; localStorage.removeItem('bs_idx_' + k); });
+  localStorage.removeItem('bs_cat');
+  renderCard();
+  alert('Fertig! Alle Beats werden neu angezeigt.');
+}
+
+function replaySkipped() {
+  // Filter db to only show skipped beats
+  const ids = skippedIds[cat];
+  if (!ids.length) return;
+  db[cat] = _rawDb[cat].filter(b => ids.includes(b.id));
+  skippedIds[cat] = [];
+  catIdx[cat] = 0;
+  saveSwipeState();
+  renderCard();
+}
+
+// ─── SWIPE STATE PERSISTENCE ─────────────────────────────────────────────
+function saveSwipeState() {
+  try {
+    localStorage.setItem('bs_cat', cat);
+    Object.keys(catIdx).forEach(k => {
+      localStorage.setItem('bs_idx_' + k, catIdx[k]);
+    });
+  } catch(e) {}
+}
+
+function restoreSwipeState() {
+  try {
+    // Restore all category indices
+    Object.keys(catIdx).forEach(k => {
+      const saved = parseInt(localStorage.getItem('bs_idx_' + k)) || 0;
+      catIdx[k] = Math.min(saved, (db[k] || []).length);
+    });
+    // Restore active category
+    const savedCat = localStorage.getItem('bs_cat');
+    if (savedCat && db[savedCat]) {
+      cat = savedCat;
+      document.querySelectorAll('.cat-pill').forEach(b => {
+        b.classList.toggle('active', b.dataset.cat === cat);
+      });
+    }
+  } catch(e) {}
+}
+
+// Init
+loadBeats();
+</script>
+</body>
+</html>
