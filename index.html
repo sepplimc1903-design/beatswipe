@@ -1143,7 +1143,11 @@ function startVideo() {
 function renderCard() {
   stopTrack();
   const wrap = document.getElementById('cardWrap');
-  const list = db[cat];
+  // Filter out beats already in crate from discover
+  const crateIds = new Set(crate.map(b => b.id));
+  const list = db[cat].filter(b => !crateIds.has(b.id));
+  // Sync idx to filtered list (clamp)
+  if (catIdx[cat] > list.length) catIdx[cat] = list.length;
   const counter = document.getElementById('cardCounter');
 
   if (!list.length || idx >= list.length) {
