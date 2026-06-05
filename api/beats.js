@@ -13,7 +13,10 @@ export default async function handler(req, res) {
       headers: { 'Authorization': `Bearer ${AIRTABLE_TOKEN}` }
     });
 
-    if (!response.ok) throw new Error('Airtable error');
+    if (!response.ok) {
+      const errText = await response.text();
+      return res.status(500).json({ error: errText, status: response.status });
+    }
 
     const data = await response.json();
 
