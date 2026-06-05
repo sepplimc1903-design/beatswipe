@@ -308,7 +308,7 @@
     .producer-back { display: flex; align-items: center; gap: 8px; padding: 16px 22px 0; cursor: pointer; color: var(--accent-mid); font-size: 13px; font-weight: 600; background: none; border: none; }
     .producer-back i { font-size: 18px; }
     .producer-hero { padding: 20px 22px 18px; display: flex; align-items: center; gap: 16px; }
-    .producer-avatar-lg { width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 2.5px solid var(--accent); }
+    .producer-avatar-lg { width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 2.5px solid var(--accent); overflow: hidden; position: relative; }
     .producer-avatar-lg i { font-size: 32px; color: var(--accent-mid); }
     .producer-hero-name { font-size: 22px; font-weight: 700; letter-spacing: -0.4px; margin-bottom: 3px; }
     .producer-hero-meta { font-size: 13px; color: var(--text-2); margin-bottom: 8px; }
@@ -330,17 +330,6 @@
     .pbeat-save:hover { background: var(--accent); color: #fff; }
     .pbeat-buy { width: 34px; height: 34px; border-radius: 50%; background: var(--bg-3); border: 0.5px solid var(--border-2); color: var(--text-2); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
     .pbeat-buy:hover { border-color: var(--accent); color: var(--accent-mid); }
-    .producer-empty { text-align: center; padding: 40px 20px; color: var(--text-2); font-size: 14px; }
-    .producer-empty i { font-size: 34px; display: block; margin-bottom: 10px; color: var(--text-3); }
-    /* Producer list (all producers) */
-    .producers-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 18px 20px; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
-    .producer-row { background: var(--bg-2); border-radius: 16px; border: 0.5px solid var(--border); padding: 14px 16px; display: flex; align-items: center; gap: 14px; cursor: pointer; transition: border-color 0.2s; }
-    .producer-row:hover { border-color: var(--accent); }
-    .producer-row-avatar { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1.5px solid var(--accent); }
-    .producer-row-avatar i { font-size: 22px; color: var(--accent-mid); }
-    .producer-row-name { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
-    .producer-row-meta { font-size: 12px; color: var(--text-2); }
-    .producer-row-arrow { margin-left: auto; color: var(--text-3); font-size: 18px; }
 
     /* ── SWIPE ANIMATIONS ── */
     @keyframes wobbleBack {
@@ -383,31 +372,19 @@
     }
     .faq-a.open { max-height: 200px; padding-bottom: 14px; }
 
-    /* ── IMPRESSUM LINKS IN PROFILE ── */
-    .legal-links { display: flex; flex-direction: column; gap: 0; margin-top: 16px; background: var(--bg-2); border-radius: 16px; border: 0.5px solid var(--border); overflow: hidden; }
-    .legal-link { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; color: var(--text-2); font-size: 14px; cursor: pointer; border-bottom: 0.5px solid var(--border); transition: background 0.15s; text-decoration: none; }
-    .legal-link:last-child { border-bottom: none; }
-    .legal-link:hover { background: var(--bg-3); color: var(--text); }
-    .legal-link i { font-size: 16px; color: var(--text-3); }
-
-    /* ── IMPRESSUM MODAL ── */
-    .info-modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: none; align-items: flex-end; justify-content: center; backdrop-filter: blur(6px); }
-    .info-modal-backdrop.open { display: flex; }
-    .info-modal-sheet { background: var(--bg-2); border-radius: 28px 28px 0 0; width: 100%; max-width: 440px; padding: 0 0 env(safe-area-inset-bottom); border-top: 0.5px solid var(--border-2); animation: slideUp 0.3s cubic-bezier(0.22,1,0.36,1); max-height: 80vh; display: flex; flex-direction: column; }
-    .info-modal-body { overflow-y: auto; padding: 0 22px 24px; flex: 1; }
-    .info-modal-body h3 { font-size: 15px; font-weight: 700; margin: 18px 0 6px; color: var(--text); }
-    .info-modal-body p, .info-modal-body a { font-size: 13px; color: var(--text-2); line-height: 1.65; }
-    .info-modal-body a { color: var(--accent-mid); text-decoration: none; }
-
-    /* ── FILTER MODAL ── */
-    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; display: none; align-items: flex-end; justify-content: center; backdrop-filter: blur(4px); }
-    .modal-backdrop.open { display: flex; }
-    .modal-sheet { background: var(--bg-2); border-radius: 28px 28px 0 0; width: 100%; max-width: 440px; padding: 0 0 env(safe-area-inset-bottom); border-top: 0.5px solid var(--border-2); animation: slideUp 0.3s cubic-bezier(0.22,1,0.36,1); }
+    /* ── MODALS ── */
+    .info-modal-backdrop, .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: none; align-items: flex-end; justify-content: center; backdrop-filter: blur(6px); }
+    .info-modal-backdrop.open, .modal-backdrop.open { display: flex; }
+    .info-modal-sheet, .modal-sheet { background: var(--bg-2); border-radius: 28px 28px 0 0; width: 100%; max-width: 440px; padding: 0 0 env(safe-area-inset-bottom); border-top: 0.5px solid var(--border-2); animation: slideUp 0.3s cubic-bezier(0.22,1,0.36,1); max-height: 80vh; display: flex; flex-direction: column; }
     @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
     .modal-handle { width: 36px; height: 4px; border-radius: 2px; background: var(--bg-3); margin: 12px auto 0; }
     .modal-head { padding: 16px 22px 12px; display: flex; align-items: center; justify-content: space-between; }
     .modal-title { font-size: 17px; font-weight: 700; }
     .modal-close { background: var(--bg-3); border: none; color: var(--text-2); width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; }
+    .info-modal-body { overflow-y: auto; padding: 0 22px 24px; flex: 1; }
+    .info-modal-body h3 { font-size: 15px; font-weight: 700; margin: 18px 0 6px; color: var(--text); }
+    .info-modal-body p, .info-modal-body a { font-size: 13px; color: var(--text-2); line-height: 1.65; }
+    .info-modal-body a { color: var(--accent-mid); text-decoration: none; }
     .modal-body { padding: 0 22px 22px; display: flex; flex-direction: column; gap: 16px; }
     .filter-label { font-size: 12px; font-weight: 600; color: var(--text-2); margin-bottom: 8px; letter-spacing: 0.2px; }
     .filter-pills { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -431,8 +408,10 @@
     .auth-msg { font-size: 12px; margin-top: 10px; text-align: center; min-height: 18px; }
     .auth-msg.error { color: #e05252; }
     .auth-msg.success { color: #4caf50; }
+    
     .profile-card { background: var(--bg-2); border-radius: 20px; border: 0.5px solid var(--border); padding: 20px; margin-top: 8px; display: flex; align-items: center; gap: 14px; }
-    .profile-avatar { width: 52px; height: 52px; border-radius: 50%; background: var(--accent-light); border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .profile-avatar { width: 52px; height: 52px; border-radius: 50%; background: var(--accent-light); border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
+    .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
     .profile-avatar i { font-size: 24px; color: var(--accent-mid); }
     .profile-email { font-size: 13px; color: var(--text-2); margin-top: 2px; word-break: break-all; }
     .profile-name { font-size: 16px; font-weight: 600; }
@@ -440,14 +419,26 @@
     .logout-btn:hover { border-color: #e05252; color: #e05252; }
     .crate-sync-badge { font-size: 11px; color: var(--accent-mid); background: var(--accent-light); padding: 2px 8px; border-radius: 100px; margin-left: 6px; font-weight: 600; }
 
+    /* ── ADDED: PRODUCER EDIT ── */
+    .role-toggle { display: flex; background: var(--bg-3); border-radius: 10px; padding: 3px; margin-bottom: 14px; gap: 3px; }
+    .role-btn { flex: 1; padding: 8px; border-radius: 8px; border: none; background: none; color: var(--text-2); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+    .role-btn.active { background: var(--accent); color: #fff; font-weight: 600; }
+    
+    .producer-edit-box { background: var(--bg-2); border-radius: 20px; border: 0.5px solid var(--border); padding: 20px; margin-top: 12px; }
+    .avatar-upload { width: 72px; height: 72px; border-radius: 50%; background: var(--bg-3); border: 2px dashed var(--border-2); display: flex; align-items: center; justify-content: center; cursor: pointer; margin: 0 auto 16px; position: relative; overflow: hidden; transition: border-color 0.2s; }
+    .avatar-upload:hover { border-color: var(--accent); }
+    .avatar-upload img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
+    .avatar-upload i { font-size: 24px; color: var(--text-3); position: relative; z-index: 1; }
+    .avatar-upload.has-img i { opacity: 0; }
+
+    .legal-links { display: flex; flex-direction: column; gap: 0; margin-top: 16px; background: var(--bg-2); border-radius: 16px; border: 0.5px solid var(--border); overflow: hidden; }
+    .legal-link { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; color: var(--text-2); font-size: 14px; cursor: pointer; border-bottom: 0.5px solid var(--border); transition: background 0.15s; text-decoration: none; }
+    .legal-link:last-child { border-bottom: none; }
+    .legal-link:hover { background: var(--bg-3); color: var(--text); }
+    .legal-link i { font-size: 16px; color: var(--text-3); }
+
     /* ── MP3 FILE UPLOAD ── */
-    .upload-drop {
-      border: 1.5px dashed var(--border-2); border-radius: 14px;
-      background: var(--bg-2); padding: 22px 16px;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 8px; cursor: pointer; transition: border-color 0.2s, background 0.2s;
-      text-align: center; position: relative;
-    }
+    .upload-drop { border: 1.5px dashed var(--border-2); border-radius: 14px; background: var(--bg-2); padding: 22px 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: border-color 0.2s, background 0.2s; text-align: center; position: relative; }
     .upload-drop:hover, .upload-drop.dragover { border-color: var(--accent); background: var(--accent-light); }
     .upload-drop input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
     .upload-drop i { font-size: 28px; color: var(--accent-mid); }
@@ -476,65 +467,39 @@
 </div>
 
 <div class="desktop-layout">
-  <!-- LEFT PANEL — desktop only -->
   <div class="desktop-left">
     <div class="dl-logo">Beat<span>Swipe</span></div>
     <div class="dl-badge">Beat Discovery · Free Forever</div>
     <h1 class="dl-headline">Find your next<br><span>fire beat</span><br>in seconds.</h1>
     <p class="dl-sub">Swipe through curated beats from independent producers. Like what you hear — save it, license it. No algorithms. No ads. Just heat.</p>
-
     <div class="dl-stats">
-      <div class="dl-stat">
-        <div class="dl-stat-num" id="dlStatBeats">–</div>
-        <div class="dl-stat-lbl">Beats</div>
-      </div>
-      <div class="dl-stat">
-        <div class="dl-stat-num" id="dlStatProducers">–</div>
-        <div class="dl-stat-lbl">Producers</div>
-      </div>
-      <div class="dl-stat">
-        <div class="dl-stat-num">Free</div>
-        <div class="dl-stat-lbl">Always</div>
-      </div>
+      <div class="dl-stat"><div class="dl-stat-num" id="dlStatBeats">–</div><div class="dl-stat-lbl">Beats</div></div>
+      <div class="dl-stat"><div class="dl-stat-num" id="dlStatProducers">–</div><div class="dl-stat-lbl">Producers</div></div>
+      <div class="dl-stat"><div class="dl-stat-num">Free</div><div class="dl-stat-lbl">Always</div></div>
     </div>
-
     <div class="dl-features">
       <div class="dl-feat"><i class="ti ti-arrows-shuffle"></i><span>Swipe to discover</span></div>
       <div class="dl-feat"><i class="ti ti-adjustments-horizontal"></i><span>Filter by genre</span></div>
       <div class="dl-feat"><i class="ti ti-flame"></i><span>Save to your crate</span></div>
       <div class="dl-feat"><i class="ti ti-link"></i><span>License in one tap</span></div>
     </div>
-
     <div class="dl-genres">
-      <span class="dl-genre-pill">Trap</span>
-      <span class="dl-genre-pill">Drill</span>
-      <span class="dl-genre-pill">R&amp;B</span>
-      <span class="dl-genre-pill">Lo-Fi</span>
-      <span class="dl-genre-pill">Afrobeats</span>
-      <span class="dl-genre-pill">Synthwave</span>
-      <span class="dl-genre-pill">Boom Bap</span>
-      <span class="dl-genre-pill">Acoustic</span>
+      <span class="dl-genre-pill">Trap</span><span class="dl-genre-pill">Drill</span><span class="dl-genre-pill">R&amp;B</span>
+      <span class="dl-genre-pill">Lo-Fi</span><span class="dl-genre-pill">Afrobeats</span><span class="dl-genre-pill">Synthwave</span>
+      <span class="dl-genre-pill">Boom Bap</span><span class="dl-genre-pill">Acoustic</span>
     </div>
-
     <div class="dl-footer">
-      Made for artists · by artists
-      <span class="dl-dot">·</span>
-      <a onclick="openInfoModal('impressumModal')" class="dl-legal">Impressum</a>
-      <span class="dl-dot">·</span>
+      Made for artists · by artists <span class="dl-dot">·</span>
+      <a onclick="openInfoModal('impressumModal')" class="dl-legal">Impressum</a> <span class="dl-dot">·</span>
       <a onclick="openInfoModal('privacyModal')" class="dl-legal">Datenschutz</a>
     </div>
   </div>
 
-  <!-- RIGHT — the app shell -->
   <div class="desktop-right">
 <div class="shell">
 
-  <!-- LANDING -->
   <div class="screen active" id="landScreen">
-    <div class="top-bar">
-      <div class="wordmark">Beat<b>Swipe</b></div>
-      <div class="top-badge">Beta</div>
-    </div>
+    <div class="top-bar"><div class="wordmark">Beat<b>Swipe</b></div><div class="top-badge">Beta</div></div>
     <div class="land-scroll">
       <div class="hero">
         <div class="hero-badge">Beat discovery, reinvented</div>
@@ -566,30 +531,12 @@
       </div>
       <div class="faq-section">
         <div class="faq-title">Frequently asked questions</div>
-        <div class="faq-item">
-          <button class="faq-q" onclick="toggleFaq(this)">Is BeatSwipe free to use?<i class="ti ti-plus"></i></button>
-          <div class="faq-a">Yes — always. Discovering, swiping, and saving beats is completely free. You only pay when you license a beat directly from the producer.</div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-q" onclick="toggleFaq(this)">How do I license a beat?<i class="ti ti-plus"></i></button>
-          <div class="faq-a">Save a beat to your Crate, then tap the buy button. It takes you straight to the producer's store — BeatStars, Splice, SoundCloud, or their own site. We don't handle payments ourselves.</div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-q" onclick="toggleFaq(this)">Can I submit my own beats?<i class="ti ti-plus"></i></button>
-          <div class="faq-a">Absolutely. Hit the Submit tab, fill in your info and preview link (YouTube or SoundCloud), and we'll review it within 48 hours. It's free for all producers.</div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-q" onclick="toggleFaq(this)">Do I need an account?<i class="ti ti-plus"></i></button>
-          <div class="faq-a">No account needed to discover and swipe. Create a free account to sync your Crate across devices — so you never lose a saved beat.</div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-q" onclick="toggleFaq(this)">What genres are on BeatSwipe?<i class="ti ti-plus"></i></button>
-          <div class="faq-a">Trap, Drill, R&B, Lo-Fi, Afrobeats, Synthwave, Boom Bap, Acoustic and more. Use the filter in Discover to narrow it down to exactly what you need.</div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-q" onclick="toggleFaq(this)">Does BeatSwipe take a cut from sales?<i class="ti ti-plus"></i></button>
-          <div class="faq-a">No. We use affiliate links where available, but the beat price you see on the producer's store is what you pay — no extra fees from us.</div>
-        </div>
+        <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)">Is BeatSwipe free to use?<i class="ti ti-plus"></i></button><div class="faq-a">Yes — always. Discovering, swiping, and saving beats is completely free. You only pay when you license a beat directly from the producer.</div></div>
+        <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)">How do I license a beat?<i class="ti ti-plus"></i></button><div class="faq-a">Save a beat to your Crate, then tap the buy button. It takes you straight to the producer's store — BeatStars, Splice, SoundCloud, or their own site. We don't handle payments ourselves.</div></div>
+        <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)">Can I submit my own beats?<i class="ti ti-plus"></i></button><div class="faq-a">Absolutely. Hit the Submit tab, fill in your info and preview link (YouTube or SoundCloud), and we'll review it within 48 hours. It's free for all producers.</div></div>
+        <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)">Do I need an account?<i class="ti ti-plus"></i></button><div class="faq-a">No account needed to discover and swipe. Create a free account to sync your Crate across devices — so you never lose a saved beat.</div></div>
+        <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)">What genres are on BeatSwipe?<i class="ti ti-plus"></i></button><div class="faq-a">Trap, Drill, R&B, Lo-Fi, Afrobeats, Synthwave, Boom Bap, Acoustic and more. Use the filter in Discover to narrow it down to exactly what you need.</div></div>
+        <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)">Does BeatSwipe take a cut from sales?<i class="ti ti-plus"></i></button><div class="faq-a">No. We use affiliate links where available, but the beat price you see on the producer's store is what you pay — no extra fees from us.</div></div>
       </div>
       <div class="cta-strip">
         <button class="btn-primary" onclick="goTo('discoverScreen','navDiscover')"><i class="ti ti-player-play"></i> Open the app</button>
@@ -598,12 +545,8 @@
     </div>
   </div>
 
-  <!-- DISCOVER -->
   <div class="screen" id="discoverScreen">
-    <div class="top-bar">
-      <div class="wordmark">Beat<b>Swipe</b></div>
-      <div class="top-badge" id="cardCounter">1 / 3</div>
-    </div>
+    <div class="top-bar"><div class="wordmark">Beat<b>Swipe</b></div><div class="top-badge" id="cardCounter">1 / 3</div></div>
     <div style="display:flex;align-items:center;gap:0;flex-shrink:0">
       <div class="cat-row" id="catRow" style="flex:1;padding-right:8px">
         <button class="cat-pill active" data-cat="full">Full Beats</button>
@@ -626,59 +569,40 @@
     </div>
   </div>
 
-  <!-- CRATE -->
   <div class="screen" id="crateScreen">
     <div class="crate-header">
-      <div class="crate-title">Your crate</div>
-      <div class="crate-sub" id="crateCountLbl">0 beats saved</div>
+      <div class="crate-title">Your crate</div><div class="crate-sub" id="crateCountLbl">0 beats saved</div>
     </div>
     <div class="crate-body" id="crateBody">
       <div class="crate-empty"><i class="ti ti-music-off"></i>Nothing here yet.<br>Go swipe some beats!</div>
     </div>
   </div>
 
-  <!-- SUBMIT -->
   <div class="screen" id="submitScreen">
     <div class="submit-header">
       <div class="submit-title">Submit your beats</div>
       <div class="submit-sub">We'll review your submission and add it to the feed. Free for all producers.</div>
     </div>
     <div class="submit-scroll">
-      <div class="field-group">
-        <label class="field-label">Producer name *</label>
-        <input type="text" id="f-producer" placeholder="Your name or alias">
-      </div>
-      <div class="field-group">
-        <label class="field-label">Track title *</label>
-        <input type="text" id="f-title" placeholder="e.g. Midnight Drive">
-      </div>
+      <div class="field-group"><label class="field-label">Producer name *</label><input type="text" id="f-producer" placeholder="Your name or alias"></div>
+      <div class="field-group"><label class="field-label">Track title *</label><input type="text" id="f-title" placeholder="e.g. Midnight Drive"></div>
       <div class="field-group field-row">
-        <div>
-          <label class="field-label">BPM *</label>
-          <input type="number" id="f-bpm" placeholder="140">
-        </div>
-        <div>
-          <label class="field-label">Key</label>
-          <input type="text" id="f-key" placeholder="F# Min">
-        </div>
+        <div><label class="field-label">BPM *</label><input type="number" id="f-bpm" placeholder="140"></div>
+        <div><label class="field-label">Key</label><input type="text" id="f-key" placeholder="F# Min"></div>
       </div>
       <div class="field-group">
         <label class="field-label">Genre *</label>
         <select id="f-genre">
           <option value="">Select genre...</option>
-          <option>Trap</option><option>Drill</option><option>R&B</option>
-          <option>Lo-Fi</option><option>Afrobeats</option><option>Synthwave</option>
-          <option>Acoustic</option><option>Boom Bap</option><option>Other</option>
+          <option>Trap</option><option>Drill</option><option>R&B</option><option>Lo-Fi</option><option>Afrobeats</option>
+          <option>Synthwave</option><option>Acoustic</option><option>Boom Bap</option><option>Other</option>
         </select>
       </div>
       <div class="field-group">
         <label class="field-label">Type *</label>
         <select id="f-type">
           <option value="">Select type...</option>
-          <option>Full Beat</option>
-          <option>Loop</option>
-          <option>Drum Kit</option>
-          <option>Sample</option>
+          <option>Full Beat</option><option>Loop</option><option>Drum Kit</option><option>Sample</option>
         </select>
       </div>
       <div class="field-group">
@@ -690,40 +614,26 @@
           <option value="MP3">MP3 — direkt hochladen</option>
         </select>
       </div>
-
-      <!-- URL preview (YouTube / SoundCloud) -->
       <div class="field-group" id="preview-url-group" style="display:none">
         <label class="field-label" id="preview-url-label">Preview URL *</label>
         <input type="url" id="f-preview" placeholder="https://...">
         <div id="preview-hint" style="font-size:11px;color:var(--text-3);margin-top:5px"></div>
       </div>
-
-      <!-- MP3 File Upload -->
       <div class="field-group" id="preview-mp3-group" style="display:none">
         <label class="field-label">MP3 Datei hochladen *</label>
-
-        <!-- shown when NOT logged in -->
         <div id="uploadLoginHint" style="display:none;background:var(--bg-2);border:0.5px solid var(--border-2);border-radius:14px;padding:18px 16px;text-align:center">
           <i class="ti ti-lock" style="font-size:26px;color:var(--accent-mid);display:block;margin-bottom:8px"></i>
           <div style="font-size:14px;font-weight:600;margin-bottom:4px">Account erforderlich</div>
           <div style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.5">Erstelle einen kostenlosen Account um MP3s direkt hochzuladen.</div>
-          <button onclick="goTo('profileScreen','navProfile')" style="padding:10px 22px;border-radius:10px;background:var(--accent);border:none;color:#fff;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
-            <i class="ti ti-user"></i> Jetzt registrieren
-          </button>
+          <button onclick="goTo('profileScreen','navProfile')" style="padding:10px 22px;border-radius:10px;background:var(--accent);border:none;color:#fff;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px"><i class="ti ti-user"></i> Jetzt registrieren</button>
         </div>
-
-        <!-- shown when logged in -->
         <div id="uploadLoggedIn">
           <div class="upload-drop" id="uploadDrop" onclick="document.getElementById('f-mp3-file').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
-            <input type="file" id="f-mp3-file" accept="audio/mpeg,.mp3" style="display:none" onchange="handleFileSelect(event)">
-            <i class="ti ti-file-music"></i>
-            <div class="upload-drop-title">MP3 hier reinziehen oder klicken</div>
-            <div class="upload-drop-sub">Nur MP3 · max. 15 MB</div>
+            <input type="file" id="f-mp3-file" accept="audio/*,.mp3" style="display:none" onchange="handleFileSelect(event)">
+            <i class="ti ti-file-music"></i><div class="upload-drop-title">MP3 hier reinziehen oder klicken</div><div class="upload-drop-sub">Nur MP3 · max. 15 MB</div>
           </div>
           <div class="upload-file-selected" id="uploadFileSelected" style="display:none">
-            <i class="ti ti-file-music"></i>
-            <span class="upload-file-name" id="uploadFileName">–</span>
-            <span class="upload-file-size" id="uploadFileSize">–</span>
+            <i class="ti ti-file-music"></i><span class="upload-file-name" id="uploadFileName">–</span><span class="upload-file-size" id="uploadFileSize">–</span>
             <button class="upload-remove" onclick="removeFile()" title="Entfernen"><i class="ti ti-x"></i></button>
           </div>
           <div class="upload-progress-wrap" id="uploadProgressWrap">
@@ -738,45 +648,25 @@
         <input type="url" id="f-buy" placeholder="BeatStars, Splice, Instagram, Website...">
         <div style="font-size:11px;color:var(--text-3);margin-top:5px">BeatStars, Splice, deine Website, Instagram — alles möglich</div>
       </div>
-      <div class="field-group">
-        <label class="field-label">Anything else?</label>
-        <textarea id="f-note" placeholder="Additional info, collab requests..."></textarea>
-      </div>
+      <div class="field-group"><label class="field-label">Anything else?</label><textarea id="f-note" placeholder="Additional info, collab requests..."></textarea></div>
       <button class="submit-btn" onclick="submitForm()"><i class="ti ti-send"></i> Submit for review</button>
-      <div class="success-msg" id="successMsg">
-        <i class="ti ti-circle-check"></i>
-        <p>Submission received! We'll review your beat and add it to the feed within 48h.</p>
-      </div>
+      <div class="success-msg" id="successMsg"><i class="ti ti-circle-check"></i><p>Submission received! We'll review your beat and add it to the feed within 48h.</p></div>
     </div>
   </div>
 
-
-  <!-- PRODUCER PROFILE -->
   <div class="screen" id="producerProfileScreen">
-    <div class="top-bar">
-      <div class="wordmark">Beat<b>Swipe</b></div>
-      <div class="top-badge" id="producerProfileBadge">Producer</div>
-    </div>
+    <div class="top-bar"><div class="wordmark">Beat<b>Swipe</b></div><div class="top-badge" id="producerProfileBadge">Producer</div></div>
     <div class="producer-screen-wrap">
-      <button class="producer-back" onclick="goBackFromProducer()">
-        <i class="ti ti-arrow-left"></i> Back
-      </button>
+      <button class="producer-back" onclick="goBackFromProducer()"><i class="ti ti-arrow-left"></i> Back</button>
       <div id="producerProfileContent"></div>
     </div>
   </div>
 
-  <!-- PROFILE -->
   <div class="screen" id="profileScreen">
-    <div class="top-bar">
-      <div class="wordmark">Beat<b>Swipe</b></div>
-      <div class="top-badge">Account</div>
-    </div>
-    <div class="profile-wrap" id="profileWrap">
-      <!-- filled by JS -->
-    </div>
+    <div class="top-bar"><div class="wordmark">Beat<b>Swipe</b></div><div class="top-badge">Account</div></div>
+    <div class="profile-wrap" id="profileWrap"></div>
   </div>
 
-  <!-- BOTTOM NAV -->
   <div class="nav-bar">
     <button class="nav-tab active" id="navHome" onclick="goTo('landScreen','navHome')"><i class="ti ti-home"></i>Home<div class="nav-dot"></div></button>
     <button class="nav-tab" id="navDiscover" onclick="goTo('discoverScreen','navDiscover')"><i class="ti ti-headphones"></i>Discover<div class="nav-dot"></div></button>
@@ -785,87 +675,53 @@
     <button class="nav-tab" id="navProfile" onclick="goTo('profileScreen','navProfile')"><i class="ti ti-user"></i>Profile<div class="nav-dot"></div></button>
   </div>
 
-  <!-- IMPRESSUM MODAL -->
   <div class="info-modal-backdrop" id="impressumModal" onclick="closeInfoIfBackdrop(event,'impressumModal')">
     <div class="info-modal-sheet">
       <div class="modal-handle"></div>
-      <div class="modal-head">
-        <div class="modal-title">Impressum</div>
-        <button class="modal-close" onclick="closeInfoModal('impressumModal')"><i class="ti ti-x" style="font-size:14px"></i></button>
-      </div>
+      <div class="modal-head"><div class="modal-title">Impressum</div><button class="modal-close" onclick="closeInfoModal('impressumModal')"><i class="ti ti-x" style="font-size:14px"></i></button></div>
       <div class="info-modal-body">
-        <h3>Angaben gemäß § 5 TMG</h3>
-        <p>BeatSwipe<br>Inhaber: [Dein Name]<br>[Straße Hausnummer]<br>[PLZ Ort], Österreich</p>
-        <h3>Kontakt</h3>
-        <p>E-Mail: <a href="mailto:hello@beatswipe.app">hello@beatswipe.app</a></p>
-        <h3>Haftungsausschluss</h3>
-        <p>BeatSwipe ist eine Entdeckungsplattform. Wir sind nicht Partei bei Lizenzverträgen zwischen Käufern und Produzenten. Alle Transaktionen erfolgen direkt über die verlinkten Drittplattformen.</p>
-        <h3>Urheberrecht</h3>
-        <p>Die durch BeatSwipe erstellten Inhalte unterliegen dem Urheberrecht. Beats und Samples sind Eigentum der jeweiligen Produzenten.</p>
+        <h3>Angaben gemäß § 5 TMG</h3><p>BeatSwipe<br>Inhaber: [Dein Name]<br>[Straße Hausnummer]<br>[PLZ Ort], Österreich</p>
+        <h3>Kontakt</h3><p>E-Mail: <a href="mailto:hello@beatswipe.app">hello@beatswipe.app</a></p>
+        <h3>Haftungsausschluss</h3><p>BeatSwipe ist eine Entdeckungsplattform. Wir sind nicht Partei bei Lizenzverträgen zwischen Käufern und Produzenten. Alle Transaktionen erfolgen direkt über die verlinkten Drittplattformen.</p>
       </div>
     </div>
   </div>
 
-  <!-- DATENSCHUTZ MODAL -->
   <div class="info-modal-backdrop" id="privacyModal" onclick="closeInfoIfBackdrop(event,'privacyModal')">
     <div class="info-modal-sheet">
       <div class="modal-handle"></div>
-      <div class="modal-head">
-        <div class="modal-title">Datenschutz</div>
-        <button class="modal-close" onclick="closeInfoModal('privacyModal')"><i class="ti ti-x" style="font-size:14px"></i></button>
-      </div>
+      <div class="modal-head"><div class="modal-title">Datenschutz</div><button class="modal-close" onclick="closeInfoModal('privacyModal')"><i class="ti ti-x" style="font-size:14px"></i></button></div>
       <div class="info-modal-body">
-        <h3>Verantwortlicher</h3>
-        <p>BeatSwipe — <a href="mailto:hello@beatswipe.app">hello@beatswipe.app</a></p>
-        <h3>Daten die wir speichern</h3>
-        <p>Nur wenn du ein Konto erstellst: E-Mail-Adresse und deine gespeicherten Beats (Crate). Diese werden verschlüsselt in Supabase gespeichert und nicht an Dritte weitergegeben.</p>
-        <h3>Cookies & Tracking</h3>
-        <p>BeatSwipe verwendet keine Tracking-Cookies und keine Werbe-Netzwerke. Wir analysieren keine persönlichen Nutzungsdaten.</p>
-        <h3>Drittanbieter</h3>
-        <p>Beim Klicken auf externe Links (BeatStars, Splice etc.) gelten deren Datenschutzbestimmungen. Wir haben keinen Einfluss auf diese Plattformen.</p>
-        <h3>Deine Rechte</h3>
-        <p>Du kannst jederzeit die Löschung deines Kontos und aller gespeicherten Daten per Mail beantragen: <a href="mailto:hello@beatswipe.app">hello@beatswipe.app</a></p>
+        <h3>Verantwortlicher</h3><p>BeatSwipe — <a href="mailto:hello@beatswipe.app">hello@beatswipe.app</a></p>
+        <h3>Daten die wir speichern</h3><p>Nur wenn du ein Konto erstellst: E-Mail-Adresse und deine gespeicherten Beats. Diese werden in Supabase gespeichert.</p>
+        <h3>Cookies & Tracking</h3><p>BeatSwipe verwendet keine Tracking-Cookies und keine Werbe-Netzwerke.</p>
       </div>
     </div>
   </div>
 
-  <!-- FILTER MODAL -->
   <div class="modal-backdrop" id="filterModal" onclick="closeFilterIfBackdrop(event)">
     <div class="modal-sheet">
       <div class="modal-handle"></div>
-      <div class="modal-head">
-        <div class="modal-title">Filter beats</div>
-        <button class="modal-close" onclick="closeFilterModal()"><i class="ti ti-x" style="font-size:14px"></i></button>
-      </div>
+      <div class="modal-head"><div class="modal-title">Filter beats</div><button class="modal-close" onclick="closeFilterModal()"><i class="ti ti-x" style="font-size:14px"></i></button></div>
       <div class="modal-body">
         <div>
           <div class="filter-label">GENRE</div>
           <div class="filter-pills" id="genrePills">
-            <button class="filter-pill active" data-genre="all">All</button>
-            <button class="filter-pill" data-genre="Trap">Trap</button>
-            <button class="filter-pill" data-genre="Drill">Drill</button>
-            <button class="filter-pill" data-genre="R&B">R&amp;B</button>
-            <button class="filter-pill" data-genre="Lo-Fi">Lo-Fi</button>
-            <button class="filter-pill" data-genre="Afrobeats">Afrobeats</button>
-            <button class="filter-pill" data-genre="Synthwave">Synthwave</button>
-            <button class="filter-pill" data-genre="Boom Bap">Boom Bap</button>
-            <button class="filter-pill" data-genre="Acoustic">Acoustic</button>
-            <button class="filter-pill" data-genre="Other">Other</button>
+            <button class="filter-pill active" data-genre="all">All</button><button class="filter-pill" data-genre="Trap">Trap</button>
+            <button class="filter-pill" data-genre="Drill">Drill</button><button class="filter-pill" data-genre="R&B">R&amp;B</button>
+            <button class="filter-pill" data-genre="Lo-Fi">Lo-Fi</button><button class="filter-pill" data-genre="Afrobeats">Afrobeats</button>
+            <button class="filter-pill" data-genre="Synthwave">Synthwave</button><button class="filter-pill" data-genre="Boom Bap">Boom Bap</button>
+            <button class="filter-pill" data-genre="Acoustic">Acoustic</button><button class="filter-pill" data-genre="Other">Other</button>
           </div>
         </div>
         <button class="modal-apply" onclick="applyFilter()"><i class="ti ti-player-play"></i> Start swiping</button>
       </div>
     </div>
   </div>
-</div><!-- /shell -->
-  </div><!-- /desktop-right -->
-</div><!-- /desktop-layout -->
-
-<script>
+</div></div></div><script>
 // ─── BEAT DATABASE ─────────────────────────────────────────────────────────
-// Beats werden live von Airtable geladen (nur Status = Approved)
 let db = { full: [], loops: [], drums: [], samples: [] };
-let _rawDb = { full: [], loops: [], drums: [], samples: [] }; // unfiltered copy
+let _rawDb = { full: [], loops: [], drums: [], samples: [] };
 
 function typeTocat(type) {
   if (!type) return 'full';
@@ -885,83 +741,35 @@ async function loadBeats() {
     if (data.beats && data.beats.length) {
       db = { full: [], loops: [], drums: [], samples: [] };
       data.beats.forEach(b => db[typeTocat(b.type)].push(b));
-      _rawDb = JSON.parse(JSON.stringify(db)); // save unfiltered copy
+      _rawDb = JSON.parse(JSON.stringify(db));
       updateStats();
     }
   } catch(e) { console.log('API fallback'); }
+  ensureFallback();
   renderCard();
 }
 
-// Fallback hardcoded beats (werden überschrieben wenn API antwortet)
 const _fallback = {
   full: [
-    {
-      id:'f1', title:'Midnight Drive', producer:'MetroVibe',
-      type:'Full Beat', bpm:'140 BPM', key:'F# Min', genre:'Trap', color:'#F43F5E',
-      mp3:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-      buy:'https://beatstars.com'
-    },
-    {
-      id:'f2', title:'Summer Breeze', producer:'OVO_Type',
-      type:'Full Beat', bpm:'105 BPM', key:'C Maj', genre:'R&B', color:'#534AB7',
-      mp3:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
-      buy:'https://beatstars.com'
-    },
-    {
-      id:'f3', title:'Night Vision', producer:'GhostProd',
-      type:'Full Beat', bpm:'135 BPM', key:'A Min', genre:'Drill', color:'#185FA5',
-      mp3:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
-      buy:'https://beatstars.com'
-    }
+    { id:'f1', title:'Midnight Drive', producer:'MetroVibe', type:'Full Beat', bpm:'140 BPM', key:'F# Min', genre:'Trap', color:'#F43F5E', mp3:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3', buy:'https://beatstars.com' },
+    { id:'f2', title:'Summer Breeze', producer:'OVO_Type', type:'Full Beat', bpm:'105 BPM', key:'C Maj', genre:'R&B', color:'#534AB7', mp3:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3', buy:'https://beatstars.com' }
   ],
-  inst: [
-    {
-      id:'i1', title:'Guitar Loop 04', producer:'StringsGod',
-      type:'Instrumental', bpm:'90 BPM', key:'E Min', genre:'Acoustic', color:'#1D9E75',
-      mp3:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3',
-      buy:'https://beatstars.com'
-    },
-    {
-      id:'i2', title:'Dark Synth Brass', producer:'CyberPunk',
-      type:'Instrumental', bpm:'120 BPM', key:'D Min', genre:'Synthwave', color:'#993556',
-      mp3:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3',
-      buy:'https://beatstars.com'
-    }
-  ],
-  drums: [
-    {
-      id:'d1', title:'Drill Bop Break', producer:'UK_Ghost',
-      type:'Drums', bpm:'142 BPM', key:'N/A', genre:'Drill', color:'#993C1D',
-      mp3:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3',
-      buy:'https://beatstars.com'
-    },
-    {
-      id:'d2', title:'LoFi Percussion', producer:'ChillBeats',
-      type:'Drums', bpm:'85 BPM', key:'N/A', genre:'Lo-Fi', color:'#185FA5',
-      mp3:'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3',
-      buy:'https://beatstars.com'
-    }
-  ]
+  loops: [], drums: [], samples: []
 };
-// Use fallback if db is empty after API load
 function ensureFallback() {
-  if (!db.full.length && !db.inst.length && !db.drums.length) {
-    db = _fallback;
-  }
+  if (!db.full.length && !db.loops.length && !db.drums.length) db = _fallback;
 }
 
-// ─── AUDIO STATE ──────────────────────────────────────────────────────────
+// ─── AUDIO ENGINE ─────────────────────────────────────────────────────────
 let cat = 'full', idx = 0, crate = [];
-let audio = null;       // current HTMLAudioElement
-let vizTimer = null;    // waveform animation interval
+let audio = null;
+let vizTimer = null;
 let isPlaying = false;
 
-// ─── AUDIO ENGINE ─────────────────────────────────────────────────────────
 function loadTrack(mp3Url) {
   stopTrack();
   audio = new Audio(mp3Url);
   audio.preload = 'metadata';
-
   audio.addEventListener('timeupdate', onTimeUpdate);
   audio.addEventListener('ended', onEnded);
   audio.addEventListener('loadedmetadata', () => {
@@ -969,59 +777,39 @@ function loadTrack(mp3Url) {
     if (dur) dur.textContent = fmtTime(audio.duration);
   });
 }
-
 function togglePlay() {
   if (!audio) return;
-  if (isPlaying) {
-    audio.pause();
-    setPlayState(false);
-  } else {
-    audio.play().catch(() => {});
-    setPlayState(true);
-  }
+  if (isPlaying) { audio.pause(); setPlayState(false); } 
+  else { audio.play().catch(()=>{}); setPlayState(true); }
 }
-
 function stopTrack() {
-  if (audio) {
-    audio.pause();
-    audio.src = '';
-    audio = null;
-  }
+  if (audio) { audio.pause(); audio.src = ''; audio = null; }
   setPlayState(false);
   clearInterval(vizTimer);
 }
-
 function setPlayState(playing) {
   isPlaying = playing;
   const btn = document.getElementById('playBtn');
   if (btn) {
     btn.classList.toggle('playing', playing);
     const icon = btn.querySelector('i');
-    if (icon) icon.className = playing ? 'ti ti-player-pause' : 'ti ti-player-play';
-    if (!playing && icon) icon.style.marginLeft = '0';
-    if (playing && icon) icon.style.marginLeft = '2px';
+    if (icon) { icon.className = playing ? 'ti ti-player-pause' : 'ti ti-player-play'; icon.style.marginLeft = playing ? '2px' : '0'; }
   }
   clearInterval(vizTimer);
   vizTimer = setInterval(() => {
-    const bars = document.querySelectorAll('.wbar');
-    bars.forEach(b => {
-      const max = playing ? 54 : 16;
-      const min = playing ? 6 : 3;
-      b.style.height = Math.round(Math.random() * max + min) + 'px';
+    document.querySelectorAll('.wbar').forEach(b => {
+      b.style.height = Math.round(Math.random() * (playing ? 54 : 16) + (playing ? 6 : 3)) + 'px';
       b.style.opacity = playing ? '1' : '0.55';
     });
   }, playing ? 100 : 600);
 }
-
 function onTimeUpdate() {
   if (!audio) return;
-  const pct = (audio.currentTime / audio.duration) * 100 || 0;
   const fill = document.getElementById('progressFill');
-  if (fill) fill.style.width = pct + '%';
+  if (fill) fill.style.width = ((audio.currentTime / audio.duration) * 100 || 0) + '%';
   const cur = document.getElementById('timeCur');
   if (cur) cur.textContent = fmtTime(audio.currentTime);
 }
-
 function onEnded() {
   setPlayState(false);
   const fill = document.getElementById('progressFill');
@@ -1029,52 +817,39 @@ function onEnded() {
   const cur = document.getElementById('timeCur');
   if (cur) cur.textContent = '0:00';
 }
-
 function seekTo(e) {
   if (!audio || !audio.duration) return;
   const bar = e.currentTarget;
   const rect = bar.getBoundingClientRect();
-  const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-  audio.currentTime = pct * audio.duration;
+  audio.currentTime = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)) * audio.duration;
 }
-
 function fmtTime(s) {
   if (!s || isNaN(s)) return '0:00';
-  const m = Math.floor(s / 60);
-  return m + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+  return Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
 }
 
-// ─── NAVIGATION ───────────────────────────────────────────────────────────
-// goTo is defined after producer logic below — forward declaration placeholder
-
-// ─── CARD RENDER ──────────────────────────────────────────────────────────
-// ─── YOUTUBE HELPERS ──────────────────────────────────────────────────────
-function isSoundCloud(url) {
-  return url && url.includes('soundcloud.com');
-}
-
-function isYouTube(url) {
-  return url && (url.includes('youtube.com') || url.includes('youtu.be'));
-}
-
-function getYtId(url) {
-  const m = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
-  return m ? m[1] : null;
-}
-
+// ─── HELPERS ──────────────────────────────────────────────────────────────
+function isSoundCloud(url) { return url && url.includes('soundcloud.com'); }
+function isYouTube(url) { return url && (url.includes('youtube.com') || url.includes('youtu.be')); }
+function getYtId(url) { const m = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/); return m ? m[1] : null; }
 function startVideo() {
   const overlay = document.getElementById('ytOverlay');
-  const frame   = document.getElementById('ytFrame');
+  const frame = document.getElementById('ytFrame');
   if (!overlay || !frame) return;
   frame.src = frame.getAttribute('data-src') + '&autoplay=1';
   overlay.style.opacity = '0';
   overlay.style.pointerEvents = 'none';
 }
+function escHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
 
+// ─── CARD RENDER ──────────────────────────────────────────────────────────
 function renderCard() {
   stopTrack();
   const wrap = document.getElementById('cardWrap');
-  const list = db[cat];
+  const list = db[cat] || [];
   const counter = document.getElementById('cardCounter');
 
   if (!list.length || idx >= list.length) {
@@ -1082,63 +857,40 @@ function renderCard() {
     wrap.innerHTML = `<div class="empty-card"><i class="ti ti-music-off"></i>All caught up!<br>Switch category or check back later.</div>`;
     return;
   }
-
   counter.textContent = (idx + 1) + ' / ' + list.length;
   const d = list[idx];
-  const bars = Array(36).fill(0).map(() =>
-    `<div class="wbar" style="background:${d.color};height:${Math.round(Math.random()*14+3)}px;opacity:0.55"></div>`
-  ).join('');
-
+  const bars = Array(36).fill(0).map(() => `<div class="wbar" style="background:${d.color};height:${Math.round(Math.random()*14+3)}px;opacity:0.55"></div>`).join('');
   const useYT = isYouTube(d.mp3);
   const useSC = isSoundCloud(d.mp3);
-  const ytId  = useYT ? getYtId(d.mp3) : null;
+  const ytId = useYT ? getYtId(d.mp3) : null;
   const embedSrc = ytId ? `https://www.youtube.com/embed/${ytId}?rel=0&modestbranding=1&showinfo=0&color=white&iv_load_policy=3` : '';
   const scEmbedSrc = useSC ? `https://w.soundcloud.com/player/?url=${encodeURIComponent(d.mp3)}&color=%23EF9F27&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false` : '';
 
   const playerHTML = useYT ? `
     <div class="yt-wrap">
-      <iframe id="ytFrame" data-src="${embedSrc}" src="${embedSrc}"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowfullscreen></iframe>
-      <div class="yt-overlay" id="ytOverlay" onclick="startVideo()">
-        <div class="yt-play-icon"><i class="ti ti-player-play"></i></div>
-      </div>
+      <iframe id="ytFrame" data-src="${embedSrc}" src="${embedSrc}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      <div class="yt-overlay" id="ytOverlay" onclick="startVideo()"><div class="yt-play-icon"><i class="ti ti-player-play"></i></div></div>
     </div>
     <div class="yt-footer">
       <span class="yt-hint"><i class="ti ti-brand-youtube" style="font-size:13px;color:#FF0000;vertical-align:middle;margin-right:3px"></i>Tap to preview</span>
       <a href="${d.mp3}" target="_blank" class="yt-link">YouTube <i class="ti ti-external-link" style="font-size:11px"></i></a>
     </div>` : useSC ? `
     <div style="border-radius:14px;overflow:hidden;border:0.5px solid var(--border)">
-      <iframe
-        src="${scEmbedSrc}"
-        width="100%" height="120" scrolling="no" frameborder="no" allow="autoplay"
-        style="display:block;background:#000">
-      </iframe>
+      <iframe src="${scEmbedSrc}" width="100%" height="120" scrolling="no" frameborder="no" allow="autoplay" style="display:block;background:#000"></iframe>
     </div>
     <div class="yt-footer">
       <span class="yt-hint"><i class="ti ti-brand-soundcloud" style="font-size:13px;color:#FF5500;vertical-align:middle;margin-right:3px"></i>SoundCloud preview</span>
       <a href="${d.mp3}" target="_blank" class="yt-link">Open <i class="ti ti-external-link" style="font-size:11px"></i></a>
     </div>` : `
     <div class="player-area">
-      <div class="waveform-wrap" onclick="togglePlay()">
-        <div class="waveform">${bars}</div>
-      </div>
+      <div class="waveform-wrap" onclick="togglePlay()"><div class="waveform">${bars}</div></div>
       <div class="player-controls">
-        <button class="play-btn" id="playBtn" onclick="togglePlay()" aria-label="Play/Pause">
-          <i class="ti ti-player-play" style="margin-left:2px"></i>
-        </button>
+        <button class="play-btn" id="playBtn" onclick="togglePlay()"><i class="ti ti-player-play" style="margin-left:2px"></i></button>
         <div class="progress-wrap">
-          <div class="progress-bar" id="progressBar" onclick="seekTo(event)">
-            <div class="progress-fill" id="progressFill"></div>
-          </div>
-          <div class="time-row">
-            <span class="time-lbl" id="timeCur">0:00</span>
-            <span class="time-lbl" id="timeDur">--:--</span>
-          </div>
+          <div class="progress-bar" id="progressBar" onclick="seekTo(event)"><div class="progress-fill" id="progressFill"></div></div>
+          <div class="time-row"><span class="time-lbl" id="timeCur">0:00</span><span class="time-lbl" id="timeDur">--:--</span></div>
         </div>
-        <a href="${d.buy}" target="_blank" rel="noopener" class="buy-link">
-          <i class="ti ti-shopping-cart" style="font-size:15px"></i>Buy
-        </a>
+        <a href="${d.buy}" target="_blank" rel="noopener" class="buy-link"><i class="ti ti-shopping-cart" style="font-size:15px"></i>Buy</a>
       </div>
     </div>`;
 
@@ -1147,154 +899,77 @@ function renderCard() {
       <div class="card-head">
         <span class="swipe-label swipe-label-skip" id="labelSkip">SKIP</span>
         <span class="swipe-label swipe-label-save" id="labelSave">SAVE</span>
-        <div class="cover-box" style="background:${d.color}20;border:0.5px solid ${d.color}50">
-          <i class="ti ti-${d.type==='Drums'?'circle':'music'}" style="font-size:24px;color:${d.color}"></i>
-        </div>
+        <div class="cover-box" style="background:${d.color}20;border:0.5px solid ${d.color}50"><i class="ti ti-${d.type==='Drums'?'circle':'music'}" style="font-size:24px;color:${d.color}"></i></div>
         <div style="flex:1;min-width:0">
           <div class="track-name">${d.title}</div>
           <div class="track-by" style="cursor:pointer;color:var(--accent-mid)" onclick="openProducerProfile('${d.producer.replace(/'/g,"\\'")}')">by ${d.producer} <i class="ti ti-arrow-right" style="font-size:10px"></i></div>
         </div>
         <span class="type-pill">${d.type}</span>
       </div>
-      <div class="tag-row">
-        <span class="tag">${d.bpm}</span>
-        <span class="tag">${d.key}</span>
-        <span class="tag">${d.genre}</span>
-      </div>
+      <div class="tag-row"><span class="tag">${d.bpm}</span><span class="tag">${d.key}</span><span class="tag">${d.genre}</span></div>
       ${playerHTML}
     </div>`;
 
-  // Idle waveform animation (only for MP3)
   if (!useYT && !useSC) {
-    vizTimer = setInterval(() => {
-      document.querySelectorAll('.wbar').forEach(b => {
-        b.style.height = Math.round(Math.random() * 14 + 3) + 'px';
-      });
-    }, 600);
+    vizTimer = setInterval(() => { document.querySelectorAll('.wbar').forEach(b => { b.style.height = Math.round(Math.random() * 14 + 3) + 'px'; }); }, 600);
     loadTrack(d.mp3);
   }
 }
 
-// ─── SWIPE GESTURE (touch + mouse) ───────────────────────────────────────
+// ─── SWIPE GESTURE ───────────────────────────────────────────────────────
 (function initSwipeGesture() {
   let startX = 0, startY = 0, curX = 0, isDragging = false, isLocked = false;
-  const SWIPE_THRESHOLD = 80;   // px to trigger swipe
-  const MAX_ROTATION   = 18;    // degrees at full drag
-
+  const SWIPE_THRESHOLD = 80;
   function getCard() { return document.getElementById('theCard'); }
-
   function onStart(x, y) {
     const card = getCard();
     if (!card || isLocked) return;
     startX = x; startY = y; curX = 0; isDragging = true;
     card.classList.add('dragging');
   }
-
   function onMove(x, y) {
     if (!isDragging || isLocked) return;
     const card = getCard();
     if (!card) return;
-
     const dx = x - startX;
-    const dy = y - startY;
-
-    // If vertical scroll dominates early, cancel drag
-    if (!curX && Math.abs(dy) > Math.abs(dx) + 8) {
-      isDragging = false;
-      card.classList.remove('dragging');
-      return;
-    }
-
+    if (!curX && Math.abs(y - startY) > Math.abs(dx) + 8) { isDragging = false; card.classList.remove('dragging'); return; }
     curX = dx;
-    const rot = (dx / 320) * MAX_ROTATION;
-    card.style.transform = `translateX(${dx}px) rotate(${rot}deg)`;
-
-    // Label opacity
+    card.style.transform = `translateX(${dx}px) rotate(${(dx / 320) * 18}deg)`;
     const pct = Math.min(Math.abs(dx) / SWIPE_THRESHOLD, 1);
-    const skipLabel = document.getElementById('labelSkip');
-    const saveLabel = document.getElementById('labelSave');
-    if (skipLabel) skipLabel.style.opacity = dx < 0 ? pct : 0;
-    if (saveLabel) saveLabel.style.opacity = dx > 0 ? pct : 0;
-
-    // Tint action buttons
-    const btnSkip = document.querySelector('.btn-skip');
-    const btnSave = document.querySelector('.btn-save');
-    if (btnSkip) btnSkip.style.opacity = dx < 0 ? 0.5 + pct * 0.5 : 0.5;
-    if (btnSave) btnSave.style.opacity = dx > 0 ? 0.5 + pct * 0.5 : 0.5;
+    const sSkip = document.getElementById('labelSkip'), sSave = document.getElementById('labelSave');
+    if (sSkip) sSkip.style.opacity = dx < 0 ? pct : 0;
+    if (sSave) sSave.style.opacity = dx > 0 ? pct : 0;
+    const bSkip = document.querySelector('.btn-skip'), bSave = document.querySelector('.btn-save');
+    if (bSkip) bSkip.style.opacity = dx < 0 ? 0.5 + pct * 0.5 : 0.5;
+    if (bSave) bSave.style.opacity = dx > 0 ? 0.5 + pct * 0.5 : 0.5;
   }
-
   function onEnd() {
     if (!isDragging || isLocked) return;
     isDragging = false;
     const card = getCard();
     if (!card) return;
     card.classList.remove('dragging');
-
-    // Reset button opacity
     document.querySelectorAll('.act-btn').forEach(b => b.style.opacity = '');
-
     if (Math.abs(curX) >= SWIPE_THRESHOLD) {
       isLocked = true;
       doSwipe(curX > 0 ? 'right' : 'left');
       setTimeout(() => { isLocked = false; }, 450);
     } else {
-      // Snap back with wobble
       card.style.transform = '';
       card.classList.add('wobble');
-      const skipLabel = document.getElementById('labelSkip');
-      const saveLabel = document.getElementById('labelSave');
-      if (skipLabel) skipLabel.style.opacity = 0;
-      if (saveLabel) saveLabel.style.opacity = 0;
+      document.getElementById('labelSkip').style.opacity = 0;
+      document.getElementById('labelSave').style.opacity = 0;
       setTimeout(() => { card.classList.remove('wobble'); }, 460);
     }
   }
-
-  // ── TOUCH ──
-  document.addEventListener('touchstart', e => {
-    if (!e.target.closest('#theCard')) return;
-    // Don't hijack YouTube/SoundCloud iframes or buttons
-    if (e.target.closest('iframe,button,a,.progress-bar,.waveform-wrap')) return;
-    onStart(e.touches[0].clientX, e.touches[0].clientY);
-  }, { passive: true });
-
-  document.addEventListener('touchmove', e => {
-    if (!isDragging) return;
-    onMove(e.touches[0].clientX, e.touches[0].clientY);
-  }, { passive: true });
-
+  document.addEventListener('touchstart', e => { if (!e.target.closest('#theCard') || e.target.closest('iframe,button,a,.progress-bar,.waveform-wrap')) return; onStart(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+  document.addEventListener('touchmove', e => { if (isDragging) onMove(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
   document.addEventListener('touchend', onEnd, { passive: true });
-
-  // ── MOUSE ──
-  document.addEventListener('mousedown', e => {
-    if (!e.target.closest('#theCard')) return;
-    if (e.target.closest('iframe,button,a,.progress-bar,.waveform-wrap')) return;
-    onStart(e.clientX, e.clientY);
-    e.preventDefault();
-  });
-
-  document.addEventListener('mousemove', e => {
-    if (!isDragging) return;
-    onMove(e.clientX, e.clientY);
-  });
-
+  document.addEventListener('mousedown', e => { if (!e.target.closest('#theCard') || e.target.closest('iframe,button,a,.progress-bar,.waveform-wrap')) return; onStart(e.clientX, e.clientY); e.preventDefault(); });
+  document.addEventListener('mousemove', e => { if (isDragging) onMove(e.clientX, e.clientY); });
   document.addEventListener('mouseup', onEnd);
-  document.addEventListener('mouseleave', onEnd);
 })();
 
-// ─── FAQ ──────────────────────────────────────────────────────────────────
-function toggleFaq(btn) {
-  const answer = btn.nextElementSibling;
-  const isOpen = btn.classList.contains('open');
-  document.querySelectorAll('.faq-q').forEach(b => { b.classList.remove('open'); b.nextElementSibling.classList.remove('open'); });
-  if (!isOpen) { btn.classList.add('open'); answer.classList.add('open'); }
-}
-
-// ─── INFO MODALS ──────────────────────────────────────────────────────────
-function openInfoModal(id) { document.getElementById(id).classList.add('open'); }
-function closeInfoModal(id) { document.getElementById(id).classList.remove('open'); }
-function closeInfoIfBackdrop(e, id) { if (e.target === document.getElementById(id)) closeInfoModal(id); }
-
-// ─── EMOJI POP ────────────────────────────────────────────────────────────
 function showEmojiPop(dir) {
   const el = document.createElement('div');
   el.className = 'swipe-emoji';
@@ -1302,7 +977,6 @@ function showEmojiPop(dir) {
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 700);
 }
-
 function doSwipe(dir) {
   const card = document.getElementById('theCard');
   if (!card) return;
@@ -1311,10 +985,7 @@ function doSwipe(dir) {
   card.classList.add(dir === 'left' ? 'fly-left' : 'fly-right');
   if (dir === 'right') {
     const item = db[cat][idx];
-    if (!crate.find(i => i.id === item.id)) {
-      crate.push(item);
-      saveBeatToDB(item);
-    }
+    if (!crate.find(i => i.id === item.id)) { crate.push(item); saveBeatToDB(item); }
     renderCrate();
   }
   setTimeout(() => { idx++; renderCard(); }, 380);
@@ -1323,56 +994,59 @@ function doSwipe(dir) {
 // ─── CRATE ────────────────────────────────────────────────────────────────
 function renderCrate() {
   const body = document.getElementById('crateBody');
-  const lbl = document.getElementById('crateCountLbl');
-  lbl.textContent = crate.length + ' beat' + (crate.length === 1 ? '' : 's') + ' saved';
-  if (!crate.length) {
-    body.innerHTML = `<div class="crate-empty"><i class="ti ti-music-off"></i>Nothing here yet.<br>Go swipe some beats!</div>`;
-    return;
-  }
+  document.getElementById('crateCountLbl').textContent = crate.length + ' beat' + (crate.length === 1 ? '' : 's') + ' saved';
+  if (!crate.length) { body.innerHTML = `<div class="crate-empty"><i class="ti ti-music-off"></i>Nothing here yet.<br>Go swipe some beats!</div>`; return; }
   body.innerHTML = crate.map(d => {
     const hasBuy = d.buy && d.buy.startsWith('http') && d.buy !== d.mp3;
     const isYT = isYouTube(d.mp3);
     const isSC = isSoundCloud(d.mp3);
-    let btnLabel, btnLink;
+    let btnLabel, btnLink = d.mp3;
     if (hasBuy) {
-      const buyUrl = d.buy.toLowerCase();
-      if (buyUrl.includes('beatstars.com'))        { btnLabel = `<i class="ti ti-external-link"></i> Get on BeatStars`; }
-      else if (buyUrl.includes('splice.com'))       { btnLabel = `<i class="ti ti-external-link"></i> Get on Splice`; }
-      else if (buyUrl.includes('loopmasters.com'))  { btnLabel = `<i class="ti ti-external-link"></i> Get on Loopmasters`; }
-      else if (buyUrl.includes('instagram.com'))    { btnLabel = `<i class="ti ti-brand-instagram"></i> DM on Instagram`; }
-      else if (buyUrl.includes('soundcloud.com'))   { btnLabel = `<i class="ti ti-brand-soundcloud"></i> Get on SoundCloud`; }
-      else if (buyUrl.includes('youtube.com') || buyUrl.includes('youtu.be')) { btnLabel = `<i class="ti ti-brand-youtube"></i> Watch on YouTube`; }
-      else { btnLabel = `<i class="ti ti-external-link"></i> Get this beat`; }
       btnLink = d.buy;
-    } else if (isYT) {
-      btnLabel = `<i class="ti ti-brand-youtube"></i> Watch on YouTube`;
-      btnLink = d.mp3;
-    } else if (isSC) {
-      btnLabel = `<i class="ti ti-brand-soundcloud"></i> Listen on SoundCloud`;
-      btnLink = d.mp3;
-    } else {
-      btnLabel = `<i class="ti ti-music"></i> Preview`;
-      btnLink = d.mp3;
-    }
+      if (d.buy.includes('beatstars.com')) btnLabel = `<i class="ti ti-external-link"></i> Get on BeatStars`;
+      else if (d.buy.includes('instagram.com')) btnLabel = `<i class="ti ti-brand-instagram"></i> DM on Instagram`;
+      else btnLabel = `<i class="ti ti-external-link"></i> Get this beat`;
+    } else if (isYT) btnLabel = `<i class="ti ti-brand-youtube"></i> Watch on YouTube`;
+    else if (isSC) btnLabel = `<i class="ti ti-brand-soundcloud"></i> Listen on SoundCloud`;
+    else btnLabel = `<i class="ti ti-music"></i> Preview`;
     return `
     <div class="crate-card">
       <div class="crate-top">
-        <div class="mini-cover" style="background:${d.color}20;border:0.5px solid ${d.color}50">
-          <i class="ti ti-music" style="font-size:20px;color:${d.color}"></i>
-        </div>
+        <div class="mini-cover" style="background:${d.color}20;border:0.5px solid ${d.color}50"><i class="ti ti-music" style="font-size:20px;color:${d.color}"></i></div>
         <div style="flex:1;min-width:0">
           <div class="crate-name">${d.title}</div>
           <div class="crate-meta" style="cursor:pointer" onclick="openProducerProfile('${d.producer.replace(/'/g,"\\'")}')"><span style="color:var(--accent-mid)">${d.producer}</span> · ${d.bpm} · ${d.genre}</div>
         </div>
       </div>
-      <button class="buy-btn" onclick="window.open('${btnLink}','_blank')">
-        ${btnLabel}
-      </button>
+      <button class="buy-btn" onclick="window.open('${btnLink}','_blank')">${btnLabel}</button>
     </div>`;
   }).join('');
 }
 
-// ─── CATEGORY PILLS ───────────────────────────────────────────────────────
+// ─── NAV & MODALS ─────────────────────────────────────────────────────────
+function goTo(screenId, navId) {
+  stopTrack();
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(screenId).classList.add('active');
+  document.getElementById(navId).classList.add('active');
+  if (screenId === 'discoverScreen') renderCard();
+}
+
+function toggleFaq(btn) {
+  const answer = btn.nextElementSibling;
+  const isOpen = btn.classList.contains('open');
+  document.querySelectorAll('.faq-q').forEach(b => { b.classList.remove('open'); b.nextElementSibling.classList.remove('open'); });
+  if (!isOpen) { btn.classList.add('open'); answer.classList.add('open'); }
+}
+function openInfoModal(id) { document.getElementById(id).classList.add('open'); }
+function closeInfoModal(id) { document.getElementById(id).classList.remove('open'); }
+function closeInfoIfBackdrop(e, id) { if (e.target === document.getElementById(id)) closeInfoModal(id); }
+
+function openFilterModal() { document.getElementById('filterModal').classList.add('open'); }
+function closeFilterModal() { document.getElementById('filterModal').classList.remove('open'); }
+function closeFilterIfBackdrop(e) { if (e.target === document.getElementById('filterModal')) closeFilterModal(); }
+
 document.getElementById('catRow').querySelectorAll('.cat-pill').forEach(btn => {
   btn.onclick = () => {
     document.querySelectorAll('.cat-pill').forEach(b => b.classList.remove('active'));
@@ -1381,254 +1055,25 @@ document.getElementById('catRow').querySelectorAll('.cat-pill').forEach(btn => {
   };
 });
 
-// ─── MAKE.COM WEBHOOK ─────────────────────────────────────────────────────
-const WEBHOOK_URL = 'https://hook.eu1.make.com/emrsw3rs980mwsi3a1b3kyfcobec3ahb';
-
-// ─── PREVIEW TYPE TOGGLE ──────────────────────────────────────────────────
-let _mp3File = null;      // selected File object
-let _mp3PublicUrl = null; // uploaded Supabase URL
-
-const MAX_FILE_MB = 15;
-const ALLOWED_MIME = 'audio/mpeg';
-const SUPA_BUCKET  = 'beats';
-
-function updatePreviewLabel() {
-  const type = document.getElementById('f-preview-type').value;
-  const urlGroup = document.getElementById('preview-url-group');
-  const mp3Group = document.getElementById('preview-mp3-group');
-  const label    = document.getElementById('preview-url-label');
-  const hint     = document.getElementById('preview-hint');
-  const input    = document.getElementById('f-preview');
-
-  urlGroup.style.display = 'none';
-  mp3Group.style.display = 'none';
-
-  if (!type) return;
-
-  if (type === 'YouTube') {
-    urlGroup.style.display = 'block';
-    label.textContent = 'YouTube Link *';
-    input.placeholder = 'https://youtube.com/watch?v=...';
-    hint.textContent = 'z.B. https://youtube.com/watch?v=DXXofaoixFo';
-  } else if (type === 'SoundCloud') {
-    urlGroup.style.display = 'block';
-    label.textContent = 'SoundCloud Link *';
-    input.placeholder = 'https://soundcloud.com/...';
-    hint.textContent = 'Direktlink zum Track auf SoundCloud';
-  } else if (type === 'MP3') {
-    mp3Group.style.display = 'block';
-    // Show login hint or upload zone based on auth state
-    const loginHint  = document.getElementById('uploadLoginHint');
-    const loggedIn   = document.getElementById('uploadLoggedIn');
-    if (currentUser) {
-      loginHint.style.display = 'none';
-      loggedIn.style.display  = 'block';
-      if (!_mp3File) resetUploadUI();
-    } else {
-      loginHint.style.display = 'block';
-      loggedIn.style.display  = 'none';
-    }
+let activeGenre = 'all';
+document.getElementById('genrePills').querySelectorAll('.filter-pill').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeGenre = btn.dataset.genre;
+  };
+});
+function applyFilter() {
+  closeFilterModal();
+  if (activeGenre === 'all') { Object.keys(_rawDb).forEach(k => db[k] = [..._rawDb[k]]); } 
+  else { Object.keys(_rawDb).forEach(k => db[k] = _rawDb[k].filter(b => b.genre === activeGenre)); }
+  const btn = document.getElementById('filterIconBtn');
+  if (btn) {
+    if (activeGenre !== 'all') { btn.style.background = 'var(--accent-light)'; btn.style.borderColor = 'var(--accent)'; btn.style.color = 'var(--accent-mid)'; } 
+    else { btn.style.background = 'var(--bg-2)'; btn.style.borderColor = 'var(--border-2)'; btn.style.color = 'var(--text-2)'; }
   }
+  idx = 0; goTo('discoverScreen', 'navDiscover');
 }
-
-// ── Drag & Drop helpers ──
-function handleDragOver(e) {
-  e.preventDefault();
-  document.getElementById('uploadDrop').classList.add('dragover');
-}
-function handleDragLeave(e) {
-  document.getElementById('uploadDrop').classList.remove('dragover');
-}
-function handleDrop(e) {
-  e.preventDefault();
-  document.getElementById('uploadDrop').classList.remove('dragover');
-  const file = e.dataTransfer?.files?.[0];
-  if (file) validateAndSetFile(file);
-}
-function handleFileSelect(e) {
-  const file = e.target.files?.[0];
-  if (file) validateAndSetFile(file);
-}
-
-function validateAndSetFile(file) {
-  const errEl = document.getElementById('uploadError');
-  errEl.style.display = 'none';
-
-  if (file.type !== ALLOWED_MIME && !file.name.toLowerCase().endsWith('.mp3')) {
-    errEl.textContent = 'Nur MP3-Dateien erlaubt.';
-    errEl.style.display = 'block';
-    return;
-  }
-  if (file.size > MAX_FILE_MB * 1024 * 1024) {
-    errEl.textContent = `Datei zu groß — max. ${MAX_FILE_MB} MB.`;
-    errEl.style.display = 'block';
-    return;
-  }
-
-  _mp3File = file;
-  _mp3PublicUrl = null; // reset — needs new upload
-
-  // Show file info
-  document.getElementById('uploadDrop').style.display = 'none';
-  const sel = document.getElementById('uploadFileSelected');
-  sel.style.display = 'flex';
-  document.getElementById('uploadFileName').textContent = file.name;
-  document.getElementById('uploadFileSize').textContent = (file.size / (1024*1024)).toFixed(1) + ' MB';
-}
-
-function removeFile() {
-  _mp3File = null;
-  _mp3PublicUrl = null;
-  resetUploadUI();
-}
-
-function resetUploadUI() {
-  document.getElementById('uploadDrop').style.display = 'flex';
-  document.getElementById('uploadFileSelected').style.display = 'none';
-  document.getElementById('uploadProgressWrap').style.display = 'none';
-  document.getElementById('uploadProgressFill').style.width = '0%';
-  document.getElementById('uploadError').style.display = 'none';
-  const fileInput = document.getElementById('f-mp3-file');
-  if (fileInput) fileInput.value = '';
-}
-
-async function uploadMp3ToSupabase() {
-  if (!_mp3File) throw new Error('no file');
-
-  // Check session explicitly
-  const { data: sessionData } = await supa.auth.getSession();
-  const session = sessionData?.session;
-  console.log('[BeatSwipe] Upload session:', session ? 'OK user=' + session.user.email : 'NO SESSION');
-  if (!session) throw new Error('Nicht eingeloggt -- bitte zuerst anmelden.');
-
-  const ext = _mp3File.name.split('.').pop();
-  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-  console.log('[BeatSwipe] Uploading to bucket:', SUPA_BUCKET, 'file:', fileName);
-
-  // Show progress bar
-  const progressWrap = document.getElementById('uploadProgressWrap');
-  const progressFill = document.getElementById('uploadProgressFill');
-  const progressLbl  = document.getElementById('uploadProgressLbl');
-  progressWrap.style.display = 'block';
-  progressFill.style.width = '10%';
-  progressLbl.textContent = 'Uploading…';
-
-  let fakeProgress = 10;
-  const ticker = setInterval(() => {
-    fakeProgress = Math.min(fakeProgress + Math.random() * 12, 85);
-    progressFill.style.width = fakeProgress + '%';
-  }, 300);
-
-  const { data, error } = await supa.storage
-    .from(SUPA_BUCKET)
-    .upload(fileName, _mp3File, { contentType: 'audio/mpeg', upsert: false });
-
-  clearInterval(ticker);
-  console.log('[BeatSwipe] Upload result -- data:', data, 'error:', error);
-
-  if (error) {
-    progressWrap.style.display = 'none';
-    throw new Error(error.message);
-  }
-
-  progressFill.style.width = '100%';
-  progressLbl.textContent = 'Upload complete ✓';
-
-  const { data: urlData } = supa.storage.from(SUPA_BUCKET).getPublicUrl(fileName);
-  console.log('[BeatSwipe] Public URL:', urlData.publicUrl);
-  return urlData.publicUrl;
-}
-
-// ─── SUBMIT ───────────────────────────────────────────────────────────────
-async function submitForm() {
-  const fields = ['f-producer','f-title','f-bpm','f-genre','f-type','f-preview-type'];
-  const vals = fields.map(id => document.getElementById(id).value.trim());
-  if (vals.some(v => !v)) { alert('Please fill in all required fields.'); return; }
-
-  const previewType = document.getElementById('f-preview-type').value;
-
-  // Validate preview input based on type
-  let previewUrl = '';
-  if (previewType === 'YouTube' || previewType === 'SoundCloud') {
-    previewUrl = document.getElementById('f-preview')?.value.trim() || '';
-    if (!previewUrl) { alert('Please enter a preview link.'); return; }
-  } else if (previewType === 'MP3') {
-    if (!_mp3File) { alert('Bitte eine MP3-Datei auswählen.'); return; }
-  }
-
-  const producer = document.getElementById('f-producer').value.trim();
-  const title    = document.getElementById('f-title').value.trim();
-  const bpm      = document.getElementById('f-bpm').value.trim();
-  const genre    = document.getElementById('f-genre').value.trim();
-  const type     = document.getElementById('f-type').value.trim();
-  const buyLink  = document.getElementById('f-buy').value.trim();
-  const key      = document.getElementById('f-key').value.trim();
-  const note     = document.getElementById('f-note').value.trim();
-
-  const btn = document.querySelector('.submit-btn');
-  btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Sending...';
-  btn.disabled = true;
-
-  try {
-    // Upload MP3 to Supabase Storage first if needed
-    if (previewType === 'MP3') {
-      const errEl = document.getElementById('uploadError');
-      errEl.style.display = 'none';
-      try {
-        previewUrl = await uploadMp3ToSupabase();
-        _mp3PublicUrl = previewUrl;
-      } catch(uploadErr) {
-        errEl.textContent = 'Upload fehlgeschlagen: ' + uploadErr.message;
-        errEl.style.display = 'block';
-        btn.innerHTML = '<i class="ti ti-send"></i> Submit for review';
-        btn.disabled = false;
-        return;
-      }
-    }
-
-    const res = await fetch(WEBHOOK_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        Producer:    producer,
-        Title:       title,
-        BPM:         parseFloat(bpm) || 0,
-        Key:         key,
-        Genre:       genre,
-        Type:        type,
-        PreviewType: previewType,
-        PreviewURL:  previewUrl,
-        BuyLink:     buyLink,
-        Note:        note,
-        Status:      'New'
-      })
-    });
-
-    if (!res.ok) throw new Error('API error');
-
-    // Success — reset form
-    document.getElementById('successMsg').style.display = 'block';
-    btn.style.display = 'none';
-    ['f-producer','f-title','f-bpm','f-key','f-genre','f-type','f-preview-type','f-preview','f-buy','f-note'].forEach(id => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      if (el.tagName === 'SELECT') el.selectedIndex = 0;
-      else el.value = '';
-    });
-    document.getElementById('preview-url-group').style.display = 'none';
-    document.getElementById('preview-mp3-group').style.display = 'none';
-    _mp3File = null;
-    _mp3PublicUrl = null;
-    resetUploadUI();
-
-  } catch(e) {
-    btn.innerHTML = '<i class="ti ti-send"></i> Submit for review';
-    btn.disabled = false;
-    alert('Something went wrong. Please try again.');
-  }
-}
-
-
 
 // ─── SUPABASE ──────────────────────────────────────────────────────────────
 const SUPA_URL = 'https://yprwklxolgrlyswqwkzr.supabase.co';
@@ -1636,31 +1081,59 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
 let currentUser = null;
 
-// Auth state listener
 supa.auth.onAuthStateChange(async (event, session) => {
   currentUser = session?.user || null;
   renderProfile();
-  if (currentUser) {
-    await syncCrateFromDB();
-  }
+  if (currentUser) await syncCrateFromDB();
 });
 
-// ─── PROFILE RENDER ───────────────────────────────────────────────────────
-let authMode = 'login'; // 'login' | 'signup'
+// ─── PROFILE LOGIC ────────────────────────────────────────────────────────
+let authMode = 'login'; 
+let signupRole = 'listener'; // Neu: Schalter beim Sign-up
+
+function setAuthMode(mode) { authMode = mode; renderProfile(); }
+function setSignupRole(role) { signupRole = role; renderProfile(); }
 
 function renderProfile() {
   const wrap = document.getElementById('profileWrap');
   if (!wrap) return;
 
   if (currentUser) {
+    const isProd = currentUser.user_metadata?.role === 'producer';
+    const meta = currentUser.user_metadata || {};
+    
+    let producerHtml = '';
+    if (isProd) {
+      producerHtml = `
+        <div class="producer-edit-box">
+          <div style="font-size:15px;font-weight:700;margin-bottom:18px;text-align:center">Edit Producer Profile</div>
+          
+          <div class="avatar-upload" onclick="document.getElementById('avatarInput').click()" style="${meta.avatar_url ? `border-color:var(--accent)` : ''}">
+            ${meta.avatar_url ? `<img src="${meta.avatar_url}">` : ''}
+            <i class="ti ti-camera" style="${meta.avatar_url ? 'opacity:0' : ''}"></i>
+            <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="uploadAvatar(event)">
+          </div>
+          <div style="text-align:center;font-size:11px;color:var(--text-3);margin-top:-10px;margin-bottom:16px" id="avatarLoading"></div>
+
+          <div class="auth-field"><label class="field-label">Producer Name</label><input type="text" id="editProdName" value="${meta.producer_name || ''}" placeholder="e.g. MetroVibe"></div>
+          <div class="auth-field"><label class="field-label">Instagram Link</label><input type="url" id="editIg" value="${meta.ig_link || ''}" placeholder="https://instagram.com/..."></div>
+          <div class="auth-field"><label class="field-label">BeatStars / Store Link</label><input type="url" id="editStore" value="${meta.bs_link || ''}" placeholder="https://beatstars.com/..."></div>
+          
+          <button class="auth-btn" onclick="saveProducerProfile()" id="saveProfileBtn">Save Profile</button>
+          <div id="saveProfileMsg" style="font-size:12px;text-align:center;margin-top:8px"></div>
+        </div>
+      `;
+    }
+
     wrap.innerHTML = `
       <div class="profile-card">
-        <div class="profile-avatar"><i class="ti ti-user"></i></div>
+        <div class="profile-avatar">${meta.avatar_url ? `<img src="${meta.avatar_url}">` : '<i class="ti ti-user"></i>'}</div>
         <div style="flex:1;min-width:0">
-          <div class="profile-name">Welcome back!</div>
+          <div class="profile-name">${meta.producer_name || 'Welcome back!'}</div>
           <div class="profile-email">${currentUser.email}</div>
         </div>
       </div>
+      ${producerHtml}
       <div style="background:var(--bg-2);border-radius:16px;border:0.5px solid var(--border);padding:16px;margin-top:12px">
         <div style="font-size:13px;color:var(--text-2);margin-bottom:4px">Your crate</div>
         <div style="font-size:22px;font-weight:700;color:var(--accent-mid)">${crate.length} beat${crate.length === 1 ? '' : 's'} saved <span class="crate-sync-badge">synced</span></div>
@@ -1669,7 +1142,6 @@ function renderProfile() {
       <div class="legal-links">
         <a class="legal-link" onclick="openInfoModal('impressumModal')">Impressum <i class="ti ti-chevron-right"></i></a>
         <a class="legal-link" onclick="openInfoModal('privacyModal')">Datenschutz <i class="ti ti-chevron-right"></i></a>
-        <a class="legal-link" href="mailto:hello@beatswipe.app">Kontakt <i class="ti ti-mail"></i></a>
       </div>
     `;
   } else {
@@ -1681,12 +1153,16 @@ function renderProfile() {
           <button class="auth-tab ${authMode==='login'?'active':''}" onclick="setAuthMode('login')">Sign in</button>
           <button class="auth-tab ${authMode==='signup'?'active':''}" onclick="setAuthMode('signup')">Sign up</button>
         </div>
-        <div class="auth-field">
-          <input type="email" id="authEmail" placeholder="your@email.com" style="width:100%">
-        </div>
-        <div class="auth-field">
-          <input type="password" id="authPass" placeholder="Password" style="width:100%">
-        </div>
+        
+        ${authMode === 'signup' ? `
+          <div class="role-toggle">
+            <button class="role-btn ${signupRole==='listener'?'active':''}" onclick="setSignupRole('listener')">Artist / Listener</button>
+            <button class="role-btn ${signupRole==='producer'?'active':''}" onclick="setSignupRole('producer')">Producer</button>
+          </div>
+        ` : ''}
+
+        <div class="auth-field"><input type="email" id="authEmail" placeholder="your@email.com" style="width:100%"></div>
+        <div class="auth-field"><input type="password" id="authPass" placeholder="Password" style="width:100%"></div>
         <button class="auth-btn" onclick="handleAuth()" id="authBtn">
           <i class="ti ti-arrow-right"></i> ${authMode === 'login' ? 'Sign in' : 'Create account'}
         </button>
@@ -1695,15 +1171,9 @@ function renderProfile() {
       <div class="legal-links">
         <a class="legal-link" onclick="openInfoModal('impressumModal')">Impressum <i class="ti ti-chevron-right"></i></a>
         <a class="legal-link" onclick="openInfoModal('privacyModal')">Datenschutz <i class="ti ti-chevron-right"></i></a>
-        <a class="legal-link" href="mailto:hello@beatswipe.app">Kontakt <i class="ti ti-mail"></i></a>
       </div>
     `;
   }
-}
-
-function setAuthMode(mode) {
-  authMode = mode;
-  renderProfile();
 }
 
 async function handleAuth() {
@@ -1718,22 +1188,67 @@ async function handleAuth() {
   if (authMode === 'login') {
     ({ error } = await supa.auth.signInWithPassword({ email, password: pass }));
   } else {
-    ({ error } = await supa.auth.signUp({ email, password: pass }));
+    // Role an Supabase übergeben
+    ({ error } = await supa.auth.signUp({ email, password: pass, options: { data: { role: signupRole } } }));
   }
 
   if (error) {
     if (msg) { msg.className = 'auth-msg error'; msg.textContent = error.message; }
     if (btn) { btn.disabled = false; btn.innerHTML = `<i class="ti ti-arrow-right"></i> ${authMode === 'login' ? 'Sign in' : 'Create account'}`; }
   } else if (authMode === 'signup') {
-    if (msg) { msg.className = 'auth-msg success'; msg.textContent = 'Check your email to confirm your account!'; }
+    if (msg) { msg.className = 'auth-msg success'; msg.textContent = 'Check your email to confirm!'; }
     if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-arrow-right"></i> Create account'; }
   }
 }
 
-async function signOut() {
-  await supa.auth.signOut();
-  currentUser = null;
-  renderProfile();
+async function signOut() { await supa.auth.signOut(); currentUser = null; renderProfile(); }
+
+// ─── PRODUCER PROFILE EDIT ────────────────────────────────────────────────
+async function uploadAvatar(e) {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  const lbl = document.getElementById('avatarLoading');
+  lbl.textContent = 'Uploading...';
+  
+  const ext = file.name.split('.').pop();
+  const fileName = `${currentUser.id}-${Date.now()}.${ext}`;
+  
+  const { data, error } = await supa.storage.from('avatars').upload(fileName, file, { upsert: true });
+  if (error) { lbl.textContent = 'Error: ' + error.message; return; }
+  
+  const { data: urlData } = supa.storage.from('avatars').getPublicUrl(fileName);
+  await supa.auth.updateUser({ data: { avatar_url: urlData.publicUrl } });
+  
+  lbl.textContent = 'Upload complete!';
+  renderProfile(); 
+}
+
+async function saveProducerProfile() {
+  const btn = document.getElementById('saveProfileBtn');
+  const msg = document.getElementById('saveProfileMsg');
+  btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Saving...';
+  
+  const pName = document.getElementById('editProdName').value.trim();
+  const ig = document.getElementById('editIg').value.trim();
+  const bs = document.getElementById('editStore').value.trim();
+  
+  // Update lokales Auth-Profil
+  const { error } = await supa.auth.updateUser({ data: { producer_name: pName, ig_link: ig, bs_link: bs } });
+  
+  // Für das öffentliche Profil speichern wir es in die profiles Tabelle
+  try {
+    await supa.from('profiles').upsert({
+      user_id: currentUser.id,
+      producer_name: pName,
+      avatar_url: currentUser.user_metadata?.avatar_url || '',
+      ig_link: ig,
+      bs_link: bs
+    }, { onConflict: 'user_id' });
+  } catch(e) { console.log('Profile DB Error', e); }
+  
+  if (error) { msg.style.color = '#e05252'; msg.textContent = error.message; } 
+  else { msg.style.color = '#4caf50'; msg.textContent = 'Profile saved successfully!'; }
+  btn.innerHTML = 'Save Profile';
 }
 
 // ─── CRATE SYNC ───────────────────────────────────────────────────────────
@@ -1750,131 +1265,15 @@ async function syncCrateFromDB() {
     renderCrate();
   }
 }
-
 async function saveBeatToDB(beat) {
   if (!currentUser) return;
-  await supa.from('crates').upsert({
-    user_id: currentUser.id,
-    beat_id: beat.id,
-    beat_data: JSON.stringify(beat)
-  }, { onConflict: 'user_id,beat_id' });
+  await supa.from('crates').upsert({ user_id: currentUser.id, beat_id: beat.id, beat_data: JSON.stringify(beat) }, { onConflict: 'user_id,beat_id' });
 }
 
-// ─── FILTER MODAL ─────────────────────────────────────────────────────────
-let activeGenre = 'all';
+// ─── PUBLIC PRODUCER PROFILE (DISCOVER) ──────────────────────────────────
+let _prevScreen = 'discoverScreen', _prevNav = 'navDiscover';
 
-function openFilterModal() {
-  document.getElementById('filterModal').classList.add('open');
-}
-function closeFilterModal() {
-  document.getElementById('filterModal').classList.remove('open');
-}
-function closeFilterIfBackdrop(e) {
-  if (e.target === document.getElementById('filterModal')) closeFilterModal();
-}
-
-document.getElementById('genrePills').querySelectorAll('.filter-pill').forEach(btn => {
-  btn.onclick = () => {
-    document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    activeGenre = btn.dataset.genre;
-  };
-});
-
-function applyFilter() {
-  closeFilterModal();
-  if (activeGenre === 'all') {
-    Object.keys(_rawDb).forEach(k => db[k] = [..._rawDb[k]]);
-  } else {
-    Object.keys(_rawDb).forEach(k => {
-      db[k] = _rawDb[k].filter(b => b.genre === activeGenre);
-    });
-  }
-  // Highlight filter button when a genre is active
-  const btn = document.getElementById('filterIconBtn');
-  if (btn) {
-    if (activeGenre !== 'all') {
-      btn.style.background = 'var(--accent-light)';
-      btn.style.borderColor = 'var(--accent)';
-      btn.style.color = 'var(--accent-mid)';
-    } else {
-      btn.style.background = 'var(--bg-2)';
-      btn.style.borderColor = 'var(--border-2)';
-      btn.style.color = 'var(--text-2)';
-    }
-  }
-  idx = 0;
-  goTo('discoverScreen', 'navDiscover');
-}
-
-// ─── PRODUCER PROFILES ────────────────────────────────────────────────────
-let _prevScreen = 'discoverScreen';
-let _prevNav    = 'navDiscover';
-
-function getAllProducers() {
-  const allBeats = Object.values(_rawDb).flat();
-  const map = {};
-  allBeats.forEach(b => {
-    if (!map[b.producer]) {
-      map[b.producer] = { name: b.producer, beats: [], genres: new Set(), color: b.color };
-    }
-    map[b.producer].beats.push(b);
-    map[b.producer].genres.add(b.genre);
-  });
-  return Object.values(map).sort((a,b) => b.beats.length - a.beats.length);
-}
-
-function renderProducersList() {
-  const producers = getAllProducers();
-  const list = document.getElementById('producersList');
-  if (!list) return;
-  if (!producers.length) {
-    list.innerHTML = `<div class="producer-empty"><i class="ti ti-user-off"></i>No producers yet.</div>`;
-    return;
-  }
-  list.innerHTML = producers.map(p => {
-    const genres = [...p.genres].slice(0,3).join(' · ');
-    return `
-    <div class="producer-row" onclick="openProducerProfile('${escHtml(p.name)}')">
-      <div class="producer-row-avatar" style="background:${p.color}20;border-color:${p.color}80">
-        <i class="ti ti-user" style="color:${p.color}"></i>
-      </div>
-      <div style="flex:1;min-width:0">
-        <div class="producer-row-name">${escHtml(p.name)}</div>
-        <div class="producer-row-meta">${p.beats.length} beat${p.beats.length===1?'':'s'} · ${genres}</div>
-      </div>
-      <i class="ti ti-chevron-right producer-row-arrow"></i>
-    </div>`;
-  }).join('');
-}
-
-function filterProducers() {
-  const q = document.getElementById('producerSearch')?.value.toLowerCase() || '';
-  const producers = getAllProducers().filter(p => p.name.toLowerCase().includes(q));
-  const list = document.getElementById('producersList');
-  if (!list) return;
-  if (!producers.length) {
-    list.innerHTML = `<div class="producer-empty"><i class="ti ti-search-off"></i>No producers found.</div>`;
-    return;
-  }
-  list.innerHTML = producers.map(p => {
-    const genres = [...p.genres].slice(0,3).join(' · ');
-    return `
-    <div class="producer-row" onclick="openProducerProfile('${escHtml(p.name)}')">
-      <div class="producer-row-avatar" style="background:${p.color}20;border-color:${p.color}80">
-        <i class="ti ti-user" style="color:${p.color}"></i>
-      </div>
-      <div style="flex:1;min-width:0">
-        <div class="producer-row-name">${escHtml(p.name)}</div>
-        <div class="producer-row-meta">${p.beats.length} beat${p.beats.length===1?'':'s'} · ${genres}</div>
-      </div>
-      <i class="ti ti-chevron-right producer-row-arrow"></i>
-    </div>`;
-  }).join('');
-}
-
-function openProducerProfile(producerName, fromScreen, fromNav) {
-  // remember where we came from so Back works
+async function openProducerProfile(producerName) {
   const activeScreen = document.querySelector('.screen.active');
   _prevScreen = activeScreen ? activeScreen.id : 'discoverScreen';
   const activeNav = document.querySelector('.nav-tab.active');
@@ -1884,10 +1283,9 @@ function openProducerProfile(producerName, fromScreen, fromNav) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('producerProfileScreen').classList.add('active');
-  // keep nav tab highlighted to where we came from
   if (document.getElementById(_prevNav)) document.getElementById(_prevNav).classList.add('active');
 
-  renderProducerProfile(producerName);
+  await renderProducerProfile(producerName);
 }
 
 function goBackFromProducer() {
@@ -1899,78 +1297,69 @@ function goBackFromProducer() {
   if (_prevScreen === 'discoverScreen') renderCard();
 }
 
-function renderProducerProfile(producerName) {
+async function renderProducerProfile(producerName) {
   const allBeats = Object.values(_rawDb).flat();
   const beats = allBeats.filter(b => b.producer === producerName);
   if (!beats.length) return;
 
-  const color = beats[0].color || 'var(--accent)';
+  const defaultColor = beats[0].color || 'var(--accent)';
   const genres = [...new Set(beats.map(b => b.genre))];
-  const totalBeats = beats.length;
-
   document.getElementById('producerProfileBadge').textContent = producerName;
 
+  // Profil-Infos aus Supabase laden, falls vorhanden
+  let dbProfile = null;
+  try {
+    const { data } = await supa.from('profiles').select('*').eq('producer_name', producerName).maybeSingle();
+    if (data) dbProfile = data;
+  } catch(e) {}
+
+  const avatarHtml = dbProfile?.avatar_url 
+    ? `<img src="${dbProfile.avatar_url}">` 
+    : `<i class="ti ti-user" style="color:${defaultColor}"></i>`;
+
+  const igLink = dbProfile?.ig_link ? `<a href="${dbProfile.ig_link}" target="_blank" class="producer-tag" style="text-decoration:none"><i class="ti ti-brand-instagram"></i> Instagram</a>` : '';
+  const bsLink = dbProfile?.bs_link ? `<a href="${dbProfile.bs_link}" target="_blank" class="producer-tag" style="text-decoration:none"><i class="ti ti-shopping-cart"></i> Store</a>` : '';
   const genreTags = genres.map(g => `<span class="producer-tag">${escHtml(g)}</span>`).join('');
 
   const beatRows = beats.map(b => {
     const hasBuy = b.buy && b.buy.startsWith('http') && b.buy !== b.mp3;
-    const isYT = isYouTube(b.mp3);
-    const isSC = isSoundCloud(b.mp3);
+    const isYT = isYouTube(b.mp3), isSC = isSoundCloud(b.mp3);
     let buyLink = hasBuy ? b.buy : (isYT || isSC ? b.mp3 : null);
     let buyIcon = 'ti-external-link';
     if (hasBuy) {
       if (b.buy.includes('beatstars.com')) buyIcon = 'ti-external-link';
       else if (b.buy.includes('instagram.com')) buyIcon = 'ti-brand-instagram';
-      else if (b.buy.includes('soundcloud.com')) buyIcon = 'ti-brand-soundcloud';
     } else if (isYT) buyIcon = 'ti-brand-youtube';
     else if (isSC) buyIcon = 'ti-brand-soundcloud';
-
     const inCrate = crate.find(i => i.id === b.id);
 
     return `
     <div class="producer-beat-row">
-      <div class="producer-beat-icon" style="background:${b.color}20;border:0.5px solid ${b.color}50">
-        <i class="ti ti-music" style="font-size:18px;color:${b.color}"></i>
-      </div>
+      <div class="producer-beat-icon" style="background:${b.color}20;border:0.5px solid ${b.color}50"><i class="ti ti-music" style="font-size:18px;color:${b.color}"></i></div>
       <div style="flex:1;min-width:0">
         <div class="producer-beat-name">${escHtml(b.title)}</div>
         <div class="producer-beat-meta">${escHtml(b.bpm)} · ${escHtml(b.key)} · ${escHtml(b.genre)}</div>
       </div>
       <div class="producer-beat-actions">
-        <button class="pbeat-save" title="${inCrate ? 'In crate' : 'Save to crate'}" onclick="saveToCrateFromProfile('${escHtml(b.id)}',this)" style="${inCrate ? 'background:var(--accent);color:#fff' : ''}">
-          <i class="ti ti-flame" style="font-size:16px"></i>
-        </button>
-        ${buyLink ? `<button class="pbeat-buy" title="Get beat" onclick="window.open('${escHtml(buyLink)}','_blank')">
-          <i class="ti ${buyIcon}" style="font-size:15px"></i>
-        </button>` : ''}
+        <button class="pbeat-save" title="${inCrate ? 'In crate' : 'Save to crate'}" onclick="saveToCrateFromProfile('${escHtml(b.id)}',this)" style="${inCrate ? 'background:var(--accent);color:#fff' : ''}"><i class="ti ti-flame" style="font-size:16px"></i></button>
+        ${buyLink ? `<button class="pbeat-buy" title="Get beat" onclick="window.open('${escHtml(buyLink)}','_blank')"><i class="ti ${buyIcon}" style="font-size:15px"></i></button>` : ''}
       </div>
     </div>`;
   }).join('');
 
   document.getElementById('producerProfileContent').innerHTML = `
     <div class="producer-hero">
-      <div class="producer-avatar-lg" style="background:${color}20;border-color:${color}80">
-        <i class="ti ti-user" style="color:${color}"></i>
-      </div>
+      <div class="producer-avatar-lg" style="background:${defaultColor}20;border-color:${defaultColor}80">${avatarHtml}</div>
       <div style="flex:1;min-width:0">
         <div class="producer-hero-name">${escHtml(producerName)}</div>
         <div class="producer-hero-meta">Independent Producer</div>
-        <div class="producer-tags">${genreTags}</div>
+        <div class="producer-tags">${genreTags} ${igLink} ${bsLink}</div>
       </div>
     </div>
     <div class="producer-stats">
-      <div class="producer-stat">
-        <div class="producer-stat-num">${totalBeats}</div>
-        <div class="producer-stat-lbl">Beats</div>
-      </div>
-      <div class="producer-stat">
-        <div class="producer-stat-num">${genres.length}</div>
-        <div class="producer-stat-lbl">Genres</div>
-      </div>
-      <div class="producer-stat">
-        <div class="producer-stat-num">Free</div>
-        <div class="producer-stat-lbl">Preview</div>
-      </div>
+      <div class="producer-stat"><div class="producer-stat-num">${beats.length}</div><div class="producer-stat-lbl">Beats</div></div>
+      <div class="producer-stat"><div class="producer-stat-num">${genres.length}</div><div class="producer-stat-lbl">Genres</div></div>
+      <div class="producer-stat"><div class="producer-stat-num">Free</div><div class="producer-stat-lbl">Preview</div></div>
     </div>
     <div class="producer-beats-title">All beats</div>
     <div class="producer-beats-list">${beatRows}</div>
@@ -1978,60 +1367,120 @@ function renderProducerProfile(producerName) {
 }
 
 function saveToCrateFromProfile(beatId, btn) {
-  const allBeats = Object.values(_rawDb).flat();
-  const beat = allBeats.find(b => b.id === beatId);
+  const beat = Object.values(_rawDb).flat().find(b => b.id === beatId);
   if (!beat) return;
-  if (!crate.find(i => i.id === beat.id)) {
-    crate.push(beat);
-    saveBeatToDB(beat);
-    renderCrate();
+  if (!crate.find(i => i.id === beat.id)) { crate.push(beat); saveBeatToDB(beat); renderCrate(); }
+  btn.style.background = 'var(--accent)'; btn.style.color = '#fff';
+}
+
+// ─── MP3 UPLOAD FRONTEND LOGIC ───
+let _mp3File = null;
+const MAX_FILE_MB = 15;
+function updatePreviewLabel() {
+  const type = document.getElementById('f-preview-type').value;
+  document.getElementById('preview-url-group').style.display = (type === 'YouTube' || type === 'SoundCloud') ? 'block' : 'none';
+  document.getElementById('preview-mp3-group').style.display = type === 'MP3' ? 'block' : 'none';
+  if (type === 'YouTube') {
+    document.getElementById('preview-url-label').textContent = 'YouTube Link *';
+    document.getElementById('f-preview').placeholder = 'https://youtube.com/...';
+  } else if (type === 'SoundCloud') {
+    document.getElementById('preview-url-label').textContent = 'SoundCloud Link *';
+    document.getElementById('f-preview').placeholder = 'https://soundcloud.com/...';
+  } else if (type === 'MP3') {
+    if (currentUser) {
+      document.getElementById('uploadLoginHint').style.display = 'none';
+      document.getElementById('uploadLoggedIn').style.display = 'block';
+    } else {
+      document.getElementById('uploadLoginHint').style.display = 'block';
+      document.getElementById('uploadLoggedIn').style.display = 'none';
+    }
   }
-  // visual feedback
-  btn.style.background = 'var(--accent)';
-  btn.style.color = '#fff';
+}
+function handleDragOver(e) { e.preventDefault(); document.getElementById('uploadDrop').classList.add('dragover'); }
+function handleDragLeave(e) { document.getElementById('uploadDrop').classList.remove('dragover'); }
+function handleDrop(e) { e.preventDefault(); document.getElementById('uploadDrop').classList.remove('dragover'); const file = e.dataTransfer?.files?.[0]; if (file) validateAndSetFile(file); }
+function handleFileSelect(e) { const file = e.target.files?.[0]; if (file) validateAndSetFile(file); }
+function validateAndSetFile(file) {
+  const errEl = document.getElementById('uploadError');
+  errEl.style.display = 'none';
+  if (file.size > MAX_FILE_MB * 1024 * 1024) { errEl.textContent = `Datei zu groß — max. ${MAX_FILE_MB} MB.`; errEl.style.display = 'block'; return; }
+  _mp3File = file;
+  document.getElementById('uploadDrop').style.display = 'none';
+  document.getElementById('uploadFileSelected').style.display = 'flex';
+  document.getElementById('uploadFileName').textContent = file.name;
+  document.getElementById('uploadFileSize').textContent = (file.size / (1024*1024)).toFixed(1) + ' MB';
+}
+function removeFile() {
+  _mp3File = null;
+  document.getElementById('uploadDrop').style.display = 'flex';
+  document.getElementById('uploadFileSelected').style.display = 'none';
+  document.getElementById('uploadProgressWrap').style.display = 'none';
+  document.getElementById('f-mp3-file').value = '';
+}
+async function uploadMp3ToSupabase() {
+  if (!_mp3File) throw new Error('no file');
+  const ext = _mp3File.name.split('.').pop();
+  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  const pWrap = document.getElementById('uploadProgressWrap');
+  pWrap.style.display = 'block';
+  document.getElementById('uploadProgressFill').style.width = '50%';
+  document.getElementById('uploadProgressLbl').textContent = 'Uploading…';
+  const { error } = await supa.storage.from('beats').upload(fileName, _mp3File, { contentType: 'audio/*' });
+  if (error) throw new Error(error.message);
+  document.getElementById('uploadProgressFill').style.width = '100%';
+  document.getElementById('uploadProgressLbl').textContent = 'Upload complete ✓';
+  const { data: urlData } = supa.storage.from('beats').getPublicUrl(fileName);
+  return urlData.publicUrl;
+}
+async function submitForm() {
+  const fields = ['f-producer','f-title','f-bpm','f-genre','f-type','f-preview-type'];
+  const vals = fields.map(id => document.getElementById(id).value.trim());
+  if (vals.some(v => !v)) { alert('Please fill in all required fields.'); return; }
+  const previewType = document.getElementById('f-preview-type').value;
+  let previewUrl = '';
+  if (previewType === 'YouTube' || previewType === 'SoundCloud') {
+    previewUrl = document.getElementById('f-preview')?.value.trim();
+    if (!previewUrl) { alert('Please enter a preview link.'); return; }
+  } else if (previewType === 'MP3') {
+    if (!_mp3File) { alert('Bitte eine MP3-Datei auswählen.'); return; }
+  }
+  const btn = document.querySelector('.submit-btn');
+  btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Sending...';
+  btn.disabled = true;
+  try {
+    if (previewType === 'MP3') previewUrl = await uploadMp3ToSupabase();
+    await fetch('https://hook.eu1.make.com/emrsw3rs980mwsi3a1b3kyfcobec3ahb', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        Producer: document.getElementById('f-producer').value.trim(),
+        Title: document.getElementById('f-title').value.trim(),
+        BPM: parseFloat(document.getElementById('f-bpm').value.trim()) || 0,
+        Key: document.getElementById('f-key').value.trim(),
+        Genre: document.getElementById('f-genre').value.trim(),
+        Type: document.getElementById('f-type').value.trim(),
+        PreviewType: previewType, PreviewURL: previewUrl,
+        BuyLink: document.getElementById('f-buy').value.trim(),
+        Note: document.getElementById('f-note').value.trim(), Status: 'New'
+      })
+    });
+    document.getElementById('successMsg').style.display = 'block';
+    btn.style.display = 'none';
+  } catch(e) {
+    btn.innerHTML = '<i class="ti ti-send"></i> Submit for review';
+    btn.disabled = false; alert('Error: ' + e.message);
+  }
 }
 
-function escHtml(str) {
-  if (!str) return '';
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
-
-// Patch goTo to also render producers list when navigating there
-const _origGoTo = goTo;
-// override goTo to handle producersScreen
-function goTo(screenId, navId) {
-  stopTrack();
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById(screenId).classList.add('active');
-  document.getElementById(navId).classList.add('active');
-  if (screenId === 'discoverScreen') renderCard();
-  if (screenId === 'producersScreen') renderProducersList();
-}
-
-// Also add producer link in crate cards — patch renderCrate to add producer name as link
-// Done via a separate helper called inside existing renderCrate via a note:
-// (The existing renderCrate already works; we just add clickable producer name via CSS below)
-
-// ─── LIVE STATS ────────────────────────────────────────────────────────────
+// Stats
 function updateStats() {
   const allBeats = Object.values(db).flat();
   const beatCount = allBeats.length;
   const producerCount = new Set(allBeats.map(b => b.producer)).size;
   const fmt = (n, threshold) => n > 0 ? n + (n >= threshold ? '+' : '') : '–';
-  // in-app stats
-  const bEl = document.getElementById('statBeats');
-  const pEl = document.getElementById('statProducers');
-  if (bEl) bEl.textContent = fmt(beatCount, 10);
-  if (pEl) pEl.textContent = fmt(producerCount, 5);
-  // desktop left panel stats
-  const dlB = document.getElementById('dlStatBeats');
-  const dlP = document.getElementById('dlStatProducers');
-  if (dlB) dlB.textContent = fmt(beatCount, 10);
-  if (dlP) dlP.textContent = fmt(producerCount, 5);
+  const setEl = (id, val) => { if(document.getElementById(id)) document.getElementById(id).textContent = val; };
+  setEl('statBeats', fmt(beatCount, 10)); setEl('statProducers', fmt(producerCount, 5));
+  setEl('dlStatBeats', fmt(beatCount, 10)); setEl('dlStatProducers', fmt(producerCount, 5));
 }
-
-// Init
 loadBeats();
 </script>
 </body>
