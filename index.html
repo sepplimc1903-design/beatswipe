@@ -27,7 +27,32 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔥</text></svg>">
   <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+function renderSubmitScreen() {
+  const gate = document.getElementById('submitLoginGate');
+  const form = document.getElementById('submitForm');
+  if (!gate || !form) return;
+
+  if (!currentUser) {
+    // Not logged in — show gate, hide form
+    gate.style.display = 'flex';
+    form.style.display = 'none';
+  } else {
+    // Logged in — hide gate, show form, prefill producer name
+    gate.style.display = 'none';
+    form.style.display = 'block';
+    const nameField = document.getElementById('f-producer');
+    if (nameField) {
+      const producerName = _userProfile?.producer_name || currentUser.email.split('@')[0];
+      nameField.value = producerName;
+      nameField.readOnly = true;
+      nameField.style.opacity = '0.6';
+      nameField.style.cursor = 'not-allowed';
+    }
+  }
+}
+
+</script>
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     :root {
@@ -803,7 +828,16 @@
       <div class="submit-title">Submit your beats</div>
       <div class="submit-sub">We'll review your submission and add it to the feed. Free for all producers.</div>
     </div>
-    <div class="submit-scroll">
+    <!-- login gate -->
+    <div id="submitLoginGate" style="display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center;gap:16px">
+      <i class="ti ti-lock" style="font-size:48px;color:var(--accent-mid)"></i>
+      <div style="font-size:18px;font-weight:700">Sign in to submit</div>
+      <div style="font-size:14px;color:var(--text-2);line-height:1.6;max-width:280px">Create a free account to submit your beats. Your producer name will be filled in automatically.</div>
+      <button onclick="goTo('profileScreen','navProfile')" style="padding:13px 28px;border-radius:14px;background:var(--accent);border:none;color:#fff;font-size:15px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px">
+        <i class="ti ti-user"></i> Sign in / Create account
+      </button>
+    </div>
+    <div class="submit-scroll" id="submitForm">
       <div class="field-group">
         <label class="field-label">Producer name *</label>
         <input type="text" id="f-producer" placeholder="Your name or alias">
@@ -847,7 +881,7 @@
           <option value="">Select type...</option>
           <option value="YouTube">YouTube</option>
           <option value="SoundCloud">SoundCloud</option>
-          <option value="MP3">MP3 — direkt hochladen</option>
+          <option value="MP3">MP3 — upload directly</option>
         </select>
       </div>
 
@@ -860,15 +894,15 @@
 
       <!-- MP3 File Upload -->
       <div class="field-group" id="preview-mp3-group" style="display:none">
-        <label class="field-label">MP3 Datei hochladen *</label>
+        <label class="field-label">MP3 file *</label>
 
         <!-- shown when NOT logged in -->
         <div id="uploadLoginHint" style="display:none;background:var(--bg-2);border:0.5px solid var(--border-2);border-radius:14px;padding:18px 16px;text-align:center">
           <i class="ti ti-lock" style="font-size:26px;color:var(--accent-mid);display:block;margin-bottom:8px"></i>
-          <div style="font-size:14px;font-weight:600;margin-bottom:4px">Account erforderlich</div>
-          <div style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.5">Erstelle einen kostenlosen Account um MP3s direkt hochzuladen.</div>
+          <div style="font-size:14px;font-weight:600;margin-bottom:4px">Account required</div>
+          <div style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.5">Create a free account to upload MP3s directly.</div>
           <button onclick="goTo('profileScreen','navProfile')" style="padding:10px 22px;border-radius:10px;background:var(--accent);border:none;color:#fff;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
-            <i class="ti ti-user"></i> Jetzt registrieren
+            <i class="ti ti-user"></i> Create account
           </button>
         </div>
 
@@ -877,14 +911,14 @@
           <div class="upload-drop" id="uploadDrop" onclick="document.getElementById('f-mp3-file').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
             <input type="file" id="f-mp3-file" accept="audio/mpeg,.mp3" style="display:none" onchange="handleFileSelect(event)">
             <i class="ti ti-file-music"></i>
-            <div class="upload-drop-title">MP3 hier reinziehen oder klicken</div>
-            <div class="upload-drop-sub">Nur MP3 · max. 15 MB</div>
+            <div class="upload-drop-title">Drop MP3 here or click to select</div>
+            <div class="upload-drop-sub">MP3 only · max. 15 MB</div>
           </div>
           <div class="upload-file-selected" id="uploadFileSelected" style="display:none">
             <i class="ti ti-file-music"></i>
             <span class="upload-file-name" id="uploadFileName">–</span>
             <span class="upload-file-size" id="uploadFileSize">–</span>
-            <button class="upload-remove" onclick="removeFile()" title="Entfernen"><i class="ti ti-x"></i></button>
+            <button class="upload-remove" onclick="removeFile()" title="Remove"><i class="ti ti-x"></i></button>
           </div>
           <div class="upload-progress-wrap" id="uploadProgressWrap">
             <div class="upload-progress-bar"><div class="upload-progress-fill" id="uploadProgressFill"></div></div>
@@ -897,7 +931,7 @@
       <div class="field-group">
         <label class="field-label">Wo kann man den Beat kaufen? <span style="color:var(--text-3);font-weight:400">(optional)</span></label>
         <input type="url" id="f-buy" placeholder="BeatStars, Splice, Instagram, Website...">
-        <div style="font-size:11px;color:var(--text-3);margin-top:5px">BeatStars, Splice, deine Website, Instagram — alles möglich</div>
+        <div style="font-size:11px;color:var(--text-3);margin-top:5px">BeatStars, Splice, your website, Instagram — anything works</div>
       </div>
       <div class="field-group">
         <label class="field-label">Anything else?</label>
@@ -1159,6 +1193,7 @@ function goTo(screenId, navId) {
   if (screenId === 'discoverScreen') renderCard();
   if (screenId === 'producersScreen') renderProducersList();
   if (screenId === 'profileScreen') renderProfile();
+  if (screenId === 'submitScreen') renderSubmitScreen();
 }
 
 function isDesktop() {
