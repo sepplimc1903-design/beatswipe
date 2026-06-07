@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-07-v17 — mobile card content-hug, larger portfolio swipe zone -->
+<!-- deploy: 2026-06-07-v18 — portfolio autoplay after first tap (MP3/YT/SC) -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -3530,10 +3530,43 @@ let _audioUnlocked = false;
 function unlockAudio() {
   if (_audioUnlocked) return;
   _audioUnlocked = true;
+  autoplayCurrentBeat();
 }
 
 document.addEventListener('click', unlockAudio, { once: true, capture: true });
 document.addEventListener('touchstart', unlockAudio, { once: true, capture: true });
+
+function getActiveBeatMedia() {
+  let d = null;
+  if (_portfolioMode) {
+    const list = getPortfolioList();
+    if (list.length) d = list[0];
+  } else {
+    const list = getDiscoverList(cat);
+    if (list.length) d = list[0];
+  }
+  if (!d) return null;
+  return { d, useYT: isYouTube(d.mp3), useSC: isSoundCloud(d.mp3) };
+}
+
+function getActiveEmbedIframe() {
+  if (_portfolioMode) return document.querySelector('#portfolioCardSlot iframe');
+  return document.querySelector('#cardWrap iframe');
+}
+
+function startSoundCloudAutoplay() {
+  const iframe = getActiveEmbedIframe();
+  if (!iframe || !iframe.src.includes('soundcloud.com')) return;
+  if (iframe.src.includes('auto_play=true')) return;
+  iframe.src = iframe.src.replace('auto_play=false', 'auto_play=true');
+}
+
+function autoplayCurrentBeat() {
+  if (!_audioUnlocked) return;
+  const media = getActiveBeatMedia();
+  if (!media) return;
+  maybeAutoplayPreview(media.useYT, media.useSC);
+}
 
 function maybeAutoplayPreview(useYT, useSC) {
   if (!_audioUnlocked) return;
@@ -3541,7 +3574,9 @@ function maybeAutoplayPreview(useYT, useSC) {
     const overlay = document.getElementById('ytOverlay');
     const frame = document.getElementById('ytFrame');
     if (overlay && frame && overlay.style.pointerEvents !== 'none') startVideo();
-  } else if (!useYT && !useSC && audio) {
+  } else if (useSC) {
+    startSoundCloudAutoplay();
+  } else if (audio) {
     audio.play().catch(() => {});
     setPlayState(true);
   }
