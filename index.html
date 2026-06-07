@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-07-v6 — /p rewrite + discover save fix -->
+<!-- deploy: 2026-06-07-v7 — portfolio UX polish -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -1557,6 +1557,10 @@
       max-width: 100%;
       height: 100%;
       min-height: 0;
+      background: var(--bg);
+    }
+    body.portfolio-active .bg-desktop::before {
+      background: radial-gradient(ellipse 90% 60% at 50% 38%, rgba(124,58,237,0.14) 0%, transparent 68%);
     }
     #portfolioScreen {
       flex: 1;
@@ -1567,31 +1571,32 @@
     }
     #portfolioScreen .page-inner--swipe {
       width: 100%;
-      max-width: 480px;
+      max-width: none;
       margin: 0 auto;
       height: 100%;
       flex: 1;
       min-height: 0;
       padding-bottom: env(safe-area-inset-bottom);
     }
+    #portfolioPageInner.page-inner--swipe-done .portfolio-action-row { display: none; }
     .portfolio-header {
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: calc(env(safe-area-inset-top, 0px) + 12px) var(--px) 10px;
+      padding: calc(env(safe-area-inset-top, 0px) + 14px) var(--px) 12px;
       flex-shrink: 0;
     }
     .portfolio-avatar {
-      width: 44px;
-      height: 44px;
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
       object-fit: cover;
       flex-shrink: 0;
       border: 2px solid var(--accent);
     }
     .portfolio-avatar-fallback {
-      width: 44px;
-      height: 44px;
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -1602,7 +1607,7 @@
     .portfolio-avatar-fallback i { font-size: 20px; }
     .portfolio-header-text { flex: 1; min-width: 0; }
     .portfolio-name {
-      font-size: 17px;
+      font-size: 18px;
       font-weight: 700;
       letter-spacing: -0.3px;
       white-space: nowrap;
@@ -1610,19 +1615,19 @@
       text-overflow: ellipsis;
     }
     .portfolio-bio {
-      font-size: 12px;
+      font-size: 13px;
       color: var(--text-2);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      margin-top: 1px;
+      margin-top: 2px;
     }
     .portfolio-counter {
       font-size: 11px;
       font-weight: 600;
       color: var(--text-3);
       flex-shrink: 0;
-      padding: 4px 10px;
+      padding: 5px 11px;
       background: var(--bg-3);
       border-radius: 100px;
       border: 0.5px solid var(--border);
@@ -1631,19 +1636,40 @@
       flex: 1;
       min-height: 0;
       display: flex;
+      align-items: stretch;
+      justify-content: center;
+      padding: 4px var(--px) 0;
+      overflow: hidden;
+    }
+    #portfolioScreen .card-stage {
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      display: flex;
       align-items: center;
       justify-content: center;
-      padding: 0 var(--px) 8px;
-      overflow: visible;
+      min-height: 0;
     }
-    #portfolioScreen .card-stage,
-    #portfolioScreen .beat-card { width: 100%; max-width: 100%; box-sizing: border-box; }
-    #portfolioScreen .action-row { flex-shrink: 0; padding: 12px var(--px) 8px; }
-    #portfolioScreen .swipe-hint { padding: 4px 0 2px; }
+    #portfolioScreen .beat-card {
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      transform-origin: center center;
+    }
+    #portfolioScreen .beat-card.fly-left  { transform: translateX(-130%) rotate(-12deg); opacity: 0; }
+    #portfolioScreen .beat-card.fly-right { transform: translateX(130%) rotate(12deg); opacity: 0; }
+    @keyframes portfolioCardEnter {
+      from { opacity: 0; transform: translateX(22px); }
+      to   { opacity: 1; transform: none; }
+    }
+    #portfolioScreen .beat-card.card-enter-portfolio {
+      animation: portfolioCardEnter 0.3s cubic-bezier(0.22,1,0.36,1) forwards;
+    }
+    #portfolioScreen .action-row { flex-shrink: 0; padding: 8px var(--px) 12px; gap: 32px; }
     .portfolio-foot {
       flex-shrink: 0;
       text-align: center;
-      padding: 6px var(--px) 14px;
+      padding: 8px var(--px) calc(env(safe-area-inset-bottom, 0px) + 14px);
       font-size: 11px;
       color: var(--text-3);
     }
@@ -1653,9 +1679,106 @@
       cursor: pointer;
     }
     .portfolio-foot a:hover { text-decoration: underline; }
+    .portfolio-done {
+      width: 100%;
+      text-align: center;
+      padding: 8px 0 12px;
+      overflow-y: auto;
+      max-height: 100%;
+    }
+    .portfolio-done-head {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      letter-spacing: -0.3px;
+    }
+    .portfolio-done-head i { color: var(--accent-mid); font-size: 22px; vertical-align: -3px; margin-right: 4px; }
+    .portfolio-done-sub {
+      font-size: 13px;
+      color: var(--text-2);
+      margin-bottom: 18px;
+      line-height: 1.5;
+    }
+    .portfolio-done-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+      text-align: left;
+    }
+    .portfolio-done-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      background: var(--bg-2);
+      border: 0.5px solid var(--border);
+      border-radius: 14px;
+    }
+    .portfolio-done-meta { flex: 1; min-width: 0; }
+    .portfolio-done-title {
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .portfolio-done-tags { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+    .portfolio-done-buy {
+      flex-shrink: 0;
+      padding: 8px 14px;
+      border-radius: 100px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .portfolio-done-guest {
+      font-size: 12px;
+      color: var(--text-3);
+      margin-bottom: 14px;
+      line-height: 1.45;
+    }
+    .portfolio-done-guest a { color: var(--accent-mid); cursor: pointer; text-decoration: none; }
+    .portfolio-replay-btn {
+      margin-top: 4px;
+      padding: 12px 22px;
+      border-radius: 12px;
+      background: var(--bg-3);
+      border: 0.5px solid var(--border-2);
+      color: var(--text-2);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      text-align: center;
+    }
+    @media (min-width: 600px) {
+      body.portfolio-active {
+        padding: 32px 20px;
+        align-items: center;
+      }
+      body.portfolio-active .shell {
+        width: 100%;
+        max-width: 440px;
+        min-height: 0;
+        height: min(860px, 92dvh);
+        max-height: 92dvh;
+        border-radius: 44px;
+        border: 0.5px solid rgba(255,255,255,0.1);
+        box-shadow: 0 0 0 1px rgba(255,255,255,0.04), 0 40px 120px rgba(0,0,0,0.7);
+        overflow: hidden;
+      }
+      body.portfolio-active .bg-desktop::before {
+        background:
+          radial-gradient(ellipse 480px 72% at 50% 52%, rgba(124,58,237,0.11) 0%, transparent 68%),
+          radial-gradient(ellipse 70% 50% at 50% -10%, rgba(124,58,237,0.05) 0%, transparent 65%);
+      }
+    }
     @media (min-width: 900px) {
       body.portfolio-active .desktop-layout { padding-top: 0; }
-      body.portfolio-active .desktop-right { min-height: 100dvh; }
+      body.portfolio-active .desktop-right { min-height: 100dvh; align-items: center; }
     }
 
     /* ── SWIPE ANIMATIONS ── */
@@ -2428,14 +2551,10 @@
 
   <!-- PORTFOLIO SWIPE (/p/name) -->
   <div class="screen" id="portfolioScreen">
-    <div class="page-inner page-inner--swipe">
+    <div class="page-inner page-inner--swipe" id="portfolioPageInner">
       <div class="portfolio-header" id="portfolioHeader"></div>
       <div class="card-wrap" id="portfolioCardWrap"></div>
-      <div class="swipe-hint">
-        <span class="hint"><i class="ti ti-x" style="font-size:13px;color:#f87171"></i> skip</span>
-        <span class="hint"><i class="ti ti-flame" style="font-size:13px;color:var(--accent-mid)"></i> save</span>
-      </div>
-      <div class="action-row">
+      <div class="action-row portfolio-action-row">
         <button class="act-btn btn-skip" onclick="doSwipe('left')" aria-label="Skip"><i class="ti ti-x"></i></button>
         <button class="act-btn btn-save" onclick="doSwipe('right')" aria-label="Save"><i class="ti ti-flame"></i></button>
       </div>
@@ -3689,14 +3808,16 @@ function showEmojiPop(dir) {
 function doSwipe(dir) {
   const card = document.getElementById('theCard');
   if (!card) return;
+  if (_portfolioMode && _portfolioSwipeLock) return;
   stopTrack();
   unlockAudio();
   showEmojiPop(dir);
   card.classList.add(dir === 'left' ? 'fly-left' : 'fly-right');
   if (_portfolioMode) {
+    _portfolioSwipeLock = true;
     const list = getPortfolioList();
     const item = list[0];
-    if (!item) return;
+    if (!item) { _portfolioSwipeLock = false; return; }
     if (dir === 'right') {
       if (!crate.find(i => i.id === item.id)) {
         crate.push(item);
@@ -3708,7 +3829,10 @@ function doSwipe(dir) {
     } else {
       if (!_portfolioSkipped.includes(item.id)) _portfolioSkipped.push(item.id);
     }
-    setTimeout(() => { renderPortfolioCard(); }, 380);
+    afterPortfolioCardFly(() => {
+      _portfolioSwipeLock = false;
+      renderPortfolioCard();
+    });
     return;
   }
   const list = getDiscoverList(cat);
@@ -5050,6 +5174,7 @@ let _portfolioBeats = [];
 let _portfolioIdx = 0;
 let _portfolioSkipped = [];
 let _portfolioProfile = {};
+let _portfolioSwipeLock = false;
 let _prevScreen = 'discoverScreen';
 let _prevNav = 'navDiscover';
 
@@ -5153,6 +5278,75 @@ function resetSiteMeta() {
 function getPortfolioList() {
   const crateIds = new Set(crate.map(b => b.id));
   return _portfolioBeats.filter(b => !crateIds.has(b.id) && !_portfolioSkipped.includes(b.id));
+}
+
+function getPortfolioSavedBeats() {
+  const ids = new Set(_portfolioBeats.map(b => b.id));
+  return crate.filter(b => ids.has(b.id));
+}
+
+function buildPortfolioDoneHTML() {
+  const saved = getPortfolioSavedBeats();
+  const skipped = _portfolioSkipped.length;
+  const replayBtn = skipped > 0 ? `
+    <button type="button" class="portfolio-replay-btn" onclick="replayPortfolioSkipped()">
+      <i class="ti ti-refresh" style="font-size:15px;color:var(--accent-mid);vertical-align:-2px;margin-right:6px"></i>Replay ${skipped} skipped beat${skipped === 1 ? '' : 's'}
+    </button>` : '';
+  const guestHint = !currentUser && saved.length
+    ? `<p class="portfolio-done-guest">Your saves stay on this device. Visit beatswipe.app to create a free account.</p>`
+    : '';
+
+  if (saved.length) {
+    const savedList = saved.map(b => {
+      const hasBuy = b.buy && b.buy.startsWith('http') && b.buy !== b.mp3;
+      const buyUrl = hasBuy ? b.buy : ((isYouTube(b.mp3) || isSoundCloud(b.mp3)) ? b.mp3 : '');
+      const buyLink = buyUrl
+        ? `<a href="${buyUrl}" target="_blank" rel="noopener" class="portfolio-done-buy">Buy</a>`
+        : '';
+      return `<div class="portfolio-done-item">
+        <div class="portfolio-done-meta">
+          <div class="portfolio-done-title">${escHtml(b.title)}</div>
+          <div class="portfolio-done-tags">${escHtml(b.bpm)} · ${escHtml(b.genre)} · ${escHtml(b.type)}</div>
+        </div>
+        ${buyLink}
+      </div>`;
+    }).join('');
+    return `<div class="portfolio-done">
+      <div class="portfolio-done-head"><i class="ti ti-flame"></i>You saved ${saved.length} beat${saved.length === 1 ? '' : 's'}</div>
+      <div class="portfolio-done-sub">License directly from ${_portfolioProducer ? escHtml(_portfolioProducer) : 'the producer'}.</div>
+      <div class="portfolio-done-list">${savedList}</div>
+      ${guestHint}
+      ${replayBtn}
+    </div>`;
+  }
+
+  return `<div class="portfolio-done">
+    <div class="portfolio-done-head"><i class="ti ti-check"></i>All caught up</div>
+    <div class="portfolio-done-sub">You swiped through every beat from ${_portfolioProducer ? escHtml(_portfolioProducer) : 'this producer'}.</div>
+    ${replayBtn}
+  </div>`;
+}
+
+function setPortfolioDoneMode(on) {
+  document.getElementById('portfolioPageInner')?.classList.toggle('page-inner--swipe-done', !!on);
+}
+
+function afterPortfolioCardFly(cb) {
+  const card = document.getElementById('theCard');
+  if (!card) { cb(); return; }
+  let done = false;
+  const finish = () => {
+    if (done) return;
+    done = true;
+    card.removeEventListener('transitionend', onEnd);
+    cb();
+  };
+  const onEnd = (e) => {
+    if (e.target !== card || e.propertyName !== 'transform') return;
+    finish();
+  };
+  card.addEventListener('transitionend', onEnd);
+  setTimeout(finish, 420);
 }
 
 function buildBeatCardHTML(d, opts) {
@@ -5275,20 +5469,17 @@ function renderPortfolioCard() {
   const list = getPortfolioList();
 
   if (!list.length) {
+    setPortfolioDoneMode(true);
     if (counter) counter.textContent = 'Done';
-    const skipped = _portfolioSkipped.length;
-    const replayBtn = skipped > 0 ? `
-      <button onclick="replayPortfolioSkipped()" style="margin-top:14px;padding:12px 22px;border-radius:12px;background:var(--bg-3);border:0.5px solid var(--border-2);color:var(--text-2);font-size:13px;font-weight:600;cursor:pointer;width:100%;text-align:center">
-        <i class="ti ti-refresh" style="font-size:15px;color:var(--accent-mid);vertical-align:-2px;margin-right:6px"></i>Replay ${skipped} skipped beat${skipped===1?'':'s'}
-      </button>` : '';
     if (!_portfolioBeats.length) {
       wrap.innerHTML = `<div class="empty-card"><i class="ti ti-music-off"></i>No beats yet.<br><span style="font-size:12px;color:var(--text-3)">This producer hasn't published beats yet.</span></div>`;
     } else {
-      wrap.innerHTML = `<div class="empty-card"><i class="ti ti-flame"></i>All caught up!<br><span style="font-size:12px;color:var(--text-3)">You swiped through every beat.</span>${replayBtn}</div>`;
+      wrap.innerHTML = buildPortfolioDoneHTML();
     }
     return;
   }
 
+  setPortfolioDoneMode(false);
   if (counter) counter.textContent = (_portfolioBeats.length - list.length + 1) + ' / ' + _portfolioBeats.length;
   const d = list[0];
   const useYT = isYouTube(d.mp3);
@@ -5307,8 +5498,8 @@ function renderPortfolioCard() {
   if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     const card = document.getElementById('theCard');
     if (card) {
-      card.classList.add('card-enter');
-      card.addEventListener('animationend', () => card.classList.remove('card-enter'), { once: true });
+      card.classList.add('card-enter-portfolio');
+      card.addEventListener('animationend', () => card.classList.remove('card-enter-portfolio'), { once: true });
     }
   }
   maybeAutoplayPreview(useYT, useSC);
@@ -5316,6 +5507,7 @@ function renderPortfolioCard() {
 
 function replayPortfolioSkipped() {
   _portfolioSkipped = [];
+  setPortfolioDoneMode(false);
   renderPortfolioCard();
 }
 
@@ -5350,6 +5542,7 @@ async function openPortfolio(producerName, opts) {
   _portfolioBeats = beats;
   _portfolioIdx = 0;
   _portfolioSkipped = [];
+  _portfolioSwipeLock = false;
 
   stopTrack();
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active', 'screen-fade-out', 'screen-entering'));
