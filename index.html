@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-07-v4 — portfolio swipe pivot -->
+<!-- deploy: 2026-06-07-v5 — portfolio flow polish -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -2706,6 +2706,14 @@
 
 <script>
 
+function escHtml(s) {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 function setActiveNav(navId) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.dtb-tab').forEach(t => t.classList.remove('active'));
@@ -2822,7 +2830,10 @@ function goTo(screenId, navId) {
     showInviteGate(screenId, navId);
     return;
   }
-  if (_portfolioMode && screenId !== 'portfolioScreen') exitPortfolioMode();
+  if (_portfolioMode && screenId !== 'portfolioScreen') {
+    exitPortfolioMode();
+    try { history.replaceState(null, '', '/'); } catch(e) {}
+  }
   stopTrack();
   const next = document.getElementById(screenId);
   const current = document.querySelector('.screen.active');
@@ -2874,6 +2885,7 @@ const ONBOARD_STEPS = 4;
 
 function initOnboard() {
   if (localStorage.getItem('bs_onboarded')) return;
+  if (_portfolioMode) return;
   setTimeout(() => {
     document.getElementById('onboardBackdrop').classList.add('open');
   }, 500);
@@ -2902,6 +2914,7 @@ function closeOnboard() {
 // ─── COOKIE BANNER ────────────────────────────────────────────────────────
 function initCookie() {
   if (localStorage.getItem('bs_cookie')) return;
+  if (_portfolioMode) return;
   if (localStorage.getItem('bs_onboarded')) {
     setTimeout(() => document.getElementById('cookieBanner').classList.add('open'), 800);
   }
@@ -3129,8 +3142,8 @@ async function initApp() {
   restoreGenreFilter();
   const portfolioSlug = getPortfolioSlugFromURL();
   if (portfolioSlug) {
-    const producerName = findProducerBySlug(portfolioSlug);
-    if (producerName) openPortfolio(producerName, { fromRoute: true });
+    const producerName = findProducerBySlug(portfolioSlug) || await findProducerInProfiles(portfolioSlug);
+    if (producerName) await openPortfolio(producerName, { fromRoute: true });
     else showPortfolioNotFound(portfolioSlug);
     return;
   }
@@ -5059,6 +5072,83 @@ function findProducerBySlug(slug) {
   return names.find(p => norm(p) === target) || names.find(p => p.toLowerCase() === slug.toLowerCase()) || null;
 }
 
+async function findProducerInProfiles(slug) {
+  if (!slug) return null;
+  try {
+    const { data } = await supa.from('profiles').select('producer_name').not('producer_name', 'is', null);
+    if (!data?.length) return null;
+    const norm = s => String(s).toLowerCase().replace(/[\s_-]+/g, '');
+    const target = norm(slug);
+    const match = data.find(p => {
+      const name = p.producer_name;
+      return norm(name) === target || portfolioSlugFromName(name) === slug.toLowerCase();
+    });
+    return match?.producer_name || null;
+  } catch(e) { return null; }
+}
+
+const _SITE_META = {
+  title: 'BeatSwipe – Free Swipe Portfolio for Producers',
+  description: 'Your swipe page for the bio. Fans swipe through your beats, save favorites, and buy directly from you — free for producers.',
+  url: 'https://beatswipe.app',
+  image: 'https://beatswipe.app/og-image.png'
+};
+
+function setHeadMeta(nameOrProp, content, isProperty) {
+  const sel = isProperty ? `meta[property="${nameOrProp}"]` : `meta[name="${nameOrProp}"]`;
+  let el = document.querySelector(sel);
+  if (!el) {
+    el = document.createElement('meta');
+    if (isProperty) el.setAttribute('property', nameOrProp);
+    else el.setAttribute('name', nameOrProp);
+    document.head.appendChild(el);
+  }
+  el.setAttribute('content', content);
+}
+
+function setCanonical(url) {
+  let el = document.querySelector('link[rel="canonical"]');
+  if (!el) {
+    el = document.createElement('link');
+    el.setAttribute('rel', 'canonical');
+    document.head.appendChild(el);
+  }
+  el.setAttribute('href', url);
+}
+
+function updatePortfolioMeta(producerName, profile, slug) {
+  const bio = (profile?.bio || '').trim() || 'Swipe through beats, save favorites, buy directly from the producer.';
+  const title = producerName + ' – BeatSwipe';
+  const url = 'https://beatswipe.app/p/' + slug;
+  const image = (profile?.avatar_url && profile.avatar_url.startsWith('http')) ? profile.avatar_url : _SITE_META.image;
+  document.title = title;
+  setHeadMeta('description', bio, false);
+  setHeadMeta('og:type', 'website', true);
+  setHeadMeta('og:url', url, true);
+  setHeadMeta('og:title', title, true);
+  setHeadMeta('og:description', bio, true);
+  setHeadMeta('og:image', image, true);
+  setHeadMeta('twitter:card', 'summary_large_image', false);
+  setHeadMeta('twitter:title', title, false);
+  setHeadMeta('twitter:description', bio, false);
+  setHeadMeta('twitter:image', image, false);
+  setCanonical(url);
+}
+
+function resetSiteMeta() {
+  document.title = _SITE_META.title;
+  setHeadMeta('description', _SITE_META.description, false);
+  setHeadMeta('og:type', 'website', true);
+  setHeadMeta('og:url', _SITE_META.url, true);
+  setHeadMeta('og:title', _SITE_META.title, true);
+  setHeadMeta('og:description', 'Swipe through curated beats from independent producers. Save your favorites, license instantly — free forever.', true);
+  setHeadMeta('og:image', _SITE_META.image, true);
+  setHeadMeta('twitter:title', _SITE_META.title, false);
+  setHeadMeta('twitter:description', 'Swipe through curated beats from independent producers. Save your favorites, license instantly.', false);
+  setHeadMeta('twitter:image', _SITE_META.image, false);
+  setCanonical(_SITE_META.url);
+}
+
 function getPortfolioList() {
   const crateIds = new Set(crate.map(b => b.id));
   return _portfolioBeats.filter(b => !crateIds.has(b.id) && !_portfolioSkipped.includes(b.id));
@@ -5239,7 +5329,8 @@ function showPortfolioNotFound(slug) {
   const header = document.getElementById('portfolioHeader');
   if (header) header.innerHTML = `<div class="portfolio-name" style="flex:1">Producer not found</div>`;
   const wrap = document.getElementById('portfolioCardWrap');
-  if (wrap) wrap.innerHTML = `<div class="empty-card"><i class="ti ti-user-off"></i>No producer "<span style="color:var(--text)">${escHtml(slug)}</span>" yet.<br><span style="font-size:12px;color:var(--text-3)"><a onclick="goTo('submitScreen','navSubmit')" style="color:var(--accent-mid);cursor:pointer">Submit beats</a> to claim your page.</span></div>`;
+  if (wrap) wrap.innerHTML = `<div class="empty-card"><i class="ti ti-user-off"></i>No producer "<span style="color:var(--text)">${escHtml(slug)}</span>" yet.<br><span style="font-size:12px;color:var(--text-3)"><a onclick="goTo('landScreen','navHome')" style="color:var(--accent-mid);cursor:pointer">Get your own page</a> — submit beats to go live.</span></div>`;
+  updatePortfolioMeta(slug, { bio: 'Producer portfolio page on BeatSwipe.' }, portfolioSlugFromName(slug));
 }
 
 async function openPortfolio(producerName, opts) {
@@ -5273,10 +5364,13 @@ async function openPortfolio(producerName, opts) {
   renderPortfolioCard();
 
   const slug = portfolioSlugFromName(producerName);
-  if (opts.fromRoute || window.location.pathname.indexOf('/p/') !== 0) {
-    try { history.replaceState({ portfolio: producerName }, '', '/p/' + slug); } catch(e) {}
+  if (!opts.skipHistory) {
+    const url = '/p/' + slug;
+    const state = { portfolio: producerName };
+    if (opts.fromRoute) history.replaceState(state, '', url);
+    else history.pushState(state, '', url);
   }
-  document.title = producerName + ' – BeatSwipe';
+  updatePortfolioMeta(producerName, profile, slug);
 }
 
 function openProducerProfile(producerName) {
@@ -5287,8 +5381,26 @@ function exitPortfolioMode() {
   _portfolioMode = false;
   _portfolioProducer = null;
   document.body.classList.remove('portfolio-active');
-  try { history.replaceState(null, '', '/'); } catch(e) {}
-  document.title = 'BeatSwipe – Free Swipe Portfolio for Producers';
+  resetSiteMeta();
+}
+
+async function handlePortfolioPopstate() {
+  const slug = getPortfolioSlugFromURL();
+  if (slug) {
+    const producerName = findProducerBySlug(slug) || await findProducerInProfiles(slug);
+    if (producerName) await openPortfolio(producerName, { fromRoute: true, skipHistory: true });
+    else showPortfolioNotFound(slug);
+    return;
+  }
+  if (_portfolioMode) {
+    _portfolioMode = false;
+    _portfolioProducer = null;
+    document.body.classList.remove('portfolio-active');
+    resetSiteMeta();
+    stopTrack();
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    applyGoTo(_prevScreen || 'landScreen', _prevNav || 'navHome');
+  }
 }
 
 function copyPortfolioLink() {
@@ -5424,6 +5536,8 @@ document.addEventListener('keydown', e => {
 });
 
 // Init
+window.addEventListener('popstate', () => { handlePortfolioPopstate(); });
+
 initApp().then(() => {
   initOnboard();
   initCookie();
