@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-08-v22 — portfolio swipe fly-out animation (clone pattern, autoplay-safe) -->
+<!-- deploy: 2026-06-08-v23 — portfolio fly from drag position, commit on release -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -4079,7 +4079,7 @@ function renderCard() {
 
     curX = dx;
 
-    if (Math.abs(dx) >= SWIPE_THRESHOLD) {
+    if (Math.abs(dx) >= SWIPE_THRESHOLD && !_portfolioMode) {
       commitSwipe(dx > 0 ? 'right' : 'left');
       return;
     }
@@ -5761,9 +5761,10 @@ function flyOutPortfolioCard(dir, onReplaced) {
     return;
   }
 
+  const dragTransform = flyEl.style.transform;
   const clone = flyEl.cloneNode(true);
   clone.classList.remove('dragging', 'spring-snap', 'card-enter-portfolio');
-  clone.style.transform = '';
+  if (dragTransform) clone.style.transform = dragTransform;
   clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
 
   onReplaced();
