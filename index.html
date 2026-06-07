@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-07-v10 — portfolio layout lock + full-width card -->
+<!-- deploy: 2026-06-07-v11 — portfolio decouple discover + flat surface card -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -1577,10 +1577,12 @@
       min-height: 0;
       align-items: stretch;
     }
-    #portfolioScreen .page-inner--swipe {
+    .page-inner--portfolio,
+    #portfolioScreen .page-inner--portfolio {
       width: 100%;
       max-width: none;
-      margin: 0 auto;
+      margin-inline: 0;
+      align-self: stretch;
       height: 100%;
       flex: 1;
       min-height: 0;
@@ -1592,9 +1594,19 @@
       margin-inline: 0;
       align-self: stretch;
     }
+    .portfolio-card-wrap,
     body.portfolio-active #portfolioCardWrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
       align-items: stretch;
       justify-content: flex-start;
+      min-height: 0;
+      width: 100%;
+      max-width: none;
+      padding: 0 var(--px) 8px;
+      overflow: visible;
+      box-sizing: border-box;
     }
     #portfolioPageInner {
       display: grid;
@@ -1608,24 +1620,20 @@
     #portfolioCardWrap {
       --pf-glow: rgba(124, 58, 237, 0.45);
       position: relative;
-      min-height: 0;
-      width: 100%;
-      padding: 0 var(--px);
-      overflow: visible;
-      display: flex;
-      flex-direction: column;
-      flex: 1;
     }
     #portfolioCardWrap::before { display: none; }
     .portfolio-card-slot {
       position: relative;
       z-index: 1;
       width: 100%;
+      max-width: none;
+      min-width: 0;
       flex: 1;
       min-height: 0;
       display: flex;
       flex-direction: column;
       align-items: stretch;
+      align-self: stretch;
       justify-content: flex-start;
       padding-top: 0;
       overflow-y: auto;
@@ -1640,22 +1648,17 @@
       align-self: stretch;
       box-sizing: border-box;
     }
-    #portfolioCardWrap .portfolio-surface > .beat-card {
-      background: none;
-      padding: 0;
-      border: none;
-      border-radius: 0;
-      box-shadow: none;
-    }
     #portfolioScreen .card-stage {
       display: block;
       position: relative;
       overflow: visible;
     }
     #portfolioScreen .card-glow { display: none; }
-    #portfolioScreen .beat-card,
-    #portfolioCardWrap .portfolio-surface {
+    #portfolioCardWrap .portfolio-surface,
+    #portfolioCardWrap #theCard.portfolio-surface {
       width: 100%;
+      max-width: none;
+      min-width: 0;
       box-sizing: border-box;
       transform-origin: center center;
       border: none;
@@ -1663,6 +1666,10 @@
       padding: 20px 18px;
       background: var(--bg-2);
       box-shadow: none;
+      align-self: stretch;
+      touch-action: pan-y;
+      user-select: none;
+      -webkit-user-select: none;
     }
     #portfolioCardWrap .portfolio-surface {
       display: flex;
@@ -1675,21 +1682,24 @@
       border: none;
     }
     #portfolioCardWrap .portfolio-surface.fly-left,
-    #portfolioScreen .beat-card.fly-left  { transform: translateX(-130%) rotate(-12deg); opacity: 0; }
+    #portfolioCardWrap #theCard.fly-left  { transform: translateX(-130%) rotate(-12deg); opacity: 0; }
     #portfolioCardWrap .portfolio-surface.fly-right,
-    #portfolioScreen .beat-card.fly-right { transform: translateX(130%) rotate(12deg); opacity: 0; }
-    #portfolioCardWrap .portfolio-surface {
+    #portfolioCardWrap #theCard.fly-right { transform: translateX(130%) rotate(12deg); opacity: 0; }
+    #portfolioCardWrap .portfolio-surface,
+    #portfolioCardWrap #theCard.portfolio-surface {
       transition: transform 0.38s cubic-bezier(0.22,1,0.36,1), opacity 0.38s ease;
       transform-origin: center center;
     }
-    #portfolioCardWrap .portfolio-surface.dragging { transition: none; cursor: grabbing; }
-    #portfolioCardWrap .portfolio-surface.spring-snap { transition: none; }
+    #portfolioCardWrap .portfolio-surface.dragging,
+    #portfolioCardWrap #theCard.dragging { transition: none; cursor: grabbing; }
+    #portfolioCardWrap .portfolio-surface.spring-snap,
+    #portfolioCardWrap #theCard.spring-snap { transition: none; }
     @keyframes portfolioCardEnter {
       from { opacity: 0; transform: translateX(18px); }
       to   { opacity: 1; transform: none; }
     }
     #portfolioCardWrap .portfolio-surface.card-enter-portfolio,
-    #portfolioScreen .beat-card.card-enter-portfolio {
+    #portfolioCardWrap #theCard.card-enter-portfolio {
       animation: portfolioCardEnter 0.28s cubic-bezier(0.22,1,0.36,1) forwards;
     }
     #portfolioScreen .action-row { flex-shrink: 0; padding: 10px var(--px) 10px; gap: 36px; }
@@ -1898,21 +1908,26 @@
         max-width: 520px;
       }
       body.portfolio-active #portfolioPageInner,
-      body.portfolio-active .page-inner--swipe {
+      body.portfolio-active .page-inner--portfolio {
         width: 100%;
         max-width: none;
         margin-inline: 0;
         align-self: stretch;
       }
+      body.portfolio-active .portfolio-card-wrap,
       body.portfolio-active #portfolioCardWrap {
         align-items: stretch;
         justify-content: flex-start;
-        padding: 0 var(--px) 8px;
+        padding: 0 18px 8px;
       }
-      #portfolioScreen .beat-card,
-      #portfolioCardWrap .portfolio-surface { padding: 22px 20px; }
-      #portfolioCardWrap .portfolio-surface > .beat-card { padding: 0; }
-      #portfolioScreen .waveform { height: 62px; }
+      body.portfolio-active .portfolio-header,
+      body.portfolio-active .portfolio-action-row,
+      body.portfolio-active .portfolio-foot {
+        padding-inline: 18px;
+      }
+      #portfolioCardWrap .portfolio-surface,
+      #portfolioCardWrap #theCard.portfolio-surface { padding: 22px 20px; }
+      #portfolioCardWrap .waveform { height: 62px; }
     }
 
     /* ── SWIPE ANIMATIONS ── */
@@ -2685,9 +2700,9 @@
 
   <!-- PORTFOLIO SWIPE (/p/name) -->
   <div class="screen" id="portfolioScreen">
-    <div class="page-inner page-inner--swipe" id="portfolioPageInner">
+    <div class="page-inner page-inner--portfolio" id="portfolioPageInner">
       <div class="portfolio-header" id="portfolioHeader"></div>
-      <div class="card-wrap" id="portfolioCardWrap">
+      <div class="portfolio-card-wrap" id="portfolioCardWrap">
         <div class="portfolio-card-slot" id="portfolioCardSlot"></div>
       </div>
       <div class="action-row portfolio-action-row">
@@ -3743,9 +3758,6 @@ function renderCard() {
   const MAX_ROTATION   = 18;
 
   function getCard() {
-    if (_portfolioMode) {
-      return document.querySelector('#portfolioCardSlot .portfolio-surface') || document.getElementById('theCard');
-    }
     return document.getElementById('theCard');
   }
   function getGlow()  { return document.getElementById('cardGlow'); }
@@ -5474,7 +5486,7 @@ function setPortfolioDoneMode(on) {
 }
 
 function getPortfolioFlyEl() {
-  return document.querySelector('#portfolioCardSlot .portfolio-surface') || document.getElementById('theCard');
+  return document.getElementById('theCard');
 }
 
 function afterPortfolioCardFly(cb) {
@@ -5554,8 +5566,7 @@ function buildBeatCardHTML(d, opts) {
       </div>
     </div>`;
   const producerLine = hideProducer ? '' : `<div class="track-by" style="cursor:pointer;color:var(--accent-mid)" onclick="openProducerProfile('${d.producer.replace(/'/g,"\\'")}')">by ${d.producer} <i class="ti ti-arrow-right" style="font-size:10px"></i></div>`;
-  const cardBody = `
-    <div class="beat-card" id="theCard">
+  const cardInner = `
       <div class="card-head">
         <span class="swipe-label swipe-label-skip" id="labelSkip">SKIP</span>
         <span class="swipe-label swipe-label-save" id="labelSave">SAVE</span>
@@ -5575,13 +5586,13 @@ function buildBeatCardHTML(d, opts) {
         <span class="tag">${d.key}</span>
         <span class="tag">${d.genre}</span>
       </div>
-      ${playerHTML}
-    </div>`;
-  if (portfolioWrap) return `<div class="portfolio-surface">${cardBody}</div>`;
+      ${playerHTML}`;
+  if (portfolioWrap) return `<div class="portfolio-surface" id="theCard">${cardInner}</div>`;
   return `
     <div class="card-stage">
     <div class="card-glow" id="cardGlow" style="--glow-color:${d.color}"></div>
-    ${cardBody}
+    <div class="beat-card" id="theCard">${cardInner}
+    </div>
     </div>`;
 }
 
