@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-08-v24 — portfolio card spacing below producer header -->
+<!-- deploy: 2026-06-08-v25 — portfolio title align + discover fly animation -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -1326,6 +1326,14 @@
     .beat-card.spring-snap { transition: none; }
     .beat-card.fly-left { transform: translateX(-150%) rotate(-14deg); opacity: 0; pointer-events: none; }
     .beat-card.fly-right { transform: translateX(150%) rotate(14deg); opacity: 0; pointer-events: none; }
+    #cardWrap .beat-card.discover-fly-clone {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 5;
+      pointer-events: none;
+    }
     @keyframes cardEnter {
       from { opacity: 0; transform: scale(0.96) translateY(8px); }
       to   { opacity: 1; transform: none; }
@@ -1633,7 +1641,7 @@
       align-items: stretch;
       align-self: stretch;
       justify-content: flex-start;
-      padding-top: 16px;
+      padding-top: 24px;
       overflow: hidden;
     }
     #portfolioPageInner.page-inner--swipe-done .portfolio-card-slot {
@@ -1690,6 +1698,9 @@
       touch-action: pan-y;
       user-select: none;
       -webkit-user-select: none;
+    }
+    #portfolioCardWrap .card-head {
+      align-items: center;
     }
     #portfolioScreen .player-area {
       background: var(--bg-3);
@@ -1901,8 +1912,8 @@
       #portfolioCardWrap .portfolio-card-slot {
         flex: 1;
         min-height: 0;
-        justify-content: center;
-        padding-top: 20px;
+        justify-content: flex-start;
+        padding-top: 28px;
       }
       #portfolioPageInner.page-inner--swipe-done .portfolio-card-slot {
         justify-content: flex-start;
@@ -1915,7 +1926,7 @@
         border-radius: 20px;
       }
       #portfolioCardWrap .portfolio-surface {
-        padding: 18px 16px;
+        padding: 22px 16px 18px;
       }
     }
     @media (min-width: 600px) {
@@ -4080,11 +4091,6 @@ function renderCard() {
 
     curX = dx;
 
-    if (Math.abs(dx) >= SWIPE_THRESHOLD && !_portfolioMode) {
-      commitSwipe(dx > 0 ? 'right' : 'left');
-      return;
-    }
-
     const rot = (dx / 320) * MAX_ROTATION;
     card.style.transform = `translateX(${dx}px) rotate(${rot}deg)`;
     updateGlow(dx);
@@ -4250,8 +4256,10 @@ function doSwipe(dir) {
     saveSkippedState();
   }
   saveSwipeState();
-  renderCard();
-  tryAutoplayFromGesture();
+  flyOutDiscoverCard(dir, () => {
+    renderCard();
+    tryAutoplayFromGesture();
+  });
 }
 
 // ─── CRATE ────────────────────────────────────────────────────────────────
@@ -5781,6 +5789,41 @@ function flyOutPortfolioCard(dir, onReplaced) {
     done = true;
     clone.remove();
     _portfolioSwipeLock = false;
+  };
+  clone.addEventListener('transitionend', e => {
+    if (e.target !== clone || e.propertyName !== 'transform') return;
+    finish();
+  });
+  setTimeout(finish, 450);
+}
+
+function flyOutDiscoverCard(dir, onReplaced) {
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const flyEl = document.getElementById('theCard');
+  const wrap = document.getElementById('cardWrap');
+  if (reduced || !flyEl || !wrap) {
+    onReplaced();
+    return;
+  }
+
+  const dragTransform = flyEl.style.transform;
+  const clone = flyEl.cloneNode(true);
+  clone.classList.remove('dragging', 'spring-snap', 'card-enter');
+  if (dragTransform) clone.style.transform = dragTransform;
+  clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+
+  onReplaced();
+
+  clone.classList.add('discover-fly-clone');
+  wrap.appendChild(clone);
+  void clone.offsetWidth;
+  clone.classList.add(dir === 'left' ? 'fly-left' : 'fly-right');
+
+  let done = false;
+  const finish = () => {
+    if (done) return;
+    done = true;
+    clone.remove();
   };
   clone.addEventListener('transitionend', e => {
     if (e.target !== clone || e.propertyName !== 'transform') return;
