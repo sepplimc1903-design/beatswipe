@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-07-v14 — swipe same surface shell as done summary -->
+<!-- deploy: 2026-06-07-v15 — portfolio shell fixed 520px on laptop (no content shrink) -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -1884,15 +1884,15 @@
         min-height: 100dvh;
       }
       body.portfolio-active .desktop-right {
-        width: auto;
-        flex: 0 0 auto;
+        width: min(520px, calc(100vw - 40px));
+        flex: 0 0 min(520px, calc(100vw - 40px));
         justify-content: center;
         align-items: center;
         min-height: auto;
       }
       body.portfolio-active .shell {
-        width: min(100%, 520px);
-        max-width: 520px;
+        width: min(520px, calc(100vw - 40px));
+        max-width: min(520px, calc(100vw - 40px));
         min-height: 0;
         height: min(880px, 92dvh);
         max-height: 92dvh;
@@ -1925,12 +1925,12 @@
         height: auto;
         justify-content: center;
         align-items: center;
-        width: auto;
-        flex: 0 0 auto;
+        width: min(520px, calc(100vw - 40px));
+        flex: 0 0 min(520px, calc(100vw - 40px));
       }
       body.portfolio-active .shell {
-        width: min(520px, 100%);
-        max-width: 520px;
+        width: min(520px, calc(100vw - 40px));
+        max-width: min(520px, calc(100vw - 40px));
       }
       body.portfolio-active #portfolioPageInner,
       body.portfolio-active .page-inner--portfolio {
