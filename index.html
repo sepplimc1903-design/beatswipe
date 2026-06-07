@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-07-v18 — portfolio autoplay after first tap (MP3/YT/SC) -->
+<!-- deploy: 2026-06-07-v19 — portfolio autoplay scoped player + gesture retry -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -3528,13 +3528,26 @@ let _audioPanel = 'discover'; // 'discover' | 'crate' | 'portfolio'
 let _audioUnlocked = false;
 
 function unlockAudio() {
-  if (_audioUnlocked) return;
-  _audioUnlocked = true;
-  autoplayCurrentBeat();
+  handleAudioGesture();
 }
 
-document.addEventListener('click', unlockAudio, { once: true, capture: true });
-document.addEventListener('touchstart', unlockAudio, { once: true, capture: true });
+function getPlayerScope() {
+  if (_portfolioMode || _audioPanel === 'portfolio') return document.getElementById('portfolioCardSlot');
+  if (_audioPanel === 'crate') return null;
+  return document.getElementById('cardWrap');
+}
+
+function queryPlayerEl(id) {
+  const scope = getPlayerScope();
+  if (scope) {
+    const scoped = scope.querySelector('#' + id);
+    if (scoped) return scoped;
+  }
+  return document.getElementById(id);
+}
+
+document.addEventListener('click', handleAudioGesture, { capture: true });
+document.addEventListener('touchstart', handleAudioGesture, { capture: true, passive: true });
 
 function getActiveBeatMedia() {
   let d = null;
@@ -3550,7 +3563,8 @@ function getActiveBeatMedia() {
 }
 
 function getActiveEmbedIframe() {
-  if (_portfolioMode) return document.querySelector('#portfolioCardSlot iframe');
+  const scope = getPlayerScope();
+  if (scope) return scope.querySelector('iframe');
   return document.querySelector('#cardWrap iframe');
 }
 
@@ -3561,18 +3575,28 @@ function startSoundCloudAutoplay() {
   iframe.src = iframe.src.replace('auto_play=false', 'auto_play=true');
 }
 
-function autoplayCurrentBeat() {
-  if (!_audioUnlocked) return;
+function handleAudioGesture() {
+  if (!_audioUnlocked) _audioUnlocked = true;
+  tryAutoplayFromGesture();
+}
+
+function tryAutoplayFromGesture() {
+  if (_portfolioMode && document.getElementById('portfolioPageInner')?.classList.contains('page-inner--swipe-done')) return;
   const media = getActiveBeatMedia();
   if (!media) return;
+  if (!media.useYT && !media.useSC && isPlaying) return;
   maybeAutoplayPreview(media.useYT, media.useSC);
+}
+
+function autoplayCurrentBeat() {
+  tryAutoplayFromGesture();
 }
 
 function maybeAutoplayPreview(useYT, useSC) {
   if (!_audioUnlocked) return;
   if (useYT) {
-    const overlay = document.getElementById('ytOverlay');
-    const frame = document.getElementById('ytFrame');
+    const overlay = queryPlayerEl('ytOverlay');
+    const frame = queryPlayerEl('ytFrame');
     if (overlay && frame && overlay.style.pointerEvents !== 'none') startVideo();
   } else if (useSC) {
     startSoundCloudAutoplay();
@@ -3588,7 +3612,7 @@ function getPlayerEl(id) {
     timeCur: 'cpTimeCur', timeDur: 'cpTimeDur', progressBar: 'cpProgressBar'
   };
   if (_audioPanel === 'crate') return document.getElementById(map[id] || id);
-  return document.getElementById(id);
+  return queryPlayerEl(id);
 }
 
 // ─── AUDIO ENGINE ─────────────────────────────────────────────────────────
@@ -3700,8 +3724,8 @@ function getYtId(url) {
 }
 
 function startVideo() {
-  const overlay = document.getElementById('ytOverlay');
-  const frame   = document.getElementById('ytFrame');
+  const overlay = queryPlayerEl('ytOverlay');
+  const frame   = queryPlayerEl('ytFrame');
   if (!overlay || !frame) return;
   frame.src = frame.getAttribute('data-src') + '&autoplay=1';
   overlay.style.opacity = '0';
@@ -3958,6 +3982,7 @@ function renderCard() {
   function onStart(x, y, fromTouch) {
     const card = getCard();
     if (!card || isLocked) return;
+    if (_portfolioMode) handleAudioGesture();
     cancelSpring();
     gestureIsTouch = !!fromTouch;
     startX = x; startY = y; curX = 0; isDragging = true;
