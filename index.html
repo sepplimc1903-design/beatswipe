@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-07-v13 — fix portfolio scrollbars + full-width card -->
+<!-- deploy: 2026-06-07-v14 — swipe same surface shell as done summary -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -1602,7 +1602,6 @@
       align-items: stretch;
       justify-content: flex-start;
       min-height: 0;
-      min-width: 0;
       width: 100%;
       max-width: none;
       padding: 0 var(--px) 8px;
@@ -1627,7 +1626,6 @@
       z-index: 1;
       width: 100%;
       max-width: none;
-      min-width: 0;
       flex: 1;
       min-height: 0;
       display: flex;
@@ -1662,8 +1660,7 @@
       overflow: visible;
     }
     #portfolioScreen .card-glow { display: none; }
-    #portfolioCardWrap .portfolio-surface,
-    #portfolioCardWrap #theCard.portfolio-surface {
+    #portfolioCardWrap .portfolio-surface {
       width: 100%;
       max-width: none;
       box-sizing: border-box;
@@ -1675,39 +1672,38 @@
       box-shadow: none;
       align-self: stretch;
       flex: 0 0 auto;
-      touch-action: pan-y;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-    #portfolioCardWrap .portfolio-surface {
       display: flex;
       flex-direction: column;
       gap: 0;
       text-align: left;
+      transition: transform 0.38s cubic-bezier(0.22,1,0.36,1), opacity 0.38s ease;
+    }
+    #portfolioCardWrap .portfolio-beat {
+      width: 100%;
+      max-width: none;
+      box-sizing: border-box;
+      background: none;
+      border: none;
+      padding: 0;
+      margin: 0;
+      position: relative;
+      touch-action: pan-y;
+      user-select: none;
+      -webkit-user-select: none;
     }
     #portfolioScreen .player-area {
       background: var(--bg-3);
       border: none;
     }
-    #portfolioCardWrap .portfolio-surface.fly-left,
-    #portfolioCardWrap #theCard.fly-left  { transform: translateX(-130%) rotate(-12deg); opacity: 0; }
-    #portfolioCardWrap .portfolio-surface.fly-right,
-    #portfolioCardWrap #theCard.fly-right { transform: translateX(130%) rotate(12deg); opacity: 0; }
-    #portfolioCardWrap .portfolio-surface,
-    #portfolioCardWrap #theCard.portfolio-surface {
-      transition: transform 0.38s cubic-bezier(0.22,1,0.36,1), opacity 0.38s ease;
-      transform-origin: center center;
-    }
-    #portfolioCardWrap .portfolio-surface.dragging,
-    #portfolioCardWrap #theCard.dragging { transition: none; cursor: grabbing; }
-    #portfolioCardWrap .portfolio-surface.spring-snap,
-    #portfolioCardWrap #theCard.spring-snap { transition: none; }
+    #portfolioCardWrap .portfolio-surface.fly-left  { transform: translateX(-130%) rotate(-12deg); opacity: 0; }
+    #portfolioCardWrap .portfolio-surface.fly-right { transform: translateX(130%) rotate(12deg); opacity: 0; }
+    #portfolioCardWrap .portfolio-surface.dragging { transition: none; cursor: grabbing; }
+    #portfolioCardWrap .portfolio-surface.spring-snap { transition: none; }
     @keyframes portfolioCardEnter {
       from { opacity: 0; transform: translateX(18px); }
       to   { opacity: 1; transform: none; }
     }
-    #portfolioCardWrap .portfolio-surface.card-enter-portfolio,
-    #portfolioCardWrap #theCard.card-enter-portfolio {
+    #portfolioCardWrap .portfolio-surface.card-enter-portfolio {
       animation: portfolioCardEnter 0.28s cubic-bezier(0.22,1,0.36,1) forwards;
     }
     #portfolioScreen .action-row { flex-shrink: 0; padding: 10px var(--px) 10px; gap: 36px; }
@@ -1954,8 +1950,7 @@
       body.portfolio-active .portfolio-foot {
         padding-inline: 0;
       }
-      #portfolioCardWrap .portfolio-surface,
-      #portfolioCardWrap #theCard.portfolio-surface { padding: 22px 20px; }
+      #portfolioCardWrap .portfolio-surface { padding: 22px 20px; }
       #portfolioCardWrap .waveform { height: 62px; }
     }
 
@@ -3787,6 +3782,9 @@ function renderCard() {
   const MAX_ROTATION   = 18;
 
   function getCard() {
+    if (_portfolioMode) {
+      return document.querySelector('#portfolioCardSlot > .portfolio-surface') || document.getElementById('theCard');
+    }
     return document.getElementById('theCard');
   }
   function getGlow()  { return document.getElementById('cardGlow'); }
@@ -5515,7 +5513,7 @@ function setPortfolioDoneMode(on) {
 }
 
 function getPortfolioFlyEl() {
-  return document.getElementById('theCard');
+  return document.querySelector('#portfolioCardSlot > .portfolio-surface');
 }
 
 function afterPortfolioCardFly(cb) {
@@ -5616,7 +5614,7 @@ function buildBeatCardHTML(d, opts) {
         <span class="tag">${d.genre}</span>
       </div>
       ${playerHTML}`;
-  if (portfolioWrap) return `<div class="portfolio-surface" id="theCard">${cardInner}</div>`;
+  if (portfolioWrap) return `<div class="portfolio-surface"><div class="portfolio-beat" id="theCard">${cardInner}</div></div>`;
   return `
     <div class="card-stage">
     <div class="card-glow" id="cardGlow" style="--glow-color:${d.color}"></div>
