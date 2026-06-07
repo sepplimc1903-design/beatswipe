@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-07-v7 — portfolio UX polish -->
+<!-- deploy: 2026-06-07-v8 — portfolio layout alignment fix -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -1636,10 +1636,10 @@
       flex: 1;
       min-height: 0;
       display: flex;
-      align-items: stretch;
+      align-items: center;
       justify-content: center;
-      padding: 4px var(--px) 0;
-      overflow: hidden;
+      padding: 12px var(--px) 0;
+      overflow: visible;
     }
     #portfolioScreen .card-stage {
       width: 100%;
@@ -1649,12 +1649,22 @@
       align-items: center;
       justify-content: center;
       min-height: 0;
+      overflow: visible;
+    }
+    #portfolioScreen .card-glow {
+      width: 92%;
+      height: 62%;
+      filter: blur(44px);
+      opacity: 0.38;
     }
     #portfolioScreen .beat-card {
       width: 100%;
       max-width: 100%;
       box-sizing: border-box;
       transform-origin: center center;
+      border: none;
+      background: var(--bg-2);
+      box-shadow: 0 0 0 0.5px rgba(255,255,255,0.08), 0 12px 40px rgba(0,0,0,0.35);
     }
     #portfolioScreen .beat-card.fly-left  { transform: translateX(-130%) rotate(-12deg); opacity: 0; }
     #portfolioScreen .beat-card.fly-right { transform: translateX(130%) rotate(12deg); opacity: 0; }
@@ -1681,8 +1691,9 @@
     .portfolio-foot a:hover { text-decoration: underline; }
     .portfolio-done {
       width: 100%;
+      box-sizing: border-box;
       text-align: center;
-      padding: 8px 0 12px;
+      padding: 0;
       overflow-y: auto;
       max-height: 100%;
     }
@@ -1758,6 +1769,20 @@
       body.portfolio-active {
         padding: 32px 20px;
         align-items: center;
+        justify-content: center;
+      }
+      body.portfolio-active .desktop-layout {
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        min-height: 100dvh;
+      }
+      body.portfolio-active .desktop-right {
+        width: auto;
+        flex: 0 0 auto;
+        justify-content: center;
+        align-items: center;
+        min-height: auto;
       }
       body.portfolio-active .shell {
         width: 100%;
@@ -1769,6 +1794,8 @@
         border: 0.5px solid rgba(255,255,255,0.1);
         box-shadow: 0 0 0 1px rgba(255,255,255,0.04), 0 40px 120px rgba(0,0,0,0.7);
         overflow: hidden;
+        background: var(--bg);
+        margin-inline: auto;
       }
       body.portfolio-active .bg-desktop::before {
         background:
@@ -1777,8 +1804,20 @@
       }
     }
     @media (min-width: 900px) {
-      body.portfolio-active .desktop-layout { padding-top: 0; }
-      body.portfolio-active .desktop-right { min-height: 100dvh; align-items: center; }
+      body.portfolio-active .desktop-layout {
+        padding-top: 0;
+        position: relative;
+        min-height: 100dvh;
+        justify-content: center;
+        align-items: center;
+      }
+      body.portfolio-active .desktop-right {
+        min-height: auto;
+        height: auto;
+        justify-content: center;
+        align-items: center;
+        width: auto;
+      }
     }
 
     /* ── SWIPE ANIMATIONS ── */
