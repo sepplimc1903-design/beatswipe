@@ -1586,6 +1586,16 @@
       min-height: 0;
       padding-bottom: env(safe-area-inset-bottom);
     }
+    body.portfolio-active #portfolioPageInner {
+      width: 100%;
+      max-width: none;
+      margin-inline: 0;
+      align-self: stretch;
+    }
+    body.portfolio-active #portfolioCardWrap {
+      align-items: stretch;
+      justify-content: flex-start;
+    }
     #portfolioPageInner {
       display: grid;
       grid-template-rows: auto minmax(0, 1fr) auto auto;
@@ -1625,7 +1635,17 @@
     #portfolioCardWrap .portfolio-surface,
     #portfolioCardWrap .empty-card {
       width: 100%;
+      max-width: none;
       flex-shrink: 0;
+      align-self: stretch;
+      box-sizing: border-box;
+    }
+    #portfolioCardWrap .portfolio-surface > .beat-card {
+      background: none;
+      padding: 0;
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
     }
     #portfolioScreen .card-stage {
       display: block;
@@ -1654,12 +1674,21 @@
       background: var(--bg-3);
       border: none;
     }
+    #portfolioCardWrap .portfolio-surface.fly-left,
     #portfolioScreen .beat-card.fly-left  { transform: translateX(-130%) rotate(-12deg); opacity: 0; }
+    #portfolioCardWrap .portfolio-surface.fly-right,
     #portfolioScreen .beat-card.fly-right { transform: translateX(130%) rotate(12deg); opacity: 0; }
+    #portfolioCardWrap .portfolio-surface {
+      transition: transform 0.38s cubic-bezier(0.22,1,0.36,1), opacity 0.38s ease;
+      transform-origin: center center;
+    }
+    #portfolioCardWrap .portfolio-surface.dragging { transition: none; cursor: grabbing; }
+    #portfolioCardWrap .portfolio-surface.spring-snap { transition: none; }
     @keyframes portfolioCardEnter {
       from { opacity: 0; transform: translateX(18px); }
       to   { opacity: 1; transform: none; }
     }
+    #portfolioCardWrap .portfolio-surface.card-enter-portfolio,
     #portfolioScreen .beat-card.card-enter-portfolio {
       animation: portfolioCardEnter 0.28s cubic-bezier(0.22,1,0.36,1) forwards;
     }
@@ -1868,14 +1897,21 @@
         width: min(520px, 100%);
         max-width: 520px;
       }
-      #portfolioPageInner,
-      #portfolioScreen .page-inner--swipe {
+      body.portfolio-active #portfolioPageInner,
+      body.portfolio-active .page-inner--swipe {
         width: 100%;
         max-width: none;
+        margin-inline: 0;
         align-self: stretch;
+      }
+      body.portfolio-active #portfolioCardWrap {
+        align-items: stretch;
+        justify-content: flex-start;
+        padding: 0 var(--px) 8px;
       }
       #portfolioScreen .beat-card,
       #portfolioCardWrap .portfolio-surface { padding: 22px 20px; }
+      #portfolioCardWrap .portfolio-surface > .beat-card { padding: 0; }
       #portfolioScreen .waveform { height: 62px; }
     }
 
@@ -3706,7 +3742,12 @@ function renderCard() {
   const SWIPE_THRESHOLD = 60;
   const MAX_ROTATION   = 18;
 
-  function getCard() { return document.getElementById('theCard'); }
+  function getCard() {
+    if (_portfolioMode) {
+      return document.querySelector('#portfolioCardSlot .portfolio-surface') || document.getElementById('theCard');
+    }
+    return document.getElementById('theCard');
+  }
   function getGlow()  { return document.getElementById('cardGlow'); }
 
   function cancelSpring() {
@@ -3912,7 +3953,8 @@ function doSwipe(dir) {
   stopTrack();
   unlockAudio();
   showEmojiPop(dir);
-  card.classList.add(dir === 'left' ? 'fly-left' : 'fly-right');
+  const flyEl = _portfolioMode ? getPortfolioFlyEl() : card;
+  flyEl.classList.add(dir === 'left' ? 'fly-left' : 'fly-right');
   if (_portfolioMode) {
     _portfolioSwipeLock = true;
     const list = getPortfolioList();
@@ -5431,8 +5473,12 @@ function setPortfolioDoneMode(on) {
   document.getElementById('portfolioPageInner')?.classList.toggle('page-inner--swipe-done', !!on);
 }
 
+function getPortfolioFlyEl() {
+  return document.querySelector('#portfolioCardSlot .portfolio-surface') || document.getElementById('theCard');
+}
+
 function afterPortfolioCardFly(cb) {
-  const card = document.getElementById('theCard');
+  const card = getPortfolioFlyEl();
   if (!card) { cb(); return; }
   let done = false;
   const finish = () => {
@@ -5451,6 +5497,7 @@ function afterPortfolioCardFly(cb) {
 
 function buildBeatCardHTML(d, opts) {
   const hideProducer = opts && opts.hideProducer;
+  const portfolioWrap = opts && opts.portfolioWrap;
   const bars = Array(36).fill(0).map(() =>
     `<div class="wbar" style="background:${d.color};height:${Math.round(Math.random()*14+3)}px;opacity:0.55"></div>`
   ).join('');
@@ -5507,9 +5554,7 @@ function buildBeatCardHTML(d, opts) {
       </div>
     </div>`;
   const producerLine = hideProducer ? '' : `<div class="track-by" style="cursor:pointer;color:var(--accent-mid)" onclick="openProducerProfile('${d.producer.replace(/'/g,"\\'")}')">by ${d.producer} <i class="ti ti-arrow-right" style="font-size:10px"></i></div>`;
-  return `
-    <div class="card-stage">
-    <div class="card-glow" id="cardGlow" style="--glow-color:${d.color}"></div>
+  const cardBody = `
     <div class="beat-card" id="theCard">
       <div class="card-head">
         <span class="swipe-label swipe-label-skip" id="labelSkip">SKIP</span>
@@ -5531,7 +5576,12 @@ function buildBeatCardHTML(d, opts) {
         <span class="tag">${d.genre}</span>
       </div>
       ${playerHTML}
-    </div>
+    </div>`;
+  if (portfolioWrap) return `<div class="portfolio-surface">${cardBody}</div>`;
+  return `
+    <div class="card-stage">
+    <div class="card-glow" id="cardGlow" style="--glow-color:${d.color}"></div>
+    ${cardBody}
     </div>`;
 }
 
@@ -5595,7 +5645,7 @@ function renderPortfolioCard() {
   const useYT = isYouTube(d.mp3);
   const useSC = isSoundCloud(d.mp3);
   setPortfolioGlow(d.color);
-  if (slot) slot.innerHTML = buildBeatCardHTML(d, { hideProducer: true });
+  if (slot) slot.innerHTML = buildBeatCardHTML(d, { hideProducer: true, portfolioWrap: true });
 
   if (!useYT && !useSC) {
     vizTimer = setInterval(() => {
@@ -5607,7 +5657,7 @@ function renderPortfolioCard() {
   }
 
   if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    const card = document.getElementById('theCard');
+    const card = getPortfolioFlyEl();
     if (card) {
       card.classList.add('card-enter-portfolio');
       card.addEventListener('animationend', () => card.classList.remove('card-enter-portfolio'), { once: true });
