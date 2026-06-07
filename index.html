@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-07-v16 — portfolio mobile full-width single gutter -->
+<!-- deploy: 2026-06-07-v17 — mobile card content-hug, larger portfolio swipe zone -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -1890,19 +1890,23 @@
       body.portfolio-active .portfolio-foot {
         padding: 8px 0 calc(env(safe-area-inset-bottom, 0px) + 12px);
       }
+      #portfolioCardWrap .portfolio-card-slot {
+        flex: 1;
+        min-height: 0;
+        justify-content: center;
+      }
+      #portfolioPageInner.page-inner--swipe-done .portfolio-card-slot {
+        justify-content: flex-start;
+      }
       #portfolioCardWrap .portfolio-surface,
       #portfolioCardWrap .empty-card {
-        flex: 1 1 auto;
+        flex: 0 0 auto;
+        width: 100%;
         min-width: 0;
-        min-height: 0;
         border-radius: 20px;
       }
       #portfolioCardWrap .portfolio-surface {
         padding: 18px 16px;
-      }
-      #portfolioPageInner.page-inner--swipe-done .portfolio-card-slot {
-        flex: 1;
-        min-height: 0;
       }
     }
     @media (min-width: 600px) {
@@ -3842,6 +3846,21 @@ function renderCard() {
     }
     return document.getElementById('theCard');
   }
+  function canStartSwipe() {
+    if (!document.getElementById('theCard')) return false;
+    if (_portfolioMode && document.getElementById('portfolioPageInner')?.classList.contains('page-inner--swipe-done')) return false;
+    return true;
+  }
+  function isSwipeGestureTarget(el) {
+    if (!canStartSwipe()) return false;
+    if (_portfolioMode) {
+      if (!el.closest('#portfolioCardSlot')) return false;
+    } else if (!el.closest('#theCard')) {
+      return false;
+    }
+    if (el.closest('iframe,button,a,.progress-bar,.waveform-wrap,.yt-overlay')) return false;
+    return true;
+  }
   function getGlow()  { return document.getElementById('cardGlow'); }
 
   function cancelSpring() {
@@ -3975,8 +3994,7 @@ function renderCard() {
 
   // ── TOUCH ──
   document.addEventListener('touchstart', e => {
-    if (!e.target.closest('#theCard')) return;
-    if (e.target.closest('iframe,button,a,.progress-bar,.waveform-wrap')) return;
+    if (!isSwipeGestureTarget(e.target)) return;
     onStart(e.touches[0].clientX, e.touches[0].clientY, true);
   }, { passive: true });
 
@@ -4001,8 +4019,7 @@ function renderCard() {
 
   // ── MOUSE ──
   document.addEventListener('mousedown', e => {
-    if (!e.target.closest('#theCard')) return;
-    if (e.target.closest('iframe,button,a,.progress-bar,.waveform-wrap')) return;
+    if (!isSwipeGestureTarget(e.target)) return;
     onStart(e.clientX, e.clientY, false);
     e.preventDefault();
   });
