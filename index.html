@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-07-v21 — mobile swipe autoplay in touchmove + portfolio tap play -->
+<!-- deploy: 2026-06-08-v22 — portfolio swipe fly-out animation (clone pattern, autoplay-safe) -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -1697,6 +1697,14 @@
     }
     #portfolioCardWrap .portfolio-surface.fly-left  { transform: translateX(-130%) rotate(-12deg); opacity: 0; }
     #portfolioCardWrap .portfolio-surface.fly-right { transform: translateX(130%) rotate(12deg); opacity: 0; }
+    #portfolioCardWrap .portfolio-surface.portfolio-fly-clone {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 5;
+      pointer-events: none;
+    }
     #portfolioCardWrap .portfolio-surface.dragging { transition: none; cursor: grabbing; }
     #portfolioCardWrap .portfolio-surface.spring-snap { transition: none; }
     @keyframes portfolioCardEnter {
@@ -2011,6 +2019,10 @@
       }
       #portfolioCardWrap .portfolio-surface { padding: 22px 20px; }
       #portfolioCardWrap .waveform { height: 62px; }
+      #portfolioCardWrap .portfolio-surface.fly-left,
+      #portfolioCardWrap .portfolio-surface.fly-right {
+        transition: transform 0.42s cubic-bezier(0.34, 1.2, 0.64, 1), opacity 0.35s ease;
+      }
     }
 
     /* ── SWIPE ANIMATIONS ── */
@@ -4212,8 +4224,11 @@ function doSwipe(dir) {
     } else {
       if (!_portfolioSkipped.includes(item.id)) _portfolioSkipped.push(item.id);
     }
-    renderPortfolioCard();
-    tryAutoplayFromGesture();
+    _portfolioSwipeLock = true;
+    flyOutPortfolioCard(dir, () => {
+      renderPortfolioCard();
+      tryAutoplayFromGesture();
+    });
     return;
   }
   const list = getDiscoverList(cat);
@@ -5734,6 +5749,42 @@ function afterPortfolioCardFly(cb) {
   };
   card.addEventListener('transitionend', onEnd);
   setTimeout(finish, 420);
+}
+
+function flyOutPortfolioCard(dir, onReplaced) {
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const flyEl = getPortfolioFlyEl();
+  const slot = document.getElementById('portfolioCardSlot');
+  if (reduced || !flyEl || !slot) {
+    onReplaced();
+    _portfolioSwipeLock = false;
+    return;
+  }
+
+  const clone = flyEl.cloneNode(true);
+  clone.classList.remove('dragging', 'spring-snap', 'card-enter-portfolio');
+  clone.style.transform = '';
+  clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+
+  onReplaced();
+
+  clone.classList.add('portfolio-fly-clone');
+  slot.appendChild(clone);
+  void clone.offsetWidth;
+  clone.classList.add(dir === 'left' ? 'fly-left' : 'fly-right');
+
+  let done = false;
+  const finish = () => {
+    if (done) return;
+    done = true;
+    clone.remove();
+    _portfolioSwipeLock = false;
+  };
+  clone.addEventListener('transitionend', e => {
+    if (e.target !== clone || e.propertyName !== 'transform') return;
+    finish();
+  });
+  setTimeout(finish, 450);
 }
 
 function buildBeatCardHTML(d, opts) {
