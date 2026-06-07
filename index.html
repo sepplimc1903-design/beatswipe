@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-07-v12 — portfolio full-column block layout desktop -->
+<!-- deploy: 2026-06-07-v13 — fix portfolio scrollbars + full-width card -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -1606,7 +1606,7 @@
       width: 100%;
       max-width: none;
       padding: 0 var(--px) 8px;
-      overflow: visible;
+      overflow: hidden;
       box-sizing: border-box;
     }
     #portfolioPageInner {
@@ -1615,8 +1615,7 @@
       height: 100%;
     }
     #portfolioPageInner.page-inner--swipe-done .portfolio-action-row {
-      visibility: hidden;
-      pointer-events: none;
+      display: none;
     }
     #portfolioCardWrap {
       --pf-glow: rgba(124, 58, 237, 0.45);
@@ -1637,6 +1636,9 @@
       align-self: stretch;
       justify-content: flex-start;
       padding-top: 0;
+      overflow: hidden;
+    }
+    #portfolioPageInner.page-inner--swipe-done .portfolio-card-slot {
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
     }
@@ -1664,7 +1666,6 @@
     #portfolioCardWrap #theCard.portfolio-surface {
       width: 100%;
       max-width: none;
-      min-width: 100%;
       box-sizing: border-box;
       transform-origin: center center;
       border: none;
@@ -1869,23 +1870,7 @@
       }
       body.portfolio-active .portfolio-card-wrap,
       body.portfolio-active #portfolioCardWrap {
-        display: block;
-        width: 100%;
-        max-width: none;
         padding: 0 0 8px;
-      }
-      body.portfolio-active .portfolio-card-slot {
-        display: block;
-        width: 100%;
-        max-width: none;
-      }
-      body.portfolio-active #portfolioCardWrap .portfolio-surface,
-      body.portfolio-active #portfolioCardWrap #theCard {
-        display: block;
-        width: 100%;
-        max-width: none;
-        min-width: 0;
-        margin-inline: 0;
       }
       body.portfolio-active #portfolioScreen .action-row,
       body.portfolio-active .portfolio-action-row {
@@ -1962,23 +1947,12 @@
       }
       body.portfolio-active .portfolio-card-wrap,
       body.portfolio-active #portfolioCardWrap {
-        display: block;
-        width: 100%;
-        max-width: none;
         padding: 0 0 8px;
       }
       body.portfolio-active .portfolio-header,
       body.portfolio-active .portfolio-action-row,
       body.portfolio-active .portfolio-foot {
         padding-inline: 0;
-      }
-      body.portfolio-active .portfolio-card-slot,
-      body.portfolio-active #portfolioCardWrap .portfolio-surface,
-      body.portfolio-active #portfolioCardWrap #theCard {
-        display: block;
-        width: 100%;
-        max-width: none;
-        margin-inline: 0;
       }
       #portfolioCardWrap .portfolio-surface,
       #portfolioCardWrap #theCard.portfolio-surface { padding: 22px 20px; }
