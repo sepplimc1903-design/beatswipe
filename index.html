@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-07-v19 — portfolio autoplay scoped player + gesture retry -->
+<!-- deploy: 2026-06-07-v20 — autoplay next beat in gesture + YouTube tap-to-play fix -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -3575,6 +3575,25 @@ function startSoundCloudAutoplay() {
   iframe.src = iframe.src.replace('auto_play=false', 'auto_play=true');
 }
 
+function isYtPreviewActive() {
+  const overlay = queryPlayerEl('ytOverlay');
+  return !!(overlay && overlay.style.pointerEvents === 'none');
+}
+
+function playMp3Preview() {
+  if (!audio) return;
+  const attempt = audio.play();
+  if (attempt && attempt.catch) {
+    attempt.then(() => setPlayState(true)).catch(() => {
+      audio.addEventListener('canplay', () => {
+        audio.play().then(() => setPlayState(true)).catch(() => {});
+      }, { once: true });
+    });
+  } else {
+    setPlayState(true);
+  }
+}
+
 function handleAudioGesture() {
   if (!_audioUnlocked) _audioUnlocked = true;
   tryAutoplayFromGesture();
@@ -3584,6 +3603,7 @@ function tryAutoplayFromGesture() {
   if (_portfolioMode && document.getElementById('portfolioPageInner')?.classList.contains('page-inner--swipe-done')) return;
   const media = getActiveBeatMedia();
   if (!media) return;
+  if (media.useYT && isYtPreviewActive()) return;
   if (!media.useYT && !media.useSC && isPlaying) return;
   maybeAutoplayPreview(media.useYT, media.useSC);
 }
@@ -3595,14 +3615,11 @@ function autoplayCurrentBeat() {
 function maybeAutoplayPreview(useYT, useSC) {
   if (!_audioUnlocked) return;
   if (useYT) {
-    const overlay = queryPlayerEl('ytOverlay');
-    const frame = queryPlayerEl('ytFrame');
-    if (overlay && frame && overlay.style.pointerEvents !== 'none') startVideo();
+    startVideo();
   } else if (useSC) {
     startSoundCloudAutoplay();
   } else if (audio) {
-    audio.play().catch(() => {});
-    setPlayState(true);
+    playMp3Preview();
   }
 }
 
@@ -3723,11 +3740,18 @@ function getYtId(url) {
   return m ? m[1] : null;
 }
 
+function getYtEmbedBase(ytId) {
+  return `https://www.youtube.com/embed/${ytId}?rel=0&modestbranding=1&enablejsapi=1&playsinline=1&iv_load_policy=3`;
+}
+
 function startVideo() {
   const overlay = queryPlayerEl('ytOverlay');
   const frame   = queryPlayerEl('ytFrame');
   if (!overlay || !frame) return;
-  frame.src = frame.getAttribute('data-src') + '&autoplay=1';
+  const base = frame.getAttribute('data-src');
+  if (!base || base === 'about:blank') return;
+  if (isYtPreviewActive()) return;
+  frame.src = base + '&autoplay=1';
   overlay.style.opacity = '0';
   overlay.style.pointerEvents = 'none';
 }
@@ -3778,12 +3802,12 @@ function renderCard() {
   const useYT = isYouTube(d.mp3);
   const useSC = isSoundCloud(d.mp3);
   const ytId  = useYT ? getYtId(d.mp3) : null;
-  const embedSrc = ytId ? `https://www.youtube.com/embed/${ytId}?rel=0&modestbranding=1&showinfo=0&color=white&iv_load_policy=3` : '';
-  const scEmbedSrc = useSC ? `https://w.soundcloud.com/player/?url=${encodeURIComponent(d.mp3)}&color=%237C3AED&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false` : '';
+  const embedSrc = ytId ? getYtEmbedBase(ytId) : '';
+  const scEmbedSrc = useSC ? `https://w.soundcloud.com/player/?url=${encodeURIComponent(d.mp3)}&color=%237C3AED&auto_play=${_audioUnlocked ? 'true' : 'false'}&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false` : '';
 
   const playerHTML = useYT ? `
     <div class="yt-wrap">
-      <iframe id="ytFrame" data-src="${embedSrc}" src="${embedSrc}"
+      <iframe id="ytFrame" data-src="${embedSrc}" src="about:blank"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowfullscreen></iframe>
       <div class="yt-overlay" id="ytOverlay" onclick="startVideo()">
@@ -3982,7 +4006,7 @@ function renderCard() {
   function onStart(x, y, fromTouch) {
     const card = getCard();
     if (!card || isLocked) return;
-    if (_portfolioMode) handleAudioGesture();
+    handleAudioGesture();
     cancelSpring();
     gestureIsTouch = !!fromTouch;
     startX = x; startY = y; curX = 0; isDragging = true;
@@ -4124,13 +4148,10 @@ function doSwipe(dir) {
   stopTrack();
   unlockAudio();
   showEmojiPop(dir);
-  const flyEl = _portfolioMode ? getPortfolioFlyEl() : card;
-  flyEl.classList.add(dir === 'left' ? 'fly-left' : 'fly-right');
   if (_portfolioMode) {
-    _portfolioSwipeLock = true;
     const list = getPortfolioList();
     const item = list[0];
-    if (!item) { _portfolioSwipeLock = false; return; }
+    if (!item) return;
     if (dir === 'right') {
       if (!crate.find(i => i.id === item.id)) {
         crate.push(item);
@@ -4142,10 +4163,8 @@ function doSwipe(dir) {
     } else {
       if (!_portfolioSkipped.includes(item.id)) _portfolioSkipped.push(item.id);
     }
-    afterPortfolioCardFly(() => {
-      _portfolioSwipeLock = false;
-      renderPortfolioCard();
-    });
+    renderPortfolioCard();
+    tryAutoplayFromGesture();
     return;
   }
   const list = getDiscoverList(cat);
@@ -4165,7 +4184,9 @@ function doSwipe(dir) {
     if (!skippedIds[cat].includes(item.id)) skippedIds[cat].push(item.id);
     saveSkippedState();
   }
-  setTimeout(() => { saveSwipeState(); renderCard(); }, 380);
+  saveSwipeState();
+  renderCard();
+  tryAutoplayFromGesture();
 }
 
 // ─── CRATE ────────────────────────────────────────────────────────────────
@@ -5675,14 +5696,13 @@ function buildBeatCardHTML(d, opts) {
   const useYT = isYouTube(d.mp3);
   const useSC = isSoundCloud(d.mp3);
   const ytId = useYT ? getYtId(d.mp3) : null;
-  const scAuto = _audioUnlocked ? '&auto_play=true' : '&auto_play=false';
-  const embedSrc = ytId ? `https://www.youtube.com/embed/${ytId}?rel=0&modestbranding=1&showinfo=0&color=white&iv_load_policy=3` : '';
+  const embedSrc = ytId ? getYtEmbedBase(ytId) : '';
   const scEmbedSrc = useSC ? `https://w.soundcloud.com/player/?url=${encodeURIComponent(d.mp3)}&color=%237C3AED&auto_play=${_audioUnlocked ? 'true' : 'false'}&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false` : '';
   const hasBuy = d.buy && d.buy.startsWith('http') && d.buy !== d.mp3;
   const buyUrl = hasBuy ? d.buy : (useYT || useSC ? d.mp3 : d.buy);
   const playerHTML = useYT ? `
     <div class="yt-wrap">
-      <iframe id="ytFrame" data-src="${embedSrc}" src="${embedSrc}"
+      <iframe id="ytFrame" data-src="${embedSrc}" src="about:blank"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowfullscreen></iframe>
       <div class="yt-overlay" id="ytOverlay" onclick="startVideo()">
