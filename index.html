@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-07-v20 — autoplay next beat in gesture + YouTube tap-to-play fix -->
+<!-- deploy: 2026-06-07-v21 — mobile swipe autoplay in touchmove + portfolio tap play -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -3526,9 +3526,16 @@ let vizTimer = null;    // waveform animation interval
 let isPlaying = false;
 let _audioPanel = 'discover'; // 'discover' | 'crate' | 'portfolio'
 let _audioUnlocked = false;
+let _swipeDragging = false;
+let _swipeCommitted = false;
 
 function unlockAudio() {
-  handleAudioGesture();
+  if (!_audioUnlocked) _audioUnlocked = true;
+  tryAutoplayFromGesture();
+}
+
+function unlockAudioTouch() {
+  if (!_audioUnlocked) _audioUnlocked = true;
 }
 
 function getPlayerScope() {
@@ -3547,7 +3554,7 @@ function queryPlayerEl(id) {
 }
 
 document.addEventListener('click', handleAudioGesture, { capture: true });
-document.addEventListener('touchstart', handleAudioGesture, { capture: true, passive: true });
+document.addEventListener('touchstart', unlockAudioTouch, { capture: true, passive: true });
 
 function getActiveBeatMedia() {
   let d = null;
@@ -3633,19 +3640,29 @@ function getPlayerEl(id) {
 }
 
 // ─── AUDIO ENGINE ─────────────────────────────────────────────────────────
+function pauseTrackForCardSwap() {
+  if (audio) {
+    audio.pause();
+    setPlayState(false);
+  }
+  clearInterval(vizTimer);
+}
+
 function loadTrack(mp3Url, panel) {
   if (panel) _audioPanel = panel;
   else if (_portfolioMode) _audioPanel = 'portfolio';
-  stopTrack();
-  audio = new Audio(mp3Url);
-  audio.preload = 'metadata';
-
-  audio.addEventListener('timeupdate', onTimeUpdate);
-  audio.addEventListener('ended', onEnded);
-  audio.addEventListener('loadedmetadata', () => {
-    const dur = getPlayerEl('timeDur');
-    if (dur) dur.textContent = fmtTime(audio.duration);
-  });
+  pauseTrackForCardSwap();
+  if (!audio) {
+    audio = new Audio();
+    audio.addEventListener('timeupdate', onTimeUpdate);
+    audio.addEventListener('ended', onEnded);
+    audio.addEventListener('loadedmetadata', () => {
+      const dur = getPlayerEl('timeDur');
+      if (dur) dur.textContent = fmtTime(audio.duration);
+    });
+  }
+  audio.preload = 'auto';
+  audio.src = mp3Url;
 }
 
 function togglePlay() {
@@ -3767,7 +3784,7 @@ function seekCrateTo(e) {
 }
 
 function renderCard() {
-  stopTrack();
+  pauseTrackForCardSwap();
   _audioPanel = 'discover';
   const wrap = document.getElementById('cardWrap');
   const source = getDiscoverSourceList(cat);
@@ -3937,7 +3954,8 @@ function renderCard() {
   function isSwipeGestureTarget(el) {
     if (!canStartSwipe()) return false;
     if (_portfolioMode) {
-      if (!el.closest('#portfolioCardSlot')) return false;
+      if (!el.closest('#portfolioPageInner')) return false;
+      if (el.closest('.portfolio-action-row,.act-btn,.portfolio-foot a')) return false;
     } else if (!el.closest('#theCard')) {
       return false;
     }
@@ -4003,18 +4021,37 @@ function renderCard() {
     springRAF = requestAnimationFrame(tick);
   }
 
+  function commitSwipe(dir) {
+    if (_swipeCommitted || isLocked) return;
+    _swipeCommitted = true;
+    _swipeDragging = false;
+    isDragging = false;
+    const card = getCard();
+    if (card) card.classList.remove('dragging');
+    document.querySelectorAll('.act-btn').forEach(b => b.style.opacity = '');
+    const skipLabel = document.getElementById('labelSkip');
+    const saveLabel = document.getElementById('labelSave');
+    if (skipLabel) skipLabel.style.opacity = 0;
+    if (saveLabel) saveLabel.style.opacity = 0;
+    isLocked = true;
+    doSwipe(dir);
+    setTimeout(() => { isLocked = false; resetGlow(); _swipeCommitted = false; }, 450);
+  }
+
   function onStart(x, y, fromTouch) {
     const card = getCard();
     if (!card || isLocked) return;
-    handleAudioGesture();
     cancelSpring();
     gestureIsTouch = !!fromTouch;
-    startX = x; startY = y; curX = 0; isDragging = true;
+    _swipeCommitted = false;
+    startX = x; startY = y; curX = 0;
+    isDragging = true;
+    _swipeDragging = true;
     card.classList.add('dragging');
   }
 
   function onMove(x, y) {
-    if (!isDragging || isLocked) return;
+    if (!isDragging || isLocked || _swipeCommitted) return;
     const card = getCard();
     if (!card) return;
 
@@ -4023,11 +4060,18 @@ function renderCard() {
 
     if (!curX && Math.abs(dy) > Math.abs(dx) + 8) {
       isDragging = false;
+      _swipeDragging = false;
       card.classList.remove('dragging');
       return;
     }
 
     curX = dx;
+
+    if (Math.abs(dx) >= SWIPE_THRESHOLD) {
+      commitSwipe(dx > 0 ? 'right' : 'left');
+      return;
+    }
+
     const rot = (dx / 320) * MAX_ROTATION;
     card.style.transform = `translateX(${dx}px) rotate(${rot}deg)`;
     updateGlow(dx);
@@ -4045,8 +4089,14 @@ function renderCard() {
   }
 
   function onEnd() {
+    if (_swipeCommitted) {
+      _swipeDragging = false;
+      isDragging = false;
+      return;
+    }
     if (!isDragging || isLocked) return;
     isDragging = false;
+    _swipeDragging = false;
     const card = getCard();
     if (!card) return;
     card.classList.remove('dragging');
@@ -4058,16 +4108,16 @@ function renderCard() {
     if (saveLabel) saveLabel.style.opacity = 0;
 
     if (Math.abs(curX) >= SWIPE_THRESHOLD) {
-      isLocked = true;
-      const glow = getGlow();
-      if (glow) {
-        glow.style.opacity = '0.55';
-        glow.style.transform = `translate(calc(-50% + ${curX * 0.3}px), -50%) scale(1.35)`;
+      commitSwipe(curX > 0 ? 'right' : 'left');
+    } else if (gestureIsTouch) {
+      tryAutoplayFromGesture();
+      if (isMobileUI()) springSnapBack(card, curX);
+      else {
+        card.style.transform = '';
+        resetGlow();
+        card.classList.add('wobble');
+        setTimeout(() => { card.classList.remove('wobble'); }, 460);
       }
-      doSwipe(curX > 0 ? 'right' : 'left');
-      setTimeout(() => { isLocked = false; resetGlow(); }, 450);
-    } else if (gestureIsTouch && isMobileUI()) {
-      springSnapBack(card, curX);
     } else {
       card.style.transform = '';
       resetGlow();
@@ -4145,8 +4195,7 @@ function doSwipe(dir) {
   const card = document.getElementById('theCard');
   if (!card) return;
   if (_portfolioMode && _portfolioSwipeLock) return;
-  stopTrack();
-  unlockAudio();
+  if (!_audioUnlocked) _audioUnlocked = true;
   showEmojiPop(dir);
   if (_portfolioMode) {
     const list = getPortfolioList();
@@ -5810,7 +5859,7 @@ function setPortfolioGlow(color) {
 }
 
 function renderPortfolioCard() {
-  stopTrack();
+  pauseTrackForCardSwap();
   _audioPanel = 'portfolio';
   const slot = document.getElementById('portfolioCardSlot');
   const counter = document.getElementById('portfolioCounter');
@@ -5855,6 +5904,13 @@ function renderPortfolioCard() {
   }
   maybeAutoplayPreview(useYT, useSC);
 }
+
+document.addEventListener('touchend', e => {
+  if (!_portfolioMode || _swipeDragging || _swipeCommitted) return;
+  if (!e.target.closest('#portfolioScreen')) return;
+  if (e.target.closest('.portfolio-action-row,.act-btn,iframe,button,a,.progress-bar,.waveform-wrap,.yt-overlay')) return;
+  tryAutoplayFromGesture();
+}, { passive: true });
 
 function replayPortfolioSkipped() {
   _portfolioSkipped = [];
