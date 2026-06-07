@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-07-v11 — portfolio decouple discover + flat surface card -->
+<!-- deploy: 2026-06-07-v12 — portfolio full-column block layout desktop -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -1602,6 +1602,7 @@
       align-items: stretch;
       justify-content: flex-start;
       min-height: 0;
+      min-width: 0;
       width: 100%;
       max-width: none;
       padding: 0 var(--px) 8px;
@@ -1648,6 +1649,11 @@
       align-self: stretch;
       box-sizing: border-box;
     }
+    #portfolioCardWrap .card-stage {
+      display: block;
+      width: 100%;
+      max-width: none;
+    }
     #portfolioScreen .card-stage {
       display: block;
       position: relative;
@@ -1658,7 +1664,7 @@
     #portfolioCardWrap #theCard.portfolio-surface {
       width: 100%;
       max-width: none;
-      min-width: 0;
+      min-width: 100%;
       box-sizing: border-box;
       transform-origin: center center;
       border: none;
@@ -1667,6 +1673,7 @@
       background: var(--bg-2);
       box-shadow: none;
       align-self: stretch;
+      flex: 0 0 auto;
       touch-action: pan-y;
       user-select: none;
       -webkit-user-select: none;
@@ -1852,6 +1859,43 @@
         align-items: center;
         justify-content: center;
       }
+      body.portfolio-active #portfolioPageInner {
+        padding-inline: 18px;
+        box-sizing: border-box;
+      }
+      body.portfolio-active .portfolio-header {
+        padding-left: 0;
+        padding-right: 0;
+      }
+      body.portfolio-active .portfolio-card-wrap,
+      body.portfolio-active #portfolioCardWrap {
+        display: block;
+        width: 100%;
+        max-width: none;
+        padding: 0 0 8px;
+      }
+      body.portfolio-active .portfolio-card-slot {
+        display: block;
+        width: 100%;
+        max-width: none;
+      }
+      body.portfolio-active #portfolioCardWrap .portfolio-surface,
+      body.portfolio-active #portfolioCardWrap #theCard {
+        display: block;
+        width: 100%;
+        max-width: none;
+        min-width: 0;
+        margin-inline: 0;
+      }
+      body.portfolio-active #portfolioScreen .action-row,
+      body.portfolio-active .portfolio-action-row {
+        padding-left: 0;
+        padding-right: 0;
+      }
+      body.portfolio-active .portfolio-foot {
+        padding-left: 0;
+        padding-right: 0;
+      }
       body.portfolio-active .desktop-layout {
         justify-content: center;
         align-items: center;
@@ -1913,17 +1957,28 @@
         max-width: none;
         margin-inline: 0;
         align-self: stretch;
+        padding-inline: 18px;
+        box-sizing: border-box;
       }
       body.portfolio-active .portfolio-card-wrap,
       body.portfolio-active #portfolioCardWrap {
-        align-items: stretch;
-        justify-content: flex-start;
-        padding: 0 18px 8px;
+        display: block;
+        width: 100%;
+        max-width: none;
+        padding: 0 0 8px;
       }
       body.portfolio-active .portfolio-header,
       body.portfolio-active .portfolio-action-row,
       body.portfolio-active .portfolio-foot {
-        padding-inline: 18px;
+        padding-inline: 0;
+      }
+      body.portfolio-active .portfolio-card-slot,
+      body.portfolio-active #portfolioCardWrap .portfolio-surface,
+      body.portfolio-active #portfolioCardWrap #theCard {
+        display: block;
+        width: 100%;
+        max-width: none;
+        margin-inline: 0;
       }
       #portfolioCardWrap .portfolio-surface,
       #portfolioCardWrap #theCard.portfolio-surface { padding: 22px 20px; }
