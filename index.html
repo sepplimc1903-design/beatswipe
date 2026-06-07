@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-07-v5 — portfolio flow polish -->
+<!-- deploy: 2026-06-07-v6 — /p rewrite + discover save fix -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -3011,22 +3011,23 @@ function initAuthFromStorage() {
 
 let _discoverSearch = '';
 
-function getDiscoverList(category) {
+function getDiscoverSourceList(category) {
   const source = (_rawDb[category] && _rawDb[category].length) ? _rawDb[category] : (db[category] || []);
+  const q = _discoverSearch.trim().toLowerCase();
+  if (!q) return source;
+  return source.filter(b =>
+    (b.title || '').toLowerCase().includes(q) ||
+    (b.producer || '').toLowerCase().includes(q)
+  );
+}
+
+function getDiscoverList(category) {
   const crateIds = new Set(crate.map(b => b.id));
-  let list = source.filter(b => {
+  return getDiscoverSourceList(category).filter(b => {
     if (crateIds.has(b.id)) return false;
-    if (currentUser && skippedIds[category].includes(b.id)) return false;
+    if (skippedIds[category].includes(b.id)) return false;
     return true;
   });
-  const q = _discoverSearch.trim().toLowerCase();
-  if (q) {
-    list = list.filter(b =>
-      (b.title || '').toLowerCase().includes(q) ||
-      (b.producer || '').toLowerCase().includes(q)
-    );
-  }
-  return list;
 }
 
 function resetGuestSwipeState() {
@@ -3333,11 +3334,11 @@ function renderCard() {
   stopTrack();
   _audioPanel = 'discover';
   const wrap = document.getElementById('cardWrap');
+  const source = getDiscoverSourceList(cat);
   const list = getDiscoverList(cat);
-  if (catIdx[cat] > list.length) catIdx[cat] = list.length;
   const counter = document.getElementById('cardCounter');
 
-  if (!list.length || idx >= list.length) {
+  if (!list.length) {
     counter.textContent = 'Done!';
     const skippedCount = skippedIds[cat].length;
     const replayBtn = skippedCount > 0 ? `
@@ -3356,8 +3357,8 @@ function renderCard() {
     return;
   }
 
-  counter.textContent = (idx + 1) + ' / ' + list.length;
-  const d = list[idx];
+  counter.textContent = (source.length - list.length + 1) + ' / ' + source.length;
+  const d = list[0];
   const bars = Array(36).fill(0).map(() =>
     `<div class="wbar" style="background:${d.color};height:${Math.round(Math.random()*14+3)}px;opacity:0.55"></div>`
   ).join('');
@@ -3694,7 +3695,7 @@ function doSwipe(dir) {
   card.classList.add(dir === 'left' ? 'fly-left' : 'fly-right');
   if (_portfolioMode) {
     const list = getPortfolioList();
-    const item = list[_portfolioIdx];
+    const item = list[0];
     if (!item) return;
     if (dir === 'right') {
       if (!crate.find(i => i.id === item.id)) {
@@ -3707,11 +3708,11 @@ function doSwipe(dir) {
     } else {
       if (!_portfolioSkipped.includes(item.id)) _portfolioSkipped.push(item.id);
     }
-    setTimeout(() => { _portfolioIdx++; renderPortfolioCard(); }, 380);
+    setTimeout(() => { renderPortfolioCard(); }, 380);
     return;
   }
   const list = getDiscoverList(cat);
-  const item = list[idx];
+  const item = list[0];
   if (!item) return;
   if (dir === 'right') {
     if (!crate.find(i => i.id === item.id)) {
@@ -3721,13 +3722,13 @@ function doSwipe(dir) {
       if (!currentUser) showMobileSyncHint(incrementGuestSaveCount());
     }
     skippedIds[cat] = skippedIds[cat].filter(id => id !== item.id);
-    if (currentUser) saveSkippedState();
+    saveSkippedState();
     renderCrate();
   } else {
     if (!skippedIds[cat].includes(item.id)) skippedIds[cat].push(item.id);
-    if (currentUser) saveSkippedState();
+    saveSkippedState();
   }
-  setTimeout(() => { idx++; saveSwipeState(); renderCard(); }, 380);
+  setTimeout(() => { saveSwipeState(); renderCard(); }, 380);
 }
 
 // ─── CRATE ────────────────────────────────────────────────────────────────
@@ -5272,9 +5273,8 @@ function renderPortfolioCard() {
   const wrap = document.getElementById('portfolioCardWrap');
   const counter = document.getElementById('portfolioCounter');
   const list = getPortfolioList();
-  if (_portfolioIdx > list.length) _portfolioIdx = list.length;
 
-  if (!list.length || _portfolioIdx >= list.length) {
+  if (!list.length) {
     if (counter) counter.textContent = 'Done';
     const skipped = _portfolioSkipped.length;
     const replayBtn = skipped > 0 ? `
@@ -5289,8 +5289,8 @@ function renderPortfolioCard() {
     return;
   }
 
-  if (counter) counter.textContent = (_portfolioIdx + 1) + ' / ' + list.length;
-  const d = list[_portfolioIdx];
+  if (counter) counter.textContent = (_portfolioBeats.length - list.length + 1) + ' / ' + _portfolioBeats.length;
+  const d = list[0];
   const useYT = isYouTube(d.mp3);
   const useSC = isSoundCloud(d.mp3);
   wrap.innerHTML = buildBeatCardHTML(d, { hideProducer: true });
@@ -5316,7 +5316,6 @@ function renderPortfolioCard() {
 
 function replayPortfolioSkipped() {
   _portfolioSkipped = [];
-  _portfolioIdx = 0;
   renderPortfolioCard();
 }
 
@@ -5476,16 +5475,14 @@ function replaySkipped() {
 
 // ─── SWIPE STATE PERSISTENCE ─────────────────────────────────────────────
 function saveSkippedState() {
-  if (!currentUser) return;
   try {
-    localStorage.setItem('bs_skipped_' + currentUser.id, JSON.stringify(skippedIds));
+    localStorage.setItem('bs_skipped_' + (currentUser?.id || 'guest'), JSON.stringify(skippedIds));
   } catch(e) {}
 }
 
 function restoreSkippedState() {
-  if (!currentUser) return;
   try {
-    const raw = localStorage.getItem('bs_skipped_' + currentUser.id);
+    const raw = localStorage.getItem('bs_skipped_' + (currentUser?.id || 'guest'));
     if (!raw) return;
     const saved = JSON.parse(raw);
     Object.keys(skippedIds).forEach(k => {
