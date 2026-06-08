@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-08-v33 — profile producer layout polish -->
+<!-- deploy: 2026-06-08-v34 — profile guest scroll + newsletter card match -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -1075,6 +1075,10 @@
       body.site-scroll .submit-scroll,
       body.site-scroll .profile-wrap {
         width: 100%;
+      }
+      body.site-scroll .profile-wrap--guest {
+        overflow: visible;
+        flex: none;
       }
       body.site-scroll .profile-tab-content { padding-bottom: 32px; }
       .desktop-topbar {
@@ -2338,6 +2342,20 @@
 
     /* ── PROFILE SCREEN ── */
     .profile-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; padding: 0 0 8px; gap: 12px; }
+    .profile-wrap--guest {
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      gap: 0;
+    }
+    .profile-guest-scroll { padding-bottom: 24px; }
+    .profile-wrap--guest .legal-links { margin: 12px var(--px) 0; }
+    .profile-guest-newsletter { margin-top: 12px; }
+    .profile-guest-newsletter .auth-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .profile-guest-newsletter .auth-title i { color: var(--accent-mid); font-size: 17px; }
     .profile-glass {
       background: rgba(255,255,255,0.03);
       border: 0.5px solid rgba(255,255,255,0.08);
@@ -5363,6 +5381,7 @@ function renderProfile() {
   const wrap = document.getElementById('profileWrap');
   if (!wrap) return;
   const activeTab = wrap._activeTab || 'profile';
+  wrap.classList.toggle('profile-wrap--guest', !currentUser);
 
   if (currentUser) {
     const p = _userProfile || {};
@@ -5483,47 +5502,49 @@ function renderProfile() {
     updateDesktopTopbarAuth();
   } else {
     wrap.innerHTML = `
-      <div class="auth-box">
-        <div class="auth-title">Join BeatSwipe</div>
-        <div class="auth-sub">Sync your Favorites across devices and never lose a beat.</div>
-        <div class="auth-tabs">
-          <button class="auth-tab ${authMode==='login'?'active':''}" onclick="setAuthMode('login')">Sign in</button>
-          <button class="auth-tab ${authMode==='signup'?'active':''}" onclick="setAuthMode('signup')">Sign up</button>
-        </div>
-        <div class="auth-field">
-          <input type="email" id="authEmail" placeholder="your@email.com" style="width:100%">
-        </div>
-        <div class="auth-field">
-          <input type="password" id="authPass" placeholder="Password" style="width:100%">
-        </div>
-        ${authMode === 'signup' ? `
-        <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:4px">
-          <div onclick="toggleDsgvo()" style="width:20px;height:20px;border-radius:6px;border:1.5px solid var(--border-2);background:var(--bg-3);flex-shrink:0;margin-top:1px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s" id="dsgvoBox">
-            <i class="ti ti-check" id="dsgvoCheck" style="font-size:13px;color:#fff;display:none"></i>
-            <input type="checkbox" id="authDsgvo" style="display:none">
+      <div class="profile-guest-scroll">
+        <div class="auth-box">
+          <div class="auth-title">Join BeatSwipe</div>
+          <div class="auth-sub">Sync your Favorites across devices and never lose a beat.</div>
+          <div class="auth-tabs">
+            <button class="auth-tab ${authMode==='login'?'active':''}" onclick="setAuthMode('login')">Sign in</button>
+            <button class="auth-tab ${authMode==='signup'?'active':''}" onclick="setAuthMode('signup')">Sign up</button>
           </div>
-          <label style="font-size:12px;color:var(--text-2);line-height:1.5;cursor:pointer" onclick="toggleDsgvo()">
-            I accept the <a onclick="event.stopPropagation();openInfoModal('privacyModal')" style="color:var(--accent-mid);cursor:pointer">Privacy Policy</a> and agree that my email address will be stored.
-          </label>
-        </div>` : ''}
-        <button class="auth-btn" onclick="handleAuth()" id="authBtn">
-          <i class="ti ti-arrow-right"></i> ${authMode === 'login' ? 'Sign in' : 'Create account'}
-        </button>
-        <div class="auth-msg" id="authMsg"></div>
-      </div>
-      <div class="profile-settings-card" style="margin-top:12px">
-        <div class="profile-settings-title"><i class="ti ti-mail"></i> New beats by email</div>
-        <div class="profile-settings-desc">Be the first to know when new beats drop.</div>
-        <div class="profile-newsletter-row">
-          <input type="email" id="nlEmail" placeholder="your@email.com">
-          <button type="button" onclick="subscribeNewsletter()" id="nlBtn">Subscribe</button>
+          <div class="auth-field">
+            <input type="email" id="authEmail" placeholder="your@email.com" style="width:100%">
+          </div>
+          <div class="auth-field">
+            <input type="password" id="authPass" placeholder="Password" style="width:100%">
+          </div>
+          ${authMode === 'signup' ? `
+          <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:4px">
+            <div onclick="toggleDsgvo()" style="width:20px;height:20px;border-radius:6px;border:1.5px solid var(--border-2);background:var(--bg-3);flex-shrink:0;margin-top:1px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s" id="dsgvoBox">
+              <i class="ti ti-check" id="dsgvoCheck" style="font-size:13px;color:#fff;display:none"></i>
+              <input type="checkbox" id="authDsgvo" style="display:none">
+            </div>
+            <label style="font-size:12px;color:var(--text-2);line-height:1.5;cursor:pointer" onclick="toggleDsgvo()">
+              I accept the <a onclick="event.stopPropagation();openInfoModal('privacyModal')" style="color:var(--accent-mid);cursor:pointer">Privacy Policy</a> and agree that my email address will be stored.
+            </label>
+          </div>` : ''}
+          <button class="auth-btn" onclick="handleAuth()" id="authBtn">
+            <i class="ti ti-arrow-right"></i> ${authMode === 'login' ? 'Sign in' : 'Create account'}
+          </button>
+          <div class="auth-msg" id="authMsg"></div>
         </div>
-        <div class="profile-nl-msg" id="nlMsg"></div>
-      </div>
-      <div class="legal-links">
-        <a class="legal-link" onclick="openInfoModal('impressumModal')">Legal Notice <i class="ti ti-chevron-right"></i></a>
-        <a class="legal-link" onclick="openInfoModal('privacyModal')">Privacy Policy <i class="ti ti-chevron-right"></i></a>
-        <a class="legal-link" href="mailto:hellobeatswipe@gmail.com">Contact <i class="ti ti-mail"></i></a>
+        <div class="auth-box profile-guest-newsletter">
+          <div class="auth-title"><i class="ti ti-mail"></i> New beats by email</div>
+          <div class="auth-sub">Be the first to know when new beats drop.</div>
+          <div class="auth-field">
+            <input type="email" id="nlEmail" placeholder="your@email.com" style="width:100%">
+          </div>
+          <button type="button" class="auth-btn" onclick="subscribeNewsletter()" id="nlBtn">Subscribe</button>
+          <div class="profile-nl-msg" id="nlMsg"></div>
+        </div>
+        <div class="legal-links">
+          <a class="legal-link" onclick="openInfoModal('impressumModal')">Legal Notice <i class="ti ti-chevron-right"></i></a>
+          <a class="legal-link" onclick="openInfoModal('privacyModal')">Privacy Policy <i class="ti ti-chevron-right"></i></a>
+          <a class="legal-link" href="mailto:hellobeatswipe@gmail.com">Contact <i class="ti ti-mail"></i></a>
+        </div>
       </div>
     `;
     updateDesktopTopbarAuth();
