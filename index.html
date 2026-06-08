@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-08-v26 — My Page dashboard + producer onboarding -->
+<!-- deploy: 2026-06-08-v27 — add beat back to My Page button -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -1509,9 +1509,24 @@
     .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
     /* My Page dashboard */
     .my-page-back {
-      background: none; border: none; color: var(--accent-mid); font-size: 14px; font-weight: 600;
-      cursor: pointer; display: inline-flex; align-items: center; gap: 6px; padding: 0 0 12px;
+      width: 100%;
+      padding: 11px 16px;
+      margin-bottom: 14px;
+      border-radius: 12px;
+      border: 0.5px solid var(--border-2);
+      background: var(--bg-2);
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.15s;
     }
+    .my-page-back:active { background: var(--bg-3); }
+    .my-page-add-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
     .my-page-login {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       text-align: center; gap: 14px; padding: 48px 24px; min-height: 320px;
@@ -2731,7 +2746,7 @@
     <div id="myPageMain"></div>
     <div id="myPageAddBeat" style="display:none">
     <div class="submit-header" style="padding-top:0">
-      <button type="button" class="my-page-back" onclick="hideMyPageAddBeat()"><i class="ti ti-arrow-left"></i> Back</button>
+      <button type="button" class="my-page-back" onclick="hideMyPageAddBeat()"><i class="ti ti-arrow-left"></i> Back to My Page</button>
       <div class="submit-title">Add new beat</div>
       <div class="submit-sub">Shows on your page after review — usually within 48h.</div>
     </div>
@@ -2832,7 +2847,10 @@
         <label class="field-label">Anything else?</label>
         <textarea id="f-note" placeholder="Additional info, collab requests..."></textarea>
       </div>
-      <button class="submit-btn" onclick="doSubmitForm()"><i class="ti ti-plus"></i> Add beat</button>
+      <div class="my-page-add-actions">
+        <button class="submit-btn" onclick="doSubmitForm()"><i class="ti ti-plus"></i> Add beat</button>
+        <button type="button" class="btn-secondary my-page-back" onclick="hideMyPageAddBeat()" style="margin:0;width:100%;justify-content:center"><i class="ti ti-arrow-left"></i> Back to My Page</button>
+      </div>
       <div class="success-msg" id="successMsg">
         <i class="ti ti-circle-check"></i>
         <p>Beat submitted! We'll review it within 48h.</p>
