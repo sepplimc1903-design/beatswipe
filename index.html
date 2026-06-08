@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-08-v44 — white waveform, UI polish, profile guard, beat manage -->
+<!-- deploy: 2026-06-08-v45 — portfolio back button for in-app preview -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -1736,6 +1736,44 @@
     .producer-row-meta { font-size: 12px; color: var(--text-2); }
     .producer-row-arrow { margin-left: auto; color: var(--text-3); font-size: 18px; }
     /* ── PORTFOLIO SWIPE (/p/name) ── */
+    .portfolio-back-btn {
+      display: none;
+      position: fixed;
+      z-index: 200;
+      top: calc(env(safe-area-inset-top, 0px) + 10px);
+      left: max(12px, env(safe-area-inset-left, 0px) + 12px);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 0.5px solid rgba(255,255,255,0.12);
+      background: rgba(9,9,11,0.72);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      color: var(--text);
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+      transition: background 0.2s, border-color 0.2s, transform 0.15s;
+    }
+    .portfolio-back-btn i { font-size: 20px; }
+    .portfolio-back-btn:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.18);
+    }
+    .portfolio-back-btn:active { transform: scale(0.92); }
+    body.portfolio-has-back .portfolio-back-btn { display: flex; }
+    @media (min-width: 600px) {
+      .portfolio-back-btn {
+        top: calc(env(safe-area-inset-top, 0px) + 16px);
+        left: max(20px, calc(50% - var(--w-portfolio, 480px) / 2 - 56px));
+      }
+    }
+    @media (min-width: 900px) {
+      .portfolio-back-btn {
+        left: max(24px, calc(50% - var(--w-portfolio, 460px) / 2 - 64px));
+      }
+    }
     body.portfolio-active {
       height: 100dvh;
       overflow: hidden;
@@ -3572,6 +3610,9 @@
 
   <!-- PORTFOLIO SWIPE (/p/name) -->
   <div class="screen" id="portfolioScreen">
+    <button type="button" class="portfolio-back-btn" id="portfolioBackBtn" onclick="closePortfolioPreview()" aria-label="Back">
+      <i class="ti ti-arrow-left"></i>
+    </button>
     <div class="page-inner page-inner--portfolio" id="portfolioPageInner">
       <div class="portfolio-header" id="portfolioHeader"></div>
       <div class="portfolio-card-wrap" id="portfolioCardWrap">
@@ -6840,6 +6881,26 @@ let _portfolioProfile = {};
 let _portfolioSwipeLock = false;
 let _prevScreen = 'discoverScreen';
 let _prevNav = 'navDiscover';
+let _portfolioShowBack = false;
+
+function setPortfolioBackVisible(show) {
+  _portfolioShowBack = !!show;
+  document.body.classList.toggle('portfolio-has-back', _portfolioShowBack);
+}
+
+function closePortfolioPreview() {
+  if (!_portfolioShowBack) return;
+  try {
+    history.back();
+  } catch (e) {
+    setPortfolioBackVisible(false);
+    exitPortfolioMode();
+    stopTrack();
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    applyGoTo(_prevScreen || 'submitScreen', _prevNav || 'navSubmit');
+    try { history.replaceState(null, '', '/'); } catch (err) {}
+  }
+}
 
 function portfolioSlugFromName(name) {
   return encodeURIComponent(String(name).trim().toLowerCase().replace(/\s+/g, '-'));
@@ -7341,6 +7402,8 @@ async function openPortfolio(producerName, opts) {
     _prevNav = activeNav ? activeNav.id.replace(/^dtb/, 'nav') : 'navDiscover';
   }
 
+  setPortfolioBackVisible(!opts.fromRoute);
+
   _portfolioMode = true;
   _portfolioProducer = producerName;
   _portfolioBeats = beats;
@@ -7374,6 +7437,7 @@ function openProducerProfile(producerName) {
 }
 
 function exitPortfolioMode() {
+  setPortfolioBackVisible(false);
   _portfolioMode = false;
   _portfolioProducer = null;
   document.body.classList.remove('portfolio-active', 'portfolio-swipe-done');
@@ -7390,6 +7454,7 @@ async function handlePortfolioPopstate() {
     return;
   }
   if (_portfolioMode) {
+    setPortfolioBackVisible(false);
     _portfolioMode = false;
     _portfolioProducer = null;
     document.body.classList.remove('portfolio-active', 'portfolio-swipe-done');
