@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-09-v57c — mobile discover fly before renderCard -->
+<!-- deploy: 2026-06-09-v57h — landing reveal without waiting for initApp -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -1540,6 +1540,12 @@
       z-index: 5;
       pointer-events: none;
     }
+    .beat-card.discover-fly-clone--viewport {
+      position: fixed !important;
+      z-index: 650;
+      pointer-events: none;
+      margin: 0;
+    }
     @keyframes cardEnter {
       from { opacity: 0; transform: scale(0.96) translateY(8px); }
       to   { opacity: 1; transform: none; }
@@ -2900,12 +2906,6 @@
       #portfolioCardWrap .portfolio-surface.portfolio-fly-clone,
       #cardWrap .beat-card.discover-fly-clone {
         position: absolute !important;
-      }
-      .beat-card.discover-fly-clone--viewport {
-        position: fixed !important;
-        z-index: 650;
-        pointer-events: none;
-        margin: 0;
       }
       #discoverScreen .action-row {
         position: relative;
@@ -4522,10 +4522,23 @@ function initScrollReveal() {
       }
     });
   }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  const vh = window.innerHeight || document.documentElement.clientHeight;
   els.forEach(el => {
     el.classList.remove('is-visible');
+    const r = el.getBoundingClientRect();
+    if (r.top < vh && r.bottom > 0) {
+      el.classList.add('is-visible');
+      return;
+    }
     window._scrollRevealObs.observe(el);
   });
+}
+
+function bootLandingReveal() {
+  if (getPortfolioSlugFromURL()) return;
+  if (!document.getElementById('landScreen')?.classList.contains('active')) return;
+  if (isDesktop() && !_portfolioMode) document.body.classList.add('site-scroll');
+  initScrollReveal();
 }
 
 function isDesktop() {
@@ -4894,6 +4907,8 @@ let _audioPanel = 'discover'; // 'discover' | 'crate' | 'portfolio'
 let _audioUnlocked = false;
 let _swipeDragging = false;
 let _swipeCommitted = false;
+let _pendingFlyRect = null;
+let _pendingFlyTransform = '';
 let resetSwipeGestureState = () => {};
 
 function purgeOrphanSwipeNodes() {
@@ -5035,6 +5050,65 @@ function pauseTrackForCardSwap() {
     setPlayState(false);
   }
   clearInterval(vizTimer);
+}
+
+function stripEmbedsForFly(el) {
+  if (!el) return;
+  el.querySelectorAll('.yt-overlay').forEach(o => o.remove());
+  el.querySelectorAll('iframe').forEach(f => f.remove());
+}
+
+function buildFlyCardShell(flyEl, dragTransform, playerMinH) {
+  const skip = new Set(['dragging', 'spring-snap', 'card-enter', 'card-enter-portfolio', 'swipe-drag-pinned']);
+  const clone = document.createElement('div');
+  clone.className = Array.from(flyEl.classList).filter(c => !skip.has(c)).join(' ');
+  if (dragTransform) clone.style.transform = dragTransform;
+  const head = flyEl.querySelector('.card-head');
+  const tags = flyEl.querySelector('.tag-row');
+  if (head) clone.appendChild(head.cloneNode(true));
+  if (tags) clone.appendChild(tags.cloneNode(true));
+  const embedHost = flyEl.querySelector('.yt-wrap') || flyEl.querySelector('.player-area')
+    || flyEl.querySelector('iframe')?.parentElement;
+  const minH = playerMinH || (embedHost ? Math.max(embedHost.offsetHeight, 100) : 0);
+  if (minH) {
+    const ph = document.createElement('div');
+    ph.className = (embedHost && embedHost.className) || 'yt-wrap';
+    ph.style.minHeight = minH + 'px';
+    ph.style.background = '#0a0a0a';
+    ph.style.borderRadius = '14px';
+    clone.appendChild(ph);
+  }
+  const footer = flyEl.querySelector('.yt-footer');
+  if (footer) clone.appendChild(footer.cloneNode(true));
+  return clone;
+}
+
+function measureFlyPlayerHeight(el) {
+  const host = el?.querySelector('.yt-wrap') || el?.querySelector('.player-area')
+    || el?.querySelector('iframe')?.parentElement;
+  return host ? Math.max(host.offsetHeight, 100) : 0;
+}
+
+function takePendingFlyMetrics(flyEl) {
+  const transform = _pendingFlyTransform || flyEl?.style.transform || '';
+  const rect = _pendingFlyRect || flyEl.getBoundingClientRect();
+  _pendingFlyRect = null;
+  _pendingFlyTransform = '';
+  if (flyEl) {
+    flyEl.style.transform = '';
+    flyEl.classList.remove('dragging');
+  }
+  return { transform, rect };
+}
+
+function dimEmbedsForDrag(card) {
+  if (!card || isMobileUI()) return;
+  card.querySelectorAll('iframe').forEach(f => { f.style.pointerEvents = 'none'; });
+}
+
+function restoreEmbedsAfterDrag(card) {
+  if (!card || isMobileUI()) return;
+  card.querySelectorAll('iframe').forEach(f => { f.style.pointerEvents = ''; });
 }
 
 function loadTrack(mp3Url, panel) {
@@ -5420,6 +5494,8 @@ function renderCard(opts) {
     document.getElementById('discoverScreen')?.style.removeProperty('position');
     resetGlow();
     _portfolioSwipeLock = false;
+    _pendingFlyRect = null;
+    _pendingFlyTransform = '';
   }
 
   resetSwipeGestureState = forceCleanupSwipeDrag;
@@ -5501,6 +5577,7 @@ function renderCard(opts) {
         card.style.transform = '';
         card.classList.remove('spring-snap');
         unpinCardForMobileDrag(card);
+        restoreEmbedsAfterDrag(card);
         resetGlow();
         springRAF = null;
       }
@@ -5535,6 +5612,7 @@ function renderCard(opts) {
     isDragging = true;
     _swipeDragging = true;
     card.classList.add('dragging');
+    dimEmbedsForDrag(card);
     pinCardForMobileDrag(card);
   }
 
@@ -5593,6 +5671,12 @@ function renderCard(opts) {
     if (saveLabel) saveLabel.style.opacity = 0;
 
     if (Math.abs(curX) >= SWIPE_THRESHOLD) {
+      if (!gestureIsTouch) {
+        _pendingFlyRect = card.getBoundingClientRect();
+        _pendingFlyTransform = card.style.transform;
+        card.style.transform = '';
+        restoreEmbedsAfterDrag(card);
+      }
       unpinCardForMobileDrag(card);
       commitSwipe(curX > 0 ? 'right' : 'left');
     } else if (gestureIsTouch) {
@@ -5608,6 +5692,7 @@ function renderCard(opts) {
     } else {
       unpinCardForMobileDrag(card);
       card.style.transform = '';
+      restoreEmbedsAfterDrag(card);
       resetGlow();
       card.classList.add('wobble');
       setTimeout(() => { card.classList.remove('wobble'); }, 460);
@@ -5752,7 +5837,6 @@ function doSwipe(dir) {
   if (!card) return;
   if (_portfolioMode && _portfolioSwipeLock) return;
   if (!_audioUnlocked) _audioUnlocked = true;
-  showEmojiPop(dir);
   if (_portfolioMode) {
     const list = getPortfolioList();
     const item = list[0];
@@ -5781,6 +5865,7 @@ function doSwipe(dir) {
       renderPortfolioCard();
       if (!isMobileUI()) tryAutoplayFromGesture();
     });
+    requestAnimationFrame(() => showEmojiPop(dir));
     return;
   }
   const list = getDiscoverList(cat);
@@ -5796,18 +5881,19 @@ function doSwipe(dir) {
       else showMobileSyncHint(incrementGuestSaveCount());
     }
     skippedIds[cat] = skippedIds[cat].filter(id => id !== item.id);
-    saveSkippedState();
-    updateCrateCountUI();
   } else {
     if (!skippedIds[cat].includes(item.id)) skippedIds[cat].push(item.id);
-    saveSkippedState();
   }
-  saveSwipeState();
+  pauseTrackForCardSwap();
   flyOutDiscoverCard(dir, () => {
-    renderCard({ deferAudio: isMobileUI() });
+    saveSkippedState();
+    saveSwipeState();
+    if (savedThisSwipe) updateCrateCountUI();
+    renderCard({ deferAudio: true });
     tryAutoplayFromGesture();
-    if (savedThisSwipe) renderCrate();
+    if (savedThisSwipe) setTimeout(() => renderCrate(), 80);
   });
+  requestAnimationFrame(() => showEmojiPop(dir));
 }
 
 // ─── CRATE ────────────────────────────────────────────────────────────────
@@ -5956,8 +6042,9 @@ function renderCrate() {
   if (!crate.length) {
     _selectedCrateId = null;
     _previewLoadedId = null;
-    body.innerHTML = `<div class="crate-empty"><i class="ti ti-music-off"></i>Nothing here yet.<br>Go swipe some beats!</div>`;
+    if (body) body.innerHTML = `<div class="crate-empty"><i class="ti ti-music-off"></i>Nothing here yet.<br>Go swipe some beats!</div>`;
     renderCratePreview(null);
+    renderDesktopCrate();
     return;
   }
   if (_lastSavedBeatId && crate.find(b => b.id === _lastSavedBeatId)) {
@@ -7793,12 +7880,10 @@ function flyOutPortfolioCard(dir, onReplaced) {
   flyEl.style.margin = '';
 
   const wrapRect = wrap.getBoundingClientRect();
-  const flyRect = flyEl.getBoundingClientRect();
-  const dragTransform = flyEl.style.transform;
-  const clone = flyEl.cloneNode(true);
-  clone.classList.remove('dragging', 'spring-snap', 'card-enter-portfolio', 'swipe-drag-pinned');
-  if (dragTransform) clone.style.transform = dragTransform;
-  clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+  const playerMinH = measureFlyPlayerHeight(flyEl);
+  stripEmbedsForFly(flyEl);
+  const { transform: dragTransform, rect: flyRect } = takePendingFlyMetrics(flyEl);
+  const clone = buildFlyCardShell(flyEl, dragTransform, playerMinH);
   clone.style.willChange = 'transform, opacity';
   clone.classList.add('portfolio-fly-clone');
   clone.style.top = (flyRect.top - wrapRect.top) + 'px';
@@ -7807,15 +7892,18 @@ function flyOutPortfolioCard(dir, onReplaced) {
 
   wrap.appendChild(clone);
   void clone.offsetWidth;
-  onReplaced();
-  void clone.offsetWidth;
 
   const flyClass = dir === 'left' ? 'fly-left' : 'fly-right';
   const startFly = () => clone.classList.add(flyClass);
   if (isMobileUI()) {
+    onReplaced();
+    void clone.offsetWidth;
     requestAnimationFrame(() => requestAnimationFrame(startFly));
   } else {
-    requestAnimationFrame(startFly);
+    requestAnimationFrame(() => {
+      startFly();
+      setTimeout(onReplaced, 48);
+    });
   }
 
   let done = false;
@@ -7842,16 +7930,10 @@ function flyOutDiscoverCard(dir, onReplaced) {
     return;
   }
 
-  const dragTransform = flyEl.style.transform;
-  const clone = flyEl.cloneNode(true);
-  clone.classList.remove('dragging', 'spring-snap', 'card-enter', 'swipe-drag-pinned');
-  clone.style.position = '';
-  clone.style.left = '';
-  clone.style.top = '';
-  clone.style.width = '';
-  clone.style.margin = '';
-  if (dragTransform) clone.style.transform = dragTransform;
-  clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+  const playerMinH = measureFlyPlayerHeight(flyEl);
+  stripEmbedsForFly(flyEl);
+  const { transform: dragTransform, rect } = takePendingFlyMetrics(flyEl);
+  const clone = buildFlyCardShell(flyEl, dragTransform, playerMinH);
   clone.style.willChange = 'transform, opacity';
   clone.classList.add('discover-fly-clone');
 
@@ -7863,28 +7945,19 @@ function flyOutDiscoverCard(dir, onReplaced) {
     clone.style.willChange = '';
     clone.remove();
   };
-
-  if (isMobileUI()) {
-    const rect = flyEl.getBoundingClientRect();
-    clone.classList.add('discover-fly-clone--viewport');
-    clone.style.position = 'fixed';
-    clone.style.left = rect.left + 'px';
-    clone.style.top = rect.top + 'px';
-    clone.style.width = rect.width + 'px';
-    clone.style.zIndex = '650';
-    document.body.appendChild(clone);
-    void clone.offsetWidth;
-    flyEl.style.visibility = 'hidden';
-    requestAnimationFrame(() => {
-      clone.classList.add(flyClass);
-      setTimeout(onReplaced, 48);
-    });
-  } else {
-    onReplaced();
-    wrap.appendChild(clone);
-    void clone.offsetWidth;
+  clone.classList.add('discover-fly-clone--viewport');
+  clone.style.position = 'fixed';
+  clone.style.left = rect.left + 'px';
+  clone.style.top = rect.top + 'px';
+  clone.style.width = rect.width + 'px';
+  clone.style.zIndex = '650';
+  document.body.appendChild(clone);
+  void clone.offsetWidth;
+  flyEl.style.visibility = 'hidden';
+  requestAnimationFrame(() => {
     clone.classList.add(flyClass);
-  }
+    setTimeout(onReplaced, 48);
+  });
 
   clone.addEventListener('transitionend', e => {
     if (e.target !== clone || e.propertyName !== 'transform') return;
@@ -8460,6 +8533,11 @@ window.addEventListener('popstate', () => { handlePortfolioPopstate(); });
 
 const _bootPortfolioSlug = getPortfolioSlugFromURL();
 if (_bootPortfolioSlug) showPortfolioLoadingState(_bootPortfolioSlug);
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bootLandingReveal);
+} else {
+  bootLandingReveal();
+}
 
 initApp().then(() => {
   initOnboard();
