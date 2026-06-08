@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-08-v34 — profile guest scroll + newsletter card match -->
+<!-- deploy: 2026-06-08-v35 — toast, text fixes, portfolio polish, landing mobile mockup -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -13,7 +13,7 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://beatswipe.app">
   <meta property="og:title" content="BeatSwipe – Free Swipe Portfolio for Producers">
-  <meta property="og:description" content="Swipe through curated beats from independent producers. Save your favorites, license instantly — free forever.">
+  <meta property="og:description" content="Your swipe page for the bio. Fans swipe through your beats, save favorites, and buy directly from you — free for producers.">
   <meta property="og:image" content="https://beatswipe.app/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -21,7 +21,7 @@
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="BeatSwipe – Free Swipe Portfolio for Producers">
-  <meta name="twitter:description" content="Swipe through curated beats from independent producers. Save your favorites, license instantly.">
+  <meta name="twitter:description" content="Your swipe page for the bio. Fans swipe through your beats, save favorites, and buy directly from you — free for producers.">
   <meta name="twitter:image" content="https://beatswipe.app/og-image.png">
 
   <!-- Favicon -->
@@ -1188,6 +1188,11 @@
         .modal-sheet { animation: none; }
         body.discover-active .discover-side-hint { opacity: 0.1; }
         .hero-mockup-bar { animation: none !important; }
+        .save-burst,
+        .btn-primary.copy-pulse,
+        #portfolioHeader.portfolio-enter-played,
+        #portfolioCardWrap.portfolio-enter-played,
+        .portfolio-confetti-piece { animation: none !important; }
         .crate-preview-card.crate-preview-enter,
         .crate-preview-empty.crate-preview-enter,
         .crate-preview-fade-out { animation: none !important; }
@@ -1281,6 +1286,25 @@
     .hero-title span { color: var(--accent-mid); }
     .hero-sub { font-size: 15px; color: var(--text-2); line-height: 1.65; margin-bottom: 28px; }
     .hero-btns { display: flex; flex-direction: column; gap: 10px; }
+    .hero-live-cta { margin-top: 18px; }
+    .hero-live-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--accent-mid);
+      text-decoration: none;
+      transition: color 0.2s, opacity 0.2s;
+    }
+    .hero-live-link:hover { color: var(--text); opacity: 0.92; }
+    .hero-live-link i { font-size: 15px; }
+    .hero-live-hint {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--text-3);
+      line-height: 1.45;
+    }
     .btn-primary { padding: 14px; border-radius: 14px; background: var(--accent); border: none; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 0.2s; }
     .btn-primary:hover { opacity: 0.88; }
     .btn-secondary { padding: 14px; border-radius: 14px; background: none; border: 0.5px solid var(--border-2); color: var(--text); font-size: 15px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s; }
@@ -1844,6 +1868,31 @@
       text-overflow: ellipsis;
       margin-top: 2px;
     }
+    .portfolio-socials {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    .portfolio-social-link {
+      width: 30px;
+      height: 30px;
+      border-radius: 9px;
+      background: rgba(255,255,255,0.04);
+      border: 0.5px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-2);
+      text-decoration: none;
+      transition: color 0.2s, background 0.2s, border-color 0.2s;
+    }
+    .portfolio-social-link:hover {
+      color: var(--accent-mid);
+      background: rgba(124,58,237,0.12);
+      border-color: rgba(124,58,237,0.22);
+    }
+    .portfolio-social-link i { font-size: 15px; }
     .portfolio-counter {
       font-size: 11px;
       font-weight: 600;
@@ -2214,7 +2263,8 @@
       75%  { transform: translateX(-3px) rotate(-0.8deg); }
       100% { transform: translateX(0) rotate(0deg); }
     }
-    .beat-card.wobble { animation: wobbleBack 0.45s cubic-bezier(0.22,1,0.36,1); }
+    .beat-card.wobble,
+    #portfolioCardWrap .portfolio-surface.wobble { animation: wobbleBack 0.45s cubic-bezier(0.22,1,0.36,1); }
     @keyframes emojiPop {
       0%   { transform: translate(-50%,-50%) scale(0.4); opacity: 0; }
       40%  { transform: translate(-50%,-50%) scale(1.3); opacity: 1; }
@@ -2238,6 +2288,59 @@
         animation: emojiPopDesktop 0.42s cubic-bezier(0.22,1,0.36,1) forwards;
       }
     }
+    .save-burst {
+      position: fixed;
+      z-index: 220;
+      pointer-events: none;
+      font-size: 28px;
+      transform: translate(-50%, -50%);
+      animation: saveBurstPop 0.5s cubic-bezier(0.22,1,0.36,1) forwards;
+    }
+    @keyframes saveBurstPop {
+      0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.35); }
+      35%  { opacity: 1; transform: translate(-50%, -58%) scale(1.05); }
+      100% { opacity: 0; transform: translate(-50%, -90%) scale(0.85); }
+    }
+    @keyframes copyPulse {
+      0%   { box-shadow: 0 0 0 0 rgba(124,58,237,0.45); transform: scale(1); }
+      40%  { box-shadow: 0 0 0 8px rgba(124,58,237,0.18); transform: scale(1.03); }
+      100% { box-shadow: 0 0 0 0 rgba(124,58,237,0); transform: scale(1); }
+    }
+    .btn-primary.copy-pulse { animation: copyPulse 0.55s cubic-bezier(0.22,1,0.36,1); }
+    @keyframes portfolioFadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: none; }
+    }
+    #portfolioHeader.portfolio-enter-played {
+      animation: portfolioFadeUp 0.38s cubic-bezier(0.22,1,0.36,1) forwards;
+    }
+    #portfolioCardWrap.portfolio-enter-played {
+      opacity: 0;
+      animation: portfolioFadeUp 0.42s cubic-bezier(0.22,1,0.36,1) 0.1s forwards;
+    }
+    .portfolio-confetti {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 6;
+    }
+    .portfolio-confetti-piece {
+      position: absolute;
+      top: 18%;
+      width: 6px;
+      height: 6px;
+      border-radius: 1px;
+      background: var(--accent-mid);
+      opacity: 0;
+      animation: confettiFall 1.8s cubic-bezier(0.22,1,0.36,1) var(--cf-delay, 0s) forwards;
+    }
+    .portfolio-confetti-piece:nth-child(odd) { background: var(--accent); }
+    @keyframes confettiFall {
+      0%   { opacity: 0; transform: translateY(0) translateX(0) rotate(0deg); }
+      12%  { opacity: 0.9; }
+      100% { opacity: 0; transform: translateY(120px) translateX(var(--cf-x, 0px)) rotate(220deg); }
+    }
 
     /* Website chrome — desktop-only (shown @ 900px+) */
     .site-page-head,
@@ -2248,6 +2351,83 @@
       display: block;
       font-size: 16px; font-weight: 700;
       margin-bottom: 12px; letter-spacing: -0.3px;
+    }
+
+    /* ── MOBILE HERO MOCKUP (<900px) ── */
+    @media (max-width: 899px) {
+      #landScreen .hero-visual {
+        display: flex;
+        justify-content: center;
+        margin-top: 28px;
+        padding-inline: var(--px);
+      }
+      #landScreen .hero-preview {
+        width: 100%;
+        max-width: 300px;
+        background: rgba(255,255,255,0.03);
+        border: 0.5px solid rgba(255,255,255,0.08);
+        border-radius: 20px;
+        padding: 14px;
+        text-align: left;
+      }
+      .hero-mockup-card {
+        background: rgba(255,255,255,0.04);
+        border: 0.5px solid rgba(255,255,255,0.07);
+        border-radius: 16px;
+        padding: 14px;
+      }
+      .hero-mockup-head {
+        display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+      }
+      .hero-mockup-cover {
+        width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+        background: rgba(124,58,237,0.18);
+        border: 0.5px solid rgba(167,139,250,0.35);
+        display: flex; align-items: center; justify-content: center;
+      }
+      .hero-mockup-cover i { font-size: 18px; color: var(--accent-mid); }
+      .hero-mockup-info { flex: 1; min-width: 0; }
+      .hero-mockup-title {
+        font-size: 14px; font-weight: 600;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .hero-mockup-producer { font-size: 11px; color: var(--accent-mid); margin-top: 2px; }
+      .hero-mockup-type {
+        font-size: 9px; font-weight: 600; padding: 3px 8px; border-radius: 100px;
+        background: rgba(255,255,255,0.06); color: var(--text-2);
+      }
+      .hero-mockup-tags {
+        display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 12px;
+      }
+      .hero-mockup-tags span {
+        font-size: 9px; padding: 3px 8px; border-radius: 100px;
+        background: rgba(255,255,255,0.05); color: var(--text-2);
+      }
+      .hero-mockup-wave {
+        display: flex; align-items: flex-end; gap: 3px; height: 28px;
+        padding: 8px 10px; border-radius: 10px;
+        background: rgba(255,255,255,0.04); margin-bottom: 12px;
+      }
+      .hero-mockup-bar {
+        flex: 1; border-radius: 2px;
+        background: linear-gradient(180deg, var(--accent-mid), var(--accent));
+        opacity: 0.58;
+        transform-origin: bottom;
+        animation: mockupWave 3.2s ease-in-out infinite alternate;
+      }
+      .hero-mockup-bar:nth-child(odd) { animation-delay: 0.25s; }
+      .hero-mockup-bar:nth-child(3n) { animation-delay: 0.55s; }
+      .hero-mockup-actions {
+        display: flex; justify-content: space-between; align-items: center;
+        font-size: 10px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase;
+      }
+      .hero-mockup-skip { color: #f87171; display: flex; align-items: center; gap: 4px; }
+      .hero-mockup-save { color: var(--accent-mid); display: flex; align-items: center; gap: 4px; }
+      .hero-preview-caption {
+        margin-top: 12px; text-align: center;
+        font-size: 11px; color: var(--text-3);
+      }
+      #landScreen .hero-live-cta { text-align: center; }
     }
 
     /* ── MOBILE MICRO-INTERACTIONS (<900px) ── */
@@ -2302,6 +2482,57 @@
     .legal-link:last-child { border-bottom: none; }
     .legal-link:hover { background: var(--bg-3); color: var(--text); }
     .legal-link i { font-size: 16px; color: var(--text-3); }
+
+    /* ── TOAST ── */
+    .bs-toast-wrap {
+      position: fixed;
+      bottom: calc(72px + env(safe-area-inset-bottom));
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 450;
+      pointer-events: none;
+      width: min(340px, calc(100% - 32px));
+    }
+    .bs-toast {
+      padding: 12px 16px;
+      border-radius: 14px;
+      background: rgba(14,14,18,0.94);
+      border: 0.5px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1.45;
+      color: var(--text);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.45);
+      animation: toastIn 0.28s cubic-bezier(0.22,1,0.36,1);
+      pointer-events: auto;
+    }
+    .bs-toast.leaving { animation: toastOut 0.22s ease forwards; }
+    .bs-toast i { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .bs-toast.success i { color: #4ade80; }
+    .bs-toast.error i { color: #f87171; }
+    .bs-toast.info i { color: var(--accent-mid); }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes toastOut {
+      from { opacity: 1; transform: translateY(0); }
+      to { opacity: 0; transform: translateY(8px); }
+    }
+    @media (min-width: 900px) {
+      .bs-toast-wrap { bottom: 28px; }
+    }
+    body.portfolio-active .bs-toast-wrap {
+      bottom: calc(20px + env(safe-area-inset-bottom));
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .bs-toast, .bs-toast.leaving { animation: none; }
+    }
 
     /* ── IMPRESSUM MODAL ── */
     .info-modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: none; align-items: flex-end; justify-content: center; backdrop-filter: blur(6px); }
@@ -2615,7 +2846,7 @@
     .onboard-sheet { width: 100%; max-width: 440px; background: var(--bg); border-radius: 32px 32px 0 0; border-top: 0.5px solid var(--border-2); overflow: hidden; }
     .onboard-slides { display: flex; transition: transform 0.4s cubic-bezier(0.22,1,0.36,1); }
     .onboard-slide { min-width: 100%; padding: 40px 28px 28px; display: flex; flex-direction: column; align-items: center; text-align: center; }
-    .onboard-icon { width: 80px; height: 80px; border-radius: 24px; background: var(--accent-light); border: 0.5px solid rgba(244,63,94,0.3); display: flex; align-items: center; justify-content: center; margin-bottom: 24px; }
+    .onboard-icon { width: 80px; height: 80px; border-radius: 24px; background: var(--accent-light); border: 0.5px solid rgba(124,58,237,0.3); display: flex; align-items: center; justify-content: center; margin-bottom: 24px; }
     .onboard-icon i { font-size: 38px; color: var(--accent-mid); }
     .onboard-title { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 12px; line-height: 1.2; }
     .onboard-title span { color: var(--accent-mid); }
@@ -2897,6 +3128,10 @@
             <button class="btn-primary" onclick="goTo('submitScreen','navSubmit')"><i class="ti ti-upload"></i> Get your free page</button>
             <button class="btn-secondary" onclick="goTo('discoverScreen','navDiscover')"><i class="ti ti-headphones"></i> Discover beats</button>
           </div>
+          <div class="hero-live-cta">
+            <a class="hero-live-link" href="/p/clyriax"><i class="ti ti-external-link"></i> See a live page — beatswipe.app/p/clyriax</a>
+            <p class="hero-live-hint">What fans see when they tap your Instagram bio link.</p>
+          </div>
         </div>
         <div class="hero-visual reveal-on-scroll reveal-delay-1">
           <div class="hero-preview hero-preview--mockup">
@@ -2905,7 +3140,7 @@
                 <div class="hero-mockup-cover"><i class="ti ti-music"></i></div>
                 <div class="hero-mockup-info">
                   <div class="hero-mockup-title">Midnight Drive</div>
-                  <div class="hero-mockup-producer">by producer_name</div>
+                  <div class="hero-mockup-producer">by clyriax</div>
                 </div>
                 <span class="hero-mockup-type">Beat</span>
               </div>
@@ -2973,8 +3208,8 @@
           <div class="faq-a">Save a beat, then tap the buy button. It takes you straight to the producer's store — BeatStars, Splice, SoundCloud, or their own site. We don't handle payments ourselves.</div>
         </div>
         <div class="faq-item">
-          <button class="faq-q" onclick="toggleFaq(this)">Can I submit my own beats?<i class="ti ti-plus"></i></button>
-          <div class="faq-a">Absolutely. Submit at least 3 beats, get approved, and share your link beatswipe.app/p/yourname in your bio. Preview via YouTube, SoundCloud, or MP3 — buy links to BeatStars, Splice, or your store.</div>
+          <button class="faq-q" onclick="toggleFaq(this)">How do I get my producer page?<i class="ti ti-plus"></i></button>
+          <div class="faq-a">Sign up free, add your beats on My Page, and share beatswipe.app/p/yourname in your bio once they're approved — usually within 48h. Preview via YouTube, SoundCloud, or MP3 — buy links to BeatStars, Splice, or your store.</div>
         </div>
         <div class="faq-item">
           <button class="faq-q" onclick="toggleFaq(this)">Do I need an account?<i class="ti ti-plus"></i></button>
@@ -3016,7 +3251,7 @@
     <div class="page-inner page-inner--swipe">
       <div class="site-page-head">
         <h1 class="site-page-title">Discover</h1>
-        <p class="site-page-desc">Swipe through curated beats from independent producers.</p>
+        <p class="site-page-desc">Swipe left to skip, right to save — hear a beat, decide in seconds.</p>
       </div>
       <div class="discover-toolbar">
         <div class="cat-row" id="catRow">
@@ -3321,11 +3556,11 @@
         <div class="onboard-slide">
           <div class="onboard-icon"><i class="ti ti-flame"></i></div>
           <div class="onboard-title">Welcome to <span>BeatSwipe</span></div>
-          <div class="onboard-desc">The fastest way to find your next fire beat. Free. Forever.</div>
+          <div class="onboard-desc">Discover beats. Save what hits. Your swipe page for the bio — free for producers.</div>
           <div class="onboard-demo" style="justify-content:center">
             <div style="text-align:center">
-              <div style="font-size:13px;font-weight:600;margin-bottom:4px">8+ Beats</div>
-              <div style="font-size:11px;color:var(--text-3)">from independent producers</div>
+              <div style="font-size:13px;font-weight:600;margin-bottom:4px">Swipe</div>
+              <div style="font-size:11px;color:var(--text-3)">skip or save in seconds</div>
             </div>
             <div style="width:1px;height:32px;background:var(--border-2)"></div>
             <div style="text-align:center">
@@ -3334,8 +3569,8 @@
             </div>
             <div style="width:1px;height:32px;background:var(--border-2)"></div>
             <div style="text-align:center">
-              <div style="font-size:13px;font-weight:600;margin-bottom:4px">No Algorithm</div>
-              <div style="font-size:11px;color:var(--text-3)">curated beats only</div>
+              <div style="font-size:13px;font-weight:600;margin-bottom:4px">Bio link</div>
+              <div style="font-size:11px;color:var(--text-3)">beatswipe.app/p/you</div>
             </div>
           </div>
         </div>
@@ -3374,16 +3609,16 @@
           </div>
         </div>
 
-        <!-- Slide 4: Submit -->
+        <!-- Slide 4: My Page -->
         <div class="onboard-slide">
-          <div class="onboard-icon"><i class="ti ti-upload"></i></div>
-          <div class="onboard-title">Producer? <span>Submit!</span></div>
-          <div class="onboard-desc">Submit your beats for free. We review them and add them to the feed — within 48h.</div>
+          <div class="onboard-icon"><i class="ti ti-link"></i></div>
+          <div class="onboard-title">Producer? <span>Get your page</span></div>
+          <div class="onboard-desc">Free swipe portfolio for your bio. Add beats, share your link — fans save favorites and buy from you.</div>
           <div class="onboard-demo" style="flex-direction:column;gap:8px;align-items:flex-start">
+            <div style="font-size:12px;color:var(--text-2)">✓ beatswipe.app/p/yourname</div>
             <div style="font-size:12px;color:var(--text-2)">✓ YouTube, SoundCloud or MP3</div>
-            <div style="font-size:12px;color:var(--text-2)">✓ Free for all producers</div>
             <div style="font-size:12px;color:var(--text-2)">✓ Reviewed within 48 hours</div>
-            <div style="font-size:12px;color:var(--text-2)">✓ Direct link to your store</div>
+            <div style="font-size:12px;color:var(--text-2)">✓ Buy links to your store</div>
           </div>
         </div>
 
@@ -3473,6 +3708,8 @@
   </div><!-- /desktop-right -->
   </div><!-- /desktop-layout -->
 
+  <div class="bs-toast-wrap" id="bsToastWrap" aria-live="polite" role="status"></div>
+
 <script>
 
 function escHtml(s) {
@@ -3481,6 +3718,30 @@ function escHtml(s) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+let _toastHideTimer = null;
+function showToast(message, type = 'info', duration = 2800) {
+  const wrap = document.getElementById('bsToastWrap');
+  if (!wrap || !message) return;
+  if (_toastHideTimer) { clearTimeout(_toastHideTimer); _toastHideTimer = null; }
+  const icons = { success: 'ti-check', error: 'ti-alert-circle', info: 'ti-info-circle' };
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  wrap.innerHTML = '';
+  const el = document.createElement('div');
+  el.className = 'bs-toast ' + (type || 'info');
+  const icon = document.createElement('i');
+  icon.className = 'ti ' + (icons[type] || icons.info);
+  const span = document.createElement('span');
+  span.textContent = message;
+  el.appendChild(icon);
+  el.appendChild(span);
+  wrap.appendChild(el);
+  _toastHideTimer = setTimeout(() => {
+    if (reduced) { el.remove(); return; }
+    el.classList.add('leaving');
+    setTimeout(() => el.remove(), 220);
+  }, duration);
 }
 
 function setActiveNav(navId) {
@@ -4236,7 +4497,7 @@ function renderCard() {
     if (_discoverSearch.trim() && rawCount) {
       wrap.innerHTML = `<div class="empty-card"><i class="ti ti-search-off"></i>No results for "${escHtml(_discoverSearch.trim())}".<br><span style="font-size:12px;color:var(--text-3)">Try another title or producer.</span></div>`;
     } else if (!rawCount) {
-      wrap.innerHTML = `<div class="empty-card"><i class="ti ti-clock-hour-3"></i>No ${catNames[cat] || 'beats'} yet.<br><span style="font-size:12px;color:var(--text-3)">Check back soon — producers are submitting daily.</span></div>`;
+      wrap.innerHTML = `<div class="empty-card"><i class="ti ti-clock-hour-3"></i>No ${catNames[cat] || 'beats'} yet.<br><span style="font-size:12px;color:var(--text-3)">Check back soon — more producer pages are going live.</span></div>`;
     } else {
       wrap.innerHTML = `<div class="empty-card"><i class="ti ti-music-off"></i>All caught up!<br>Switch category or check back later.${replayBtn}</div>`;
     }
@@ -4617,6 +4878,51 @@ function showEmojiPop(dir) {
   container.style.position = 'relative';
   container.appendChild(el);
   setTimeout(() => el.remove(), isDesktop() ? 460 : 700);
+  if (dir === 'right') showSaveBurst();
+}
+
+function showSaveBurst() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const sel = _portfolioMode ? '#portfolioScreen .btn-save' : '#discoverScreen .btn-save';
+  const btn = document.querySelector(sel);
+  if (!btn) return;
+  const rect = btn.getBoundingClientRect();
+  const el = document.createElement('div');
+  el.className = 'save-burst';
+  el.textContent = '🔥';
+  el.style.left = (rect.left + rect.width / 2) + 'px';
+  el.style.top = (rect.top + rect.height / 2) + 'px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 520);
+}
+
+function spawnPortfolioConfetti() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const host = document.getElementById('portfolioCardSlot');
+  if (!host) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'portfolio-confetti';
+  wrap.setAttribute('aria-hidden', 'true');
+  for (let i = 0; i < 8; i++) {
+    const p = document.createElement('span');
+    p.className = 'portfolio-confetti-piece';
+    p.style.setProperty('--cf-x', (Math.random() * 80 - 40) + 'px');
+    p.style.setProperty('--cf-delay', (Math.random() * 0.25) + 's');
+    p.style.left = (8 + Math.random() * 84) + '%';
+    wrap.appendChild(p);
+  }
+  host.appendChild(wrap);
+  setTimeout(() => wrap.remove(), 2200);
+}
+
+function playPortfolioEnterAnim() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const header = document.getElementById('portfolioHeader');
+  const cardWrap = document.getElementById('portfolioCardWrap');
+  [header, cardWrap].forEach(el => el?.classList.remove('portfolio-enter-played'));
+  void header?.offsetWidth;
+  header?.classList.add('portfolio-enter-played');
+  cardWrap?.classList.add('portfolio-enter-played');
 }
 
 function doSwipe(dir) {
@@ -5159,7 +5465,7 @@ async function uploadMp3ToSupabase() {
 async function doSubmitForm() {
   const producer = (_userProfile?.producer_name || document.getElementById('f-producer')?.value || '').trim();
   if (!producer) {
-    alert('Complete your page setup first — add your producer name.');
+    showToast('Complete your page setup first — add your producer name.', 'error');
     hideMyPageAddBeat();
     renderMyPage();
     return;
@@ -5169,7 +5475,7 @@ async function doSubmitForm() {
 
   const fields = ['f-title','f-bpm','f-genre','f-type','f-preview-type'];
   const vals = fields.map(id => document.getElementById(id).value.trim());
-  if (vals.some(v => !v)) { alert('Please fill in all required fields.'); return; }
+  if (vals.some(v => !v)) { showToast('Please fill in all required fields.', 'error'); return; }
 
   const previewType = document.getElementById('f-preview-type').value;
 
@@ -5177,9 +5483,9 @@ async function doSubmitForm() {
   let previewUrl = '';
   if (previewType === 'YouTube' || previewType === 'SoundCloud') {
     previewUrl = document.getElementById('f-preview')?.value.trim() || '';
-    if (!previewUrl) { alert('Please enter a preview link.'); return; }
+    if (!previewUrl) { showToast('Please enter a preview link.', 'error'); return; }
   } else if (previewType === 'MP3') {
-    if (!_mp3File) { alert('Please select an MP3 file.'); return; }
+    if (!_mp3File) { showToast('Please select an MP3 file.', 'error'); return; }
   }
 
   const title    = document.getElementById('f-title').value.trim();
@@ -5288,7 +5594,7 @@ async function doSubmitForm() {
       errEl.style.display = 'block';
       errEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
     } else {
-      alert('Error: ' + (e.message || 'Something went wrong'));
+      showToast('Error: ' + (e.message || 'Something went wrong'), 'error', 3600);
     }
   }
 }
@@ -5391,7 +5697,7 @@ function renderProfile() {
     const heroActions = p.producer_name ? `
           <div class="profile-hero-link">${heroLink}</div>
           <div class="profile-hero-actions">
-            <button type="button" class="btn-primary" onclick="copyPortfolioLink()"><i class="ti ti-link"></i> Copy link</button>
+            <button type="button" class="btn-primary" onclick="copyPortfolioLink(event)"><i class="ti ti-link"></i> Copy link</button>
             <button type="button" class="btn-secondary" onclick="goTo('submitScreen','navSubmit')"><i class="ti ti-link"></i> My Page</button>
             <button type="button" class="btn-secondary" onclick="previewMyPage()"><i class="ti ti-eye"></i> Preview</button>
           </div>` : `
@@ -5660,7 +5966,7 @@ async function saveProfile() {
   if (!token) {
     btn.disabled = false;
     btn.innerHTML = '<i class="ti ti-check"></i> Save profile';
-    alert('Session expired — please sign in again.');
+    showToast('Session expired — please sign in again.', 'error');
     return;
   }
 
@@ -5695,15 +6001,16 @@ async function saveProfile() {
       _userProfile = { ..._userProfile, ...updates };
       const msg = document.getElementById('profileSavedMsg');
       if (msg) { msg.style.display = 'block'; setTimeout(() => msg.style.display = 'none', 3000); }
+      showToast('Profile saved!', 'success');
       renderProfile();
     } else {
       const errText = await res.text();
-      alert('Error saving: ' + errText);
+      showToast('Error saving profile. Please try again.', 'error', 3600);
     }
   } catch(e) {
     btn.disabled = false;
     btn.innerHTML = '<i class="ti ti-check"></i> Save profile';
-    alert('Error: ' + e.message);
+    showToast('Error: ' + e.message, 'error', 3600);
   }
 }
 
@@ -5817,7 +6124,7 @@ async function confirmCrop() {
 async function uploadAvatar(e) {
   const file = e.target.files?.[0];
   if (!file || !currentUser) return;
-  if (file.size > 10 * 1024 * 1024) { alert('Max 10 MB.'); return; }
+  if (file.size > 10 * 1024 * 1024) { showToast('Max file size is 10 MB.', 'error'); return; }
   // Open crop dialog instead of uploading directly
   openCrop(file);
 }
@@ -5826,7 +6133,7 @@ async function doAvatarUpload(blob) {
   if (!currentUser) return;
 
   const token = await getAccessToken();
-  if (!token) { alert('Please sign in again.'); return; }
+  if (!token) { showToast('Please sign in again.', 'error'); return; }
 
   const fileName = `${currentUser.id}.jpg`;
 
@@ -5848,12 +6155,12 @@ async function doAvatarUpload(blob) {
       if (err.includes('invalid_mime_type')) {
         const pngBlob = await new Promise(r => { const c = document.createElement('canvas'); c.width=280; c.height=280; const ctx=c.getContext('2d'); const img=document.getElementById('cropImg'); ctx.beginPath(); ctx.arc(140,140,140,0,Math.PI*2); ctx.clip(); const w=_cropNaturalW*_cropScale, h=_cropNaturalH*_cropScale, x=140-w/2+_cropOffsetX, y=140-h/2+_cropOffsetY; ctx.drawImage(img,x,y,w,h); c.toBlob(r,'image/png'); });
         const retry = await fetch(`${SUPA_URL}/storage/v1/object/avatars/${fileName.replace('.jpg','.png')}`, { method:'POST', headers:{'Authorization':`Bearer ${token}`,'x-upsert':'true','Cache-Control':'3600','Content-Type':'image/png'}, body: pngBlob });
-        if (!retry.ok) { alert('Avatar upload failed: ' + await retry.text()); return; }
+        if (!retry.ok) { showToast('Avatar upload failed. Please try again.', 'error'); return; }
         const avatarUrl2 = `${SUPA_URL}/storage/v1/object/public/avatars/${fileName.replace('.jpg','.png')}?t=${Date.now()}`;
         await fetch(`${SUPA_URL}/rest/v1/profiles`, { method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`,'apikey':SUPA_KEY,'Prefer':'resolution=merge-duplicates,return=minimal'}, body: JSON.stringify({ id: currentUser.id, avatar_url: avatarUrl2, updated_at: new Date().toISOString() }) });
         _userProfile = { ..._userProfile, avatar_url: avatarUrl2 }; renderProfile(); return;
       }
-      alert('Avatar upload failed: ' + err); return;
+      showToast('Avatar upload failed. Please try again.', 'error'); return;
     }
 
     const avatarUrl = `${SUPA_URL}/storage/v1/object/public/avatars/${fileName}?t=${Date.now()}`;
@@ -5871,8 +6178,9 @@ async function doAvatarUpload(blob) {
 
     _userProfile = { ..._userProfile, avatar_url: avatarUrl };
     renderProfile();
+    showToast('Avatar updated!', 'success');
   } catch(e) {
-    alert('Error: ' + e.message);
+    showToast('Error: ' + e.message, 'error', 3600);
   }
 }
 
@@ -6104,10 +6412,10 @@ function resetSiteMeta() {
   setHeadMeta('og:type', 'website', true);
   setHeadMeta('og:url', _SITE_META.url, true);
   setHeadMeta('og:title', _SITE_META.title, true);
-  setHeadMeta('og:description', 'Swipe through curated beats from independent producers. Save your favorites, license instantly — free forever.', true);
+  setHeadMeta('og:description', _SITE_META.description, true);
   setHeadMeta('og:image', _SITE_META.image, true);
   setHeadMeta('twitter:title', _SITE_META.title, false);
-  setHeadMeta('twitter:description', 'Swipe through curated beats from independent producers. Save your favorites, license instantly.', false);
+  setHeadMeta('twitter:description', _SITE_META.description, false);
   setHeadMeta('twitter:image', _SITE_META.image, false);
   setCanonical(_SITE_META.url);
 }
@@ -6361,18 +6669,57 @@ async function loadPortfolioProfile(producerName) {
   return profile;
 }
 
+function buildSocialHref(platform, raw) {
+  const v = (raw || '').trim();
+  if (!v) return null;
+  if (/^https?:\/\//i.test(v)) return v;
+  if (platform === 'instagram') {
+    return 'https://instagram.com/' + encodeURIComponent(v.replace(/^@/, ''));
+  }
+  if (platform === 'soundcloud') {
+    if (v.includes('soundcloud.com')) return 'https://' + v.replace(/^https?:\/\//, '');
+    return 'https://soundcloud.com/' + v.replace(/^@/, '');
+  }
+  if (platform === 'beatstars') {
+    if (v.includes('beatstars.com')) return v.startsWith('http') ? v : 'https://' + v.replace(/^https?:\/\//, '');
+    return 'https://www.beatstars.com/' + v.replace(/^@/, '');
+  }
+  if (platform === 'youtube') {
+    if (v.includes('youtube.com') || v.includes('youtu.be')) return v.startsWith('http') ? v : 'https://' + v.replace(/^https?:\/\//, '');
+    return 'https://youtube.com/@' + encodeURIComponent(v.replace(/^@/, ''));
+  }
+  return null;
+}
+
+function buildPortfolioSocialsHTML(profile) {
+  const links = [
+    { key: 'instagram', icon: 'ti-brand-instagram', label: 'Instagram' },
+    { key: 'beatstars', icon: 'ti-music', label: 'BeatStars' },
+    { key: 'soundcloud', icon: 'ti-brand-soundcloud', label: 'SoundCloud' },
+    { key: 'youtube', icon: 'ti-brand-youtube', label: 'YouTube' },
+  ];
+  const items = links.map(l => {
+    const href = buildSocialHref(l.key, profile[l.key]);
+    if (!href) return '';
+    return `<a class="portfolio-social-link" href="${escHtml(href)}" target="_blank" rel="noopener noreferrer" aria-label="${l.label}"><i class="ti ${l.icon}"></i></a>`;
+  }).filter(Boolean).join('');
+  return items ? `<div class="portfolio-socials">${items}</div>` : '';
+}
+
 function renderPortfolioHeader(producerName, profile, color) {
   const header = document.getElementById('portfolioHeader');
   if (!header) return;
   const avatarEl = profile.avatar_url
-    ? `<img src="${profile.avatar_url}" class="portfolio-avatar" alt="">`
+    ? `<img src="${profile.avatar_url}" class="portfolio-avatar" alt="${escHtml(producerName)}">`
     : `<div class="portfolio-avatar-fallback" style="background:${color}20;border-color:${color}80"><i class="ti ti-user" style="color:${color}"></i></div>`;
   const bio = profile.bio ? escHtml(profile.bio) : 'Independent producer';
+  const socials = buildPortfolioSocialsHTML(profile);
   header.innerHTML = `
     ${avatarEl}
     <div class="portfolio-header-text">
       <div class="portfolio-name">${escHtml(producerName)}</div>
       <div class="portfolio-bio">${bio}</div>
+      ${socials}
     </div>
     <div class="portfolio-counter" id="portfolioCounter">1 / 1</div>`;
 }
@@ -6401,6 +6748,7 @@ function renderPortfolioCard() {
       slot.innerHTML = `<div class="empty-card"><i class="ti ti-music-off"></i>No beats yet.<br><span style="font-size:12px;color:var(--text-3)">This producer hasn't published beats yet.</span></div>`;
     } else {
       slot.innerHTML = buildPortfolioDoneHTML();
+      spawnPortfolioConfetti();
     }
     return;
   }
@@ -6454,7 +6802,7 @@ function showPortfolioNotFound(slug) {
   const header = document.getElementById('portfolioHeader');
   if (header) header.innerHTML = `<div class="portfolio-name" style="flex:1">Producer not found</div>`;
   const slot = document.getElementById('portfolioCardSlot');
-  if (slot) slot.innerHTML = `<div class="empty-card"><i class="ti ti-user-off"></i>No producer "<span style="color:var(--text)">${escHtml(slug)}</span>" yet.<br><span style="font-size:12px;color:var(--text-3)"><a onclick="goTo('landScreen','navHome')" style="color:var(--accent-mid);cursor:pointer">Get your own page</a> — submit beats to go live.</span></div>`;
+  if (slot) slot.innerHTML = `<div class="empty-card"><i class="ti ti-user-off"></i>No producer "<span style="color:var(--text)">${escHtml(slug)}</span>" yet.<br><span style="font-size:12px;color:var(--text-3)"><a onclick="goTo('landScreen','navHome')" style="color:var(--accent-mid);cursor:pointer">Get your own page</a> — add beats on My Page to go live.</span></div>`;
   updatePortfolioMeta(slug, { bio: 'Producer portfolio page on BeatSwipe.' }, portfolioSlugFromName(slug));
 }
 
@@ -6488,6 +6836,7 @@ async function openPortfolio(producerName, opts) {
   const profile = await loadPortfolioProfile(producerName);
   renderPortfolioHeader(producerName, profile, color);
   renderPortfolioCard();
+  playPortfolioEnterAnim();
 
   const slug = portfolioSlugFromName(producerName);
   if (!opts.skipHistory) {
@@ -6530,12 +6879,26 @@ async function handlePortfolioPopstate() {
   }
 }
 
-function copyPortfolioLink() {
+function copyPortfolioLink(ev) {
   const name = _userProfile?.producer_name;
-  if (!name) { alert('Set your producer name in Profile first.'); return; }
+  if (!name) { showToast('Set your producer name in Profile first.', 'error'); return; }
   const url = 'https://beatswipe.app/p/' + portfolioSlugFromName(name);
+  const btn = ev?.currentTarget || ev?.target?.closest?.('button');
+  const pulseCopy = () => {
+    if (!btn) return;
+    btn.classList.remove('copy-pulse');
+    void btn.offsetWidth;
+    btn.classList.add('copy-pulse');
+    setTimeout(() => btn.classList.remove('copy-pulse'), 560);
+  };
   if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(url).then(() => alert('Link copied!\n' + url)).catch(() => prompt('Copy your portfolio link:', url));
+    navigator.clipboard.writeText(url).then(() => {
+      showToast('Link copied!', 'success');
+      pulseCopy();
+    }).catch(() => {
+      showToast('Couldn\'t copy — select the link manually.', 'error');
+      prompt('Copy your portfolio link:', url);
+    });
   } else {
     prompt('Copy your portfolio link:', url);
   }
@@ -6590,7 +6953,7 @@ function clearLocalData() {
     b.classList.toggle('active', b.dataset.genre === 'all');
   });
   renderCard();
-  alert('Done! Skipped beats will show again.');
+  showToast('Skipped beats will show again.', 'success');
 }
 
 function replaySkipped() {
@@ -6783,7 +7146,7 @@ async function saveOnboardingProfile() {
   if (!currentUser) return;
   const name = document.getElementById('ob-name')?.value.trim();
   const bio = document.getElementById('ob-bio')?.value.trim();
-  if (!name) { alert('Producer name is required.'); return; }
+  if (!name) { showToast('Producer name is required.', 'error'); return; }
 
   const btn = document.getElementById('obSaveBtn');
   if (btn) {
@@ -6794,7 +7157,7 @@ async function saveOnboardingProfile() {
   const token = await getAccessToken();
   if (!token) {
     if (btn) { btn.disabled = false; btn.innerHTML = 'Continue'; }
-    alert('Session expired — please sign in again.');
+    showToast('Session expired — please sign in again.', 'error');
     return;
   }
 
@@ -6821,10 +7184,10 @@ async function saveOnboardingProfile() {
       _myPageObStep = 1;
       renderMyPage();
     } else {
-      alert('Error saving profile.');
+      showToast('Error saving profile. Please try again.', 'error');
     }
   } catch(e) {
-    alert('Error: ' + e.message);
+    showToast('Error: ' + e.message, 'error', 3600);
   }
   if (btn) {
     btn.disabled = false;
@@ -6837,7 +7200,7 @@ function finishMyPageOnboarding() {
   const pending = getMyPendingBeats().length;
   const total = live + pending;
   if (total < 1) {
-    alert('Add at least one beat before finishing setup.');
+    showToast('Add at least one beat before finishing setup.', 'error');
     return;
   }
   if (total < 3) {
@@ -6901,7 +7264,7 @@ function renderMyPageDashboard() {
         <div class="my-page-link-label">Your bio link</div>
         <div class="my-page-link-url">${escHtml(url.replace('https://', ''))}</div>
         <div class="my-page-link-actions">
-          <button type="button" class="btn-primary" onclick="copyPortfolioLink()"><i class="ti ti-link"></i> Copy link</button>
+          <button type="button" class="btn-primary" onclick="copyPortfolioLink(event)"><i class="ti ti-link"></i> Copy link</button>
           <button type="button" class="btn-secondary" onclick="previewMyPage()"><i class="ti ti-eye"></i> Preview</button>
         </div>
       </div>` : ''}
@@ -6980,7 +7343,7 @@ function renderMyPageOnboarding() {
         <div class="my-page-link-label">Your bio link</div>
         <div class="my-page-link-url">${escHtml(url.replace('https://', ''))}</div>
         <div class="my-page-link-actions">
-          <button type="button" class="btn-primary" onclick="copyPortfolioLink()"><i class="ti ti-link"></i> Copy link</button>
+          <button type="button" class="btn-primary" onclick="copyPortfolioLink(event)"><i class="ti ti-link"></i> Copy link</button>
           <button type="button" class="btn-secondary" onclick="previewMyPage()"><i class="ti ti-eye"></i> Preview</button>
         </div>
       </div>` : ''}
