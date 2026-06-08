@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-08-v28 — autoplay guard + portfolio desktop immersive layout -->
+<!-- deploy: 2026-06-08-v30 — portfolio skip icon + kbd hints side by side -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -1711,6 +1711,8 @@
       overflow: hidden;
     }
     #portfolioPageInner.page-inner--swipe-done .portfolio-card-slot {
+      justify-content: center;
+      padding-bottom: 96px;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
     }
@@ -2074,7 +2076,8 @@
       }
       #portfolioPageInner.page-inner--swipe-done .portfolio-card-slot {
         justify-content: center;
-        padding-top: 8px;
+        padding-top: 0;
+        padding-bottom: 96px;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
       }
@@ -2130,13 +2133,26 @@
         width: var(--w-portfolio);
         height: 72%;
       }
-      body.portfolio-active .discover-kbd-hints { display: none !important; }
+      body.portfolio-active .discover-side-hint {
+        font-size: 11px;
+        letter-spacing: 2px;
+        opacity: 0.42;
+        gap: 12px;
+      }
+      body.portfolio-active .discover-side-hint i { font-size: 26px; }
       body.portfolio-active .discover-side-hint--skip {
+        display: flex;
         left: max(24px, calc(50% - var(--w-portfolio) / 2 - 68px));
+        color: #f87171;
       }
       body.portfolio-active .discover-side-hint--save {
+        display: flex;
         left: calc(50% + var(--w-portfolio) / 2 + 48px);
         color: var(--accent-mid);
+      }
+      body.portfolio-active.portfolio-swipe-done .discover-side-hint,
+      body.portfolio-active.portfolio-swipe-done .discover-kbd-hints {
+        display: none !important;
       }
     }
     @media (min-width: 900px) {
@@ -2152,11 +2168,34 @@
       #portfolioCardWrap .portfolio-surface.fly-right {
         transition: transform 0.42s cubic-bezier(0.34, 1.2, 0.64, 1), opacity 0.35s ease;
       }
+      body.portfolio-active .discover-side-hint {
+        font-size: 12px;
+        opacity: 0.48;
+      }
+      body.portfolio-active .discover-side-hint i { font-size: 28px; }
       body.portfolio-active .discover-side-hint--skip {
         left: max(32px, calc(50% - var(--w-portfolio) / 2 - 80px));
       }
       body.portfolio-active .discover-side-hint--save {
         left: calc(50% + var(--w-portfolio) / 2 + 56px);
+      }
+    }
+    @media (min-width: 1100px) {
+      body.portfolio-active .discover-kbd-hints {
+        display: flex !important;
+        top: 42%;
+      }
+      body.portfolio-active .discover-kbd-hints--left {
+        left: max(16px, calc(50% - var(--w-portfolio) / 2 - 236px));
+        align-items: flex-end;
+      }
+      body.portfolio-active .discover-side-hint--skip {
+        display: flex !important;
+        left: max(32px, calc(50% - var(--w-portfolio) / 2 - 72px));
+      }
+      body.portfolio-active .discover-side-hint--save {
+        display: flex !important;
+        left: calc(50% + var(--w-portfolio) / 2 + 40px);
       }
     }
 
@@ -5878,6 +5917,7 @@ function buildPortfolioDoneHTML() {
 
 function setPortfolioDoneMode(on) {
   document.getElementById('portfolioPageInner')?.classList.toggle('page-inner--swipe-done', !!on);
+  document.body.classList.toggle('portfolio-swipe-done', !!on);
 }
 
 function getPortfolioFlyEl() {
@@ -6217,7 +6257,7 @@ function openProducerProfile(producerName) {
 function exitPortfolioMode() {
   _portfolioMode = false;
   _portfolioProducer = null;
-  document.body.classList.remove('portfolio-active');
+  document.body.classList.remove('portfolio-active', 'portfolio-swipe-done');
   document.body.style.removeProperty('--pf-glow');
   resetSiteMeta();
 }
@@ -6233,7 +6273,7 @@ async function handlePortfolioPopstate() {
   if (_portfolioMode) {
     _portfolioMode = false;
     _portfolioProducer = null;
-    document.body.classList.remove('portfolio-active');
+    document.body.classList.remove('portfolio-active', 'portfolio-swipe-done');
     resetSiteMeta();
     stopTrack();
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
