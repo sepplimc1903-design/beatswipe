@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-08-v49 — portfolio skeleton, beat_order sync, header polish -->
+<!-- deploy: 2026-06-08-v50 — discover mobile swipe polish, add-beat focus fix -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -2723,6 +2723,44 @@
       .beat-card.fly-right {
         transition: transform 0.42s cubic-bezier(0.34, 1.2, 0.64, 1), opacity 0.35s ease;
       }
+      /* Discover mobile — larger swipe zone, no clip edges, less chrome */
+      body.discover-active .shell,
+      body.discover-active #discoverScreen,
+      body.discover-active .page-inner--swipe,
+      #discoverScreen .card-wrap,
+      #discoverScreen .card-stage {
+        overflow: visible;
+      }
+      #discoverScreen .discover-toolbar-top .wordmark { display: none; }
+      #discoverScreen .swipe-hint { display: none; }
+      #discoverScreen .discover-toolbar {
+        gap: 8px;
+        padding-bottom: 6px;
+      }
+      #discoverScreen .discover-toolbar .cat-row {
+        padding: 0 var(--px) 4px;
+      }
+      #discoverScreen .card-wrap {
+        align-items: stretch;
+        justify-content: flex-start;
+        padding-top: 2px;
+        padding-bottom: 2px;
+      }
+      #discoverScreen .card-stage { width: 100%; }
+      #discoverScreen .card-glow {
+        opacity: 0.22;
+        filter: blur(44px);
+        height: 48%;
+      }
+      body.discover-active .beat-card.dragging,
+      body.discover-active .beat-card.fly-left,
+      body.discover-active .beat-card.fly-right {
+        z-index: 12;
+      }
+      #discoverScreen .action-row {
+        padding-top: 8px;
+        padding-bottom: 14px;
+      }
     }
     @media (min-width: 900px) {
       .act-btn:active { transform: scale(0.92); }
@@ -5082,8 +5120,9 @@ function renderCard() {
     if (_portfolioMode) {
       if (!el.closest('#portfolioPageInner')) return false;
       if (el.closest('.portfolio-action-row,.act-btn,.portfolio-foot a')) return false;
-    } else if (!el.closest('#theCard')) {
-      return false;
+    } else {
+      if (!el.closest('#cardWrap')) return false;
+      if (el.closest('.action-row,.act-btn,.discover-toolbar,.swipe-hint')) return false;
     }
     if (el.closest('iframe,button,a,.progress-bar,.waveform-wrap,.yt-overlay')) return false;
     return true;
@@ -5099,10 +5138,11 @@ function renderCard() {
     if (!glow) return;
     glow.style.transition = 'none';
     const pct = Math.min(Math.abs(dx) / 110, 1);
-    const scale = 1 + pct * 0.22;
-    const tx = dx * 0.14;
+    const mobile = isMobileUI() && !_portfolioMode;
+    const scale = 1 + pct * (mobile ? 0.1 : 0.22);
+    const tx = dx * (mobile ? 0.08 : 0.14);
     glow.style.transform = `translate(calc(-50% + ${tx}px), -50%) scale(${scale})`;
-    glow.style.opacity = String(0.28 + pct * 0.42);
+    glow.style.opacity = String((mobile ? 0.2 : 0.28) + pct * (mobile ? 0.18 : 0.42));
     glow.classList.remove('glow-toward-save', 'glow-toward-skip');
     if (dx > 12) glow.classList.add('glow-toward-save');
     else if (dx < -12) glow.classList.add('glow-toward-skip');
@@ -8235,8 +8275,6 @@ function showMyPageAddBeat() {
   const pt = document.getElementById('f-preview-type')?.value;
   if (pt === 'YouTube' || pt === 'SoundCloud') {
     document.getElementById('f-title')?.focus();
-  } else {
-    document.getElementById('f-genre')?.focus();
   }
 }
 
