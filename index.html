@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-08-v25 — portfolio title align + discover fly animation -->
+<!-- deploy: 2026-06-08-v26 — My Page dashboard + producer onboarding -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -1507,6 +1507,57 @@
     .submit-btn { width: 100%; padding: 14px; border-radius: 12px; background: var(--accent); border: none; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 6px; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
     .submit-btn:hover { opacity: 0.88; }
     .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    /* My Page dashboard */
+    .my-page-back {
+      background: none; border: none; color: var(--accent-mid); font-size: 14px; font-weight: 600;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 6px; padding: 0 0 12px;
+    }
+    .my-page-login {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; gap: 14px; padding: 48px 24px; min-height: 320px;
+    }
+    .my-page-step-pill {
+      display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.4px;
+      text-transform: uppercase; color: var(--accent-mid); background: var(--accent-light);
+      padding: 5px 12px; border-radius: 100px; margin-bottom: 4px;
+    }
+    .my-page-link-box {
+      background: var(--bg-2); border: 0.5px solid var(--border); border-radius: 14px;
+      padding: 16px; margin-bottom: 14px;
+    }
+    .my-page-link-label { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; margin-bottom: 6px; }
+    .my-page-link-url { font-size: 15px; font-weight: 600; word-break: break-all; margin-bottom: 12px; }
+    .my-page-link-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .my-page-link-actions .btn-secondary,
+    .my-page-link-actions .btn-primary { flex: 1; min-width: 120px; justify-content: center; font-size: 13px; padding: 11px 14px; }
+    .my-page-beat-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+    .my-page-beat-row {
+      display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+      background: var(--bg-2); border: 0.5px solid var(--border); border-radius: 12px;
+    }
+    .my-page-beat-icon {
+      width: 40px; height: 40px; border-radius: 10px; background: var(--accent-light);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .my-page-beat-icon i { color: var(--accent-mid); font-size: 18px; }
+    .my-page-beat-title { flex: 1; font-size: 14px; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .my-page-status {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.3px; text-transform: uppercase;
+      padding: 4px 10px; border-radius: 100px; flex-shrink: 0;
+    }
+    .my-page-status--live { background: rgba(34,197,94,0.15); color: #4ade80; }
+    .my-page-status--pending { background: rgba(251,191,36,0.12); color: #fbbf24; }
+    .my-page-empty { text-align: center; padding: 28px 16px; color: var(--text-3); font-size: 13px; line-height: 1.55; }
+    .my-page-hint {
+      background: var(--bg-2); border: 0.5px solid var(--border); border-radius: 12px;
+      padding: 12px 14px; font-size: 13px; color: var(--text-2); line-height: 1.5; margin-bottom: 14px;
+    }
+    .my-page-hint strong { color: var(--text); }
+    .my-page-ready-icon {
+      width: 56px; height: 56px; border-radius: 50%; background: var(--accent-light);
+      display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;
+    }
+    .my-page-ready-icon i { font-size: 28px; color: var(--accent-mid); }
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     .success-msg { background: var(--accent-light); border-radius: 12px; padding: 16px; margin-top: 14px; display: none; text-align: center; }
     .success-msg i { font-size: 28px; color: var(--accent-mid); display: block; margin-bottom: 8px; }
@@ -2460,7 +2511,7 @@
     <button type="button" class="dtb-tab active" id="dtbHome" onclick="goTo('landScreen','navHome')">Home</button>
     <button type="button" class="dtb-tab" id="dtbDiscover" onclick="goTo('discoverScreen','navDiscover')">Discover</button>
     <button type="button" class="dtb-tab" id="dtbCrate" onclick="goTo('crateScreen','navCrate')">Favorites</button>
-    <button type="button" class="dtb-tab" id="dtbSubmit" onclick="goTo('submitScreen','navSubmit')">Submit</button>
+    <button type="button" class="dtb-tab" id="dtbSubmit" onclick="goTo('submitScreen','navSubmit')">My Page</button>
     <button type="button" class="dtb-tab" id="dtbProfile" onclick="goTo('profileScreen','navProfile')">Profile</button>
   </nav>
   <div class="dtb-auth" id="dtbAuth">
@@ -2592,7 +2643,7 @@
         <nav class="site-footer-nav" aria-label="Footer navigation">
           <a onclick="goTo('discoverScreen','navDiscover')">Discover</a>
           <a onclick="goTo('crateScreen','navCrate')">Favorites</a>
-          <a onclick="goTo('submitScreen','navSubmit')">Submit</a>
+          <a onclick="goTo('submitScreen','navSubmit')">My Page</a>
           <a onclick="goTo('profileScreen','navProfile')">Profile</a>
         </nav>
         <div class="site-footer-legal">
@@ -2674,31 +2725,18 @@
     </div>
   </div>
 
-  <!-- SUBMIT -->
+  <!-- MY PAGE (producer dashboard) -->
   <div class="screen" id="submitScreen">
     <div class="page-inner page-inner--wide">
-    <div class="site-page-head">
-      <h1 class="site-page-title">Submit</h1>
-      <p class="site-page-desc">Get your free swipe portfolio link for your bio. Submit beats to go live.</p>
-    </div>
-    <div class="submit-header">
-      <div class="submit-title">Submit your beats</div>
-      <div class="submit-sub">Submit at least 3 beats, then share beatswipe.app/p/yourname in your bio. Free forever.</div>
-    </div>
-    <!-- login gate -->
-    <div id="submitLoginGate" class="submit-login-gate" style="display:none">
-      <i class="ti ti-lock" style="font-size:48px;color:var(--accent-mid)"></i>
-      <div style="font-size:18px;font-weight:700">Sign in to submit</div>
-      <div style="font-size:14px;color:var(--text-2);line-height:1.6;max-width:280px">Create a free account to submit your beats. Your producer name will be filled in automatically.</div>
-      <button onclick="goTo('profileScreen','navProfile')" style="padding:13px 28px;border-radius:14px;background:var(--accent);border:none;color:#fff;font-size:15px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px">
-        <i class="ti ti-user"></i> Sign in / Create account
-      </button>
+    <div id="myPageMain"></div>
+    <div id="myPageAddBeat" style="display:none">
+    <div class="submit-header" style="padding-top:0">
+      <button type="button" class="my-page-back" onclick="hideMyPageAddBeat()"><i class="ti ti-arrow-left"></i> Back</button>
+      <div class="submit-title">Add new beat</div>
+      <div class="submit-sub">Shows on your page after review — usually within 48h.</div>
     </div>
     <div class="submit-scroll" id="submitForm">
-      <div class="field-group">
-        <label class="field-label">Producer name *</label>
-        <input type="text" id="f-producer" placeholder="Your name or alias">
-      </div>
+      <input type="hidden" id="f-producer">
       <div class="field-group">
         <label class="field-label">Track title *</label>
         <input type="text" id="f-title" placeholder="e.g. Midnight Drive">
@@ -2794,12 +2832,12 @@
         <label class="field-label">Anything else?</label>
         <textarea id="f-note" placeholder="Additional info, collab requests..."></textarea>
       </div>
-      <button class="submit-btn" onclick="doSubmitForm()"><i class="ti ti-send"></i> Submit for review</button>
+      <button class="submit-btn" onclick="doSubmitForm()"><i class="ti ti-plus"></i> Add beat</button>
       <div class="success-msg" id="successMsg">
         <i class="ti ti-circle-check"></i>
-        <p>Submission received! We'll review your beat within 48h.</p>
-        <button type="button" class="btn-secondary" id="submitAnotherBtn" onclick="resetSubmitForAnother()" style="margin-top:12px;width:100%;justify-content:center"><i class="ti ti-plus"></i> Submit another beat</button>
+        <p>Beat submitted! We'll review it within 48h.</p>
       </div>
+    </div>
     </div>
     </div>
   </div>
@@ -2844,7 +2882,7 @@
     <button class="nav-tab active" id="navHome" onclick="goTo('landScreen','navHome')"><i class="ti ti-home"></i>Home<div class="nav-dot"></div></button>
     <button class="nav-tab" id="navDiscover" onclick="goTo('discoverScreen','navDiscover')"><i class="ti ti-headphones"></i>Discover<div class="nav-dot"></div></button>
     <button class="nav-tab" id="navCrate" onclick="goTo('crateScreen','navCrate')"><i class="ti ti-shopping-cart"></i>Favorites<div class="nav-dot"></div></button>
-    <button class="nav-tab" id="navSubmit" onclick="goTo('submitScreen','navSubmit')"><i class="ti ti-upload"></i>Submit<div class="nav-dot"></div></button>
+    <button class="nav-tab" id="navSubmit" onclick="goTo('submitScreen','navSubmit')"><i class="ti ti-link"></i>My Page<div class="nav-dot"></div></button>
     <button class="nav-tab" id="navProfile" onclick="goTo('profileScreen','navProfile')"><i class="ti ti-user"></i>Profile<div class="nav-dot"></div></button>
   </div>
 
@@ -3198,7 +3236,7 @@ function applyGoTo(screenId, navId) {
   }
   if (screenId === 'crateScreen') renderCrate();
   if (screenId === 'profileScreen') renderProfile();
-  if (screenId === 'submitScreen') renderSubmitScreen();
+  if (screenId === 'submitScreen') void renderMyPage();
   if (screenId === 'landScreen') initScrollReveal();
 }
 
@@ -4748,7 +4786,17 @@ async function uploadMp3ToSupabase() {
 
 // ─── SUBMIT ───────────────────────────────────────────────────────────────
 async function doSubmitForm() {
-  const fields = ['f-producer','f-title','f-bpm','f-genre','f-type','f-preview-type'];
+  const producer = (_userProfile?.producer_name || document.getElementById('f-producer')?.value || '').trim();
+  if (!producer) {
+    alert('Complete your page setup first — add your producer name.');
+    hideMyPageAddBeat();
+    renderMyPage();
+    return;
+  }
+  const prodEl = document.getElementById('f-producer');
+  if (prodEl) prodEl.value = producer;
+
+  const fields = ['f-title','f-bpm','f-genre','f-type','f-preview-type'];
   const vals = fields.map(id => document.getElementById(id).value.trim());
   if (vals.some(v => !v)) { alert('Please fill in all required fields.'); return; }
 
@@ -4763,7 +4811,6 @@ async function doSubmitForm() {
     if (!_mp3File) { alert('Please select an MP3 file.'); return; }
   }
 
-  const producer = document.getElementById('f-producer').value.trim();
   const title    = document.getElementById('f-title').value.trim();
   const bpm      = document.getElementById('f-bpm').value.trim();
   const genre    = document.getElementById('f-genre').value.trim();
@@ -4790,7 +4837,7 @@ async function doSubmitForm() {
         errEl.style.display = 'block';
         // Also scroll error into view so user sees it
         errEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        btn.innerHTML = '<i class="ti ti-send"></i> Submit for review';
+        btn.innerHTML = '<i class="ti ti-plus"></i> Add beat';
         btn.disabled = false;
         return;
       }
@@ -4830,15 +4877,15 @@ async function doSubmitForm() {
       console.warn('[BeatSwipe] Webhook returned non-ok, but file uploaded — treating as success');
     }
 
-    // Success — show message briefly then reset form so user can submit again
+    // Success — refresh My Page
+    addMyPendingBeat(title);
     const successMsg = document.getElementById('successMsg');
-    successMsg.style.display = 'block';
-    btn.innerHTML = '<i class="ti ti-send"></i> Submit for review';
+    if (successMsg) successMsg.style.display = 'block';
+    btn.innerHTML = '<i class="ti ti-plus"></i> Add beat';
     btn.disabled = false;
     btn.style.display = 'flex';
 
-    // Reset fields but keep producer name for another submission
-    const keepProducer = document.getElementById('f-producer')?.value.trim() || producer;
+    const keepProducer = producer;
     ['f-title','f-bpm','f-key','f-genre','f-type','f-preview-type','f-preview','f-buy','f-note'].forEach(id => {
       const el = document.getElementById(id);
       if (!el) return;
@@ -4853,12 +4900,15 @@ async function doSubmitForm() {
     _mp3PublicUrl = null;
     resetUploadUI();
 
-    // Hide success message after 4 seconds
-    setTimeout(() => { successMsg.style.display = 'none'; }, 4000);
+    setTimeout(() => {
+      if (successMsg) successMsg.style.display = 'none';
+      hideMyPageAddBeat();
+      renderMyPage();
+    }, 1200);
 
   } catch(e) {
     console.error('[BeatSwipe] submitForm error:', e);
-    btn.innerHTML = '<i class="ti ti-send"></i> Submit for review';
+    btn.innerHTML = '<i class="ti ti-plus"></i> Add beat';
     btn.disabled = false;
     // Show error visibly in the form instead of an alert
     const errEl = document.getElementById('uploadError');
@@ -6263,24 +6313,334 @@ function toggleDsgvo() {
 }
 
 function renderSubmitScreen() {
-  const gate = document.getElementById('submitLoginGate');
-  const form = document.getElementById('submitForm');
-  if (!gate || !form) return;
+  renderMyPage();
+}
+
+// ─── MY PAGE (producer dashboard) ─────────────────────────────────────────
+let _myPageObStep = 0;
+
+function myPageStorageKey(suffix) {
+  return currentUser ? `bs_${suffix}_${currentUser.id}` : null;
+}
+
+function isMyPageOnboarded() {
+  if (!currentUser) return false;
+  const key = myPageStorageKey('page_setup');
+  if (key && localStorage.getItem(key) === '1') return true;
+  const name = _userProfile?.producer_name?.trim();
+  if (name && getMyLiveBeats().length >= 1) {
+    if (key) localStorage.setItem(key, '1');
+    return true;
+  }
+  return false;
+}
+
+function markMyPageOnboarded() {
+  const key = myPageStorageKey('page_setup');
+  if (key) localStorage.setItem(key, '1');
+}
+
+function getMyPendingBeats() {
+  const key = myPageStorageKey('pending_beats');
+  if (!key) return [];
+  try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) { return []; }
+}
+
+function addMyPendingBeat(title) {
+  const key = myPageStorageKey('pending_beats');
+  if (!key) return;
+  const list = getMyPendingBeats();
+  list.push({ title, submittedAt: Date.now() });
+  localStorage.setItem(key, JSON.stringify(list));
+}
+
+function getMyLiveBeats() {
+  const name = _userProfile?.producer_name?.trim();
+  if (!name) return [];
+  return Object.values(_rawDb || {}).flat().filter(b => b.producer === name);
+}
+
+function getMyPageUrl() {
+  const name = _userProfile?.producer_name?.trim();
+  if (!name) return '';
+  return 'https://beatswipe.app/p/' + portfolioSlugFromName(name);
+}
+
+function showMyPageAddBeat() {
+  const main = document.getElementById('myPageMain');
+  const add = document.getElementById('myPageAddBeat');
+  if (main) main.style.display = 'none';
+  if (add) add.style.display = 'block';
+  const prodEl = document.getElementById('f-producer');
+  if (prodEl) prodEl.value = _userProfile?.producer_name || '';
+  const successMsg = document.getElementById('successMsg');
+  if (successMsg) successMsg.style.display = 'none';
+  if (currentUser) {
+    const loggedIn = document.getElementById('uploadLoggedIn');
+    const loginHint = document.getElementById('uploadLoginHint');
+    if (loggedIn) loggedIn.style.display = 'block';
+    if (loginHint) loginHint.style.display = 'none';
+  }
+  document.getElementById('f-title')?.focus();
+}
+
+function hideMyPageAddBeat() {
+  const main = document.getElementById('myPageMain');
+  const add = document.getElementById('myPageAddBeat');
+  if (add) add.style.display = 'none';
+  if (main) main.style.display = 'block';
+  renderMyPage();
+}
+
+function previewMyPage() {
+  const name = _userProfile?.producer_name?.trim();
+  if (!name) return;
+  openPortfolio(name);
+}
+
+async function saveOnboardingProfile() {
+  if (!currentUser) return;
+  const name = document.getElementById('ob-name')?.value.trim();
+  const bio = document.getElementById('ob-bio')?.value.trim();
+  if (!name) { alert('Producer name is required.'); return; }
+
+  const btn = document.getElementById('obSaveBtn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Saving...';
+  }
+
+  const token = await getAccessToken();
+  if (!token) {
+    if (btn) { btn.disabled = false; btn.innerHTML = 'Continue'; }
+    alert('Session expired — please sign in again.');
+    return;
+  }
+
+  const updates = {
+    id: currentUser.id,
+    producer_name: name,
+    bio: bio || null,
+    updated_at: new Date().toISOString()
+  };
+
+  try {
+    const res = await fetch(`${SUPA_URL}/rest/v1/profiles`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'apikey': SUPA_KEY,
+        'Prefer': 'resolution=merge-duplicates,return=minimal'
+      },
+      body: JSON.stringify(updates)
+    });
+    if (res.ok) {
+      _userProfile = { ..._userProfile, ...updates };
+      _myPageObStep = 1;
+      renderMyPage();
+    } else {
+      alert('Error saving profile.');
+    }
+  } catch(e) {
+    alert('Error: ' + e.message);
+  }
+  if (btn) {
+    btn.disabled = false;
+    btn.innerHTML = 'Continue';
+  }
+}
+
+function finishMyPageOnboarding() {
+  const live = getMyLiveBeats().length;
+  const pending = getMyPendingBeats().length;
+  const total = live + pending;
+  if (total < 1) {
+    alert('Add at least one beat before finishing setup.');
+    return;
+  }
+  if (total < 3) {
+    if (!confirm('We recommend at least 3 beats before sharing your link. Finish anyway?')) return;
+  }
+  markMyPageOnboarded();
+  _myPageObStep = 2;
+  renderMyPage();
+}
+
+function completeMyPageOnboarding() {
+  markMyPageOnboarded();
+  _myPageObStep = 0;
+  renderMyPage();
+}
+
+function renderMyPageBeatRows() {
+  const live = getMyLiveBeats();
+  const pending = getMyPendingBeats();
+  const pendingFiltered = pending.filter(p => !live.find(b => b.title === p.title));
+  if (!live.length && !pendingFiltered.length) {
+    return `<div class="my-page-empty"><i class="ti ti-music-off" style="font-size:28px;display:block;margin-bottom:8px;opacity:0.5"></i>No beats yet.<br>Tap below to add your first one.</div>`;
+  }
+  let html = '<div class="my-page-beat-list">';
+  live.forEach(b => {
+    html += `<div class="my-page-beat-row">
+      <div class="my-page-beat-icon"><i class="ti ti-music"></i></div>
+      <div class="my-page-beat-title">${escHtml(b.title)}</div>
+      <span class="my-page-status my-page-status--live">Live</span>
+    </div>`;
+  });
+  pendingFiltered.forEach(p => {
+    html += `<div class="my-page-beat-row">
+      <div class="my-page-beat-icon"><i class="ti ti-clock"></i></div>
+      <div class="my-page-beat-title">${escHtml(p.title)}</div>
+      <span class="my-page-status my-page-status--pending">Pending</span>
+    </div>`;
+  });
+  html += '</div>';
+  return html;
+}
+
+function renderMyPageDashboard() {
+  const name = _userProfile?.producer_name?.trim() || 'Producer';
+  const url = getMyPageUrl();
+  const liveCount = getMyLiveBeats().length;
+  const pendingCount = getMyPendingBeats().filter(p => !getMyLiveBeats().find(b => b.title === p.title)).length;
+
+  return `
+    <div class="site-page-head">
+      <h1 class="site-page-title">My Page</h1>
+      <p class="site-page-desc">Manage your swipe portfolio and bio link.</p>
+    </div>
+    <div class="submit-header" style="padding-top:0">
+      <div class="submit-title">${escHtml(name)}</div>
+      <div class="submit-sub">${liveCount} live${pendingCount ? ` · ${pendingCount} pending review` : ''}</div>
+    </div>
+    <div class="submit-scroll">
+      ${url ? `
+      <div class="my-page-link-box">
+        <div class="my-page-link-label">Your bio link</div>
+        <div class="my-page-link-url">${escHtml(url.replace('https://', ''))}</div>
+        <div class="my-page-link-actions">
+          <button type="button" class="btn-primary" onclick="copyPortfolioLink()"><i class="ti ti-link"></i> Copy link</button>
+          <button type="button" class="btn-secondary" onclick="previewMyPage()"><i class="ti ti-eye"></i> Preview</button>
+        </div>
+      </div>` : ''}
+      ${liveCount < 3 ? `<div class="my-page-hint"><strong>Tip:</strong> Add at least 3 beats before sharing your link in your bio.</div>` : ''}
+      <div style="font-size:12px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.4px;font-weight:600;margin-bottom:8px">Your beats</div>
+      ${renderMyPageBeatRows()}
+      <button type="button" class="submit-btn" onclick="showMyPageAddBeat()"><i class="ti ti-plus"></i> Add new beat</button>
+      <div style="font-size:12px;color:var(--text-3);text-align:center;margin-top:14px;line-height:1.5">Edit avatar & bio in <a onclick="goTo('profileScreen','navProfile')" style="color:var(--accent-mid);cursor:pointer">Profile</a></div>
+    </div>`;
+}
+
+function renderMyPageOnboarding() {
+  const name = _userProfile?.producer_name?.trim() || '';
+  const bio = _userProfile?.bio?.trim() || '';
+  const slug = name ? portfolioSlugFromName(name) : 'yourname';
+  const live = getMyLiveBeats().length;
+  const pending = getMyPendingBeats().length;
+  const total = live + pending;
+
+  if (_myPageObStep === 0) {
+    return `
+      <div class="site-page-head">
+        <h1 class="site-page-title">Get your free page</h1>
+        <p class="site-page-desc">Set up your producer portfolio in a few steps.</p>
+      </div>
+      <div class="submit-scroll">
+        <span class="my-page-step-pill">Step 1 of 3</span>
+        <div class="submit-title" style="margin-bottom:6px">Create your page</div>
+        <div class="submit-sub" style="margin-bottom:18px">Fans see this at the top of your swipe page.</div>
+        <div class="field-group">
+          <label class="field-label">Producer name *</label>
+          <input type="text" id="ob-name" value="${escHtml(name)}" placeholder="Your alias">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Bio</label>
+          <textarea id="ob-bio" placeholder="One line about your sound…" rows="2">${escHtml(bio)}</textarea>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Your link</label>
+          <div style="font-size:14px;color:var(--accent-mid);font-weight:600;padding:10px 0">beatswipe.app/p/${escHtml(slug)}</div>
+        </div>
+        <button type="button" class="submit-btn" id="obSaveBtn" onclick="saveOnboardingProfile()">Continue</button>
+      </div>`;
+  }
+
+  if (_myPageObStep === 1) {
+    return `
+      <div class="site-page-head">
+        <h1 class="site-page-title">Get your free page</h1>
+        <p class="site-page-desc">Add beats to your portfolio.</p>
+      </div>
+      <div class="submit-scroll">
+        <span class="my-page-step-pill">Step 2 of 3</span>
+        <div class="submit-title" style="margin-bottom:6px">Add your beats</div>
+        <div class="my-page-hint"><strong>Min. 3 beats</strong> recommended before you share your link in your bio. Each beat is reviewed within 48h.</div>
+        <div style="font-size:13px;color:var(--text-2);margin-bottom:12px">${total} beat${total === 1 ? '' : 's'} added${live ? ` (${live} live)` : ''}</div>
+        ${renderMyPageBeatRows()}
+        <button type="button" class="submit-btn" onclick="showMyPageAddBeat()" style="margin-bottom:10px"><i class="ti ti-plus"></i> Add beat</button>
+        <button type="button" class="btn-secondary" onclick="finishMyPageOnboarding()" style="width:100%;justify-content:center;padding:13px;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;border:0.5px solid var(--border-2);background:none;color:var(--text)">Finish setup</button>
+      </div>`;
+  }
+
+  const url = getMyPageUrl();
+  return `
+    <div class="site-page-head">
+      <h1 class="site-page-title">You're all set</h1>
+      <p class="site-page-desc">Your page is ready — beats go live after review.</p>
+    </div>
+    <div class="submit-scroll" style="text-align:center;padding-top:12px">
+      <span class="my-page-step-pill">Step 3 of 3</span>
+      <div class="my-page-ready-icon"><i class="ti ti-circle-check"></i></div>
+      <div class="submit-title" style="margin-bottom:8px">Your page is ready</div>
+      <div class="submit-sub" style="margin-bottom:20px;max-width:280px;margin-inline:auto">Share your link once you have a few beats live. Review usually takes under 48h.</div>
+      ${url ? `
+      <div class="my-page-link-box" style="text-align:left">
+        <div class="my-page-link-label">Your bio link</div>
+        <div class="my-page-link-url">${escHtml(url.replace('https://', ''))}</div>
+        <div class="my-page-link-actions">
+          <button type="button" class="btn-primary" onclick="copyPortfolioLink()"><i class="ti ti-link"></i> Copy link</button>
+          <button type="button" class="btn-secondary" onclick="previewMyPage()"><i class="ti ti-eye"></i> Preview</button>
+        </div>
+      </div>` : ''}
+      <button type="button" class="submit-btn" onclick="completeMyPageOnboarding()">Go to My Page</button>
+    </div>`;
+}
+
+async function renderMyPage() {
+  const main = document.getElementById('myPageMain');
+  const add = document.getElementById('myPageAddBeat');
+  if (!main) return;
+  if (add && add.style.display !== 'none') return;
+
+  if (currentUser && !_userProfile) await loadUserProfile();
+
+  main.style.display = 'block';
 
   if (!currentUser) {
-    gate.style.display = 'flex';
-    form.style.display = 'none';
-  } else {
-    gate.style.display = 'none';
-    form.style.display = 'block';
-    const nameField = document.getElementById('f-producer');
-    if (nameField) {
-      const producerName = _userProfile?.producer_name || currentUser.email.split('@')[0];
-      nameField.value = producerName;
-      nameField.readOnly = true;
-      nameField.style.opacity = '0.6';
-      nameField.style.cursor = 'not-allowed';
-    }
+    main.innerHTML = `
+      <div class="site-page-head">
+        <h1 class="site-page-title">My Page</h1>
+        <p class="site-page-desc">Your free swipe portfolio for your bio.</p>
+      </div>
+      <div class="my-page-login">
+        <i class="ti ti-link" style="font-size:48px;color:var(--accent-mid)"></i>
+        <div style="font-size:18px;font-weight:700">Sign in to get your page</div>
+        <div style="font-size:14px;color:var(--text-2);line-height:1.6;max-width:300px">Create a free account, add your beats, and share one link in your Instagram bio.</div>
+        <button onclick="goTo('profileScreen','navProfile')" style="padding:13px 28px;border-radius:14px;background:var(--accent);border:none;color:#fff;font-size:15px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px">
+          <i class="ti ti-user"></i> Sign in / Create account
+        </button>
+      </div>`;
+    return;
   }
+
+  if (!isMyPageOnboarded()) {
+    if (_userProfile?.producer_name?.trim() && _myPageObStep === 0) _myPageObStep = 1;
+    main.innerHTML = renderMyPageOnboarding();
+    return;
+  }
+
+  _myPageObStep = 0;
+  main.innerHTML = renderMyPageDashboard();
 }
 </script>
