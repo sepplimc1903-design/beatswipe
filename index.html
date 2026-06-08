@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-08-v37 — desktop site-scroll subtle purple margins (preview) -->
+<!-- deploy: 2026-06-08-v40 — per-track upload, no prefilled fields (preview) -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -3099,6 +3099,56 @@
     .upload-progress-fill { height: 100%; background: var(--accent-mid); border-radius: 100px; width: 0%; transition: width 0.2s linear; }
     .upload-progress-lbl { font-size: 11px; color: var(--text-3); margin-top: 5px; text-align: center; }
     .upload-error { font-size: 12px; color: #f87171; margin-top: 6px; display: none; }
+    .upload-queue { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+    .upload-queue-acc {
+      background: rgba(255,255,255,0.03); border: 0.5px solid var(--border-2);
+      border-radius: 12px; overflow: hidden;
+    }
+    .upload-queue-acc.open { border-color: rgba(124,58,237,0.22); }
+    .upload-queue-head {
+      width: 100%; display: flex; align-items: center; gap: 8px;
+      padding: 12px 12px; background: none; border: none; cursor: pointer;
+      color: var(--text); text-align: left;
+    }
+    .upload-queue-head:hover { background: rgba(255,255,255,0.03); }
+    .upload-queue-chevron { font-size: 16px; color: var(--text-3); flex-shrink: 0; }
+    .upload-queue-summary {
+      flex: 1; min-width: 0; font-size: 13px; font-weight: 600;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .upload-queue-file {
+      font-size: 11px; color: var(--text-3); flex-shrink: 0; max-width: 38%;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .upload-queue-body { padding: 0 12px 12px; display: none; }
+    .upload-queue-acc.open .upload-queue-body { display: block; }
+    .upload-queue-fields { display: flex; flex-direction: column; gap: 10px; }
+    .upload-queue-fields .field-label { font-size: 11px; margin-bottom: 4px; }
+    .upload-queue-fields input,
+    .upload-queue-fields select {
+      width: 100%; background: var(--bg-2); border: 0.5px solid var(--border-2);
+      border-radius: 8px; padding: 8px 10px; color: var(--text); font-size: 14px;
+    }
+    .upload-queue-fields input:focus,
+    .upload-queue-fields select:focus { outline: none; border-color: var(--accent-mid); }
+    .upload-queue-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .upload-queue-remove {
+      margin-top: 4px; align-self: flex-start;
+      background: none; border: none; color: var(--text-3);
+      font-size: 12px; cursor: pointer; padding: 4px 0; display: inline-flex; align-items: center; gap: 4px;
+    }
+    .upload-queue-remove:hover { color: #f87171; }
+    .batch-apply-row { margin-top: 10px; }
+    .batch-apply-row .btn-secondary {
+      width: 100%; justify-content: center; padding: 11px 14px;
+      font-size: 13px; font-weight: 600;
+    }
+    .my-page-shared-hint {
+      font-size: 12px; color: var(--text-3); line-height: 1.45;
+      padding: 10px 12px; border-radius: 10px;
+      background: rgba(124,58,237,0.08); border: 0.5px solid rgba(124,58,237,0.14);
+      margin-bottom: 4px; margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -3357,19 +3407,59 @@
     <div class="submit-scroll" id="submitForm">
       <input type="hidden" id="f-producer">
       <div class="field-group">
+        <label class="field-label">Preview type *</label>
+        <select id="f-preview-type" onchange="updatePreviewLabel()">
+          <option value="">Select type...</option>
+          <option value="YouTube">YouTube</option>
+          <option value="SoundCloud">SoundCloud</option>
+          <option value="MP3">MP3 — upload directly</option>
+        </select>
+      </div>
+
+      <!-- URL preview (YouTube / SoundCloud) -->
+      <div class="field-group" id="preview-url-group" style="display:none">
+        <label class="field-label" id="preview-url-label">Preview URL *</label>
+        <input type="url" id="f-preview" placeholder="https://...">
+        <div id="preview-hint" style="font-size:11px;color:var(--text-3);margin-top:5px"></div>
+      </div>
+
+      <!-- MP3 File Upload -->
+      <div class="field-group" id="preview-mp3-group" style="display:none">
+        <label class="field-label">MP3 files *</label>
+
+        <!-- shown when NOT logged in -->
+        <div id="uploadLoginHint" style="display:none;background:var(--bg-2);border:0.5px solid var(--border-2);border-radius:14px;padding:18px 16px;text-align:center">
+          <i class="ti ti-lock" style="font-size:26px;color:var(--accent-mid);display:block;margin-bottom:8px"></i>
+          <div style="font-size:14px;font-weight:600;margin-bottom:4px">Account required</div>
+          <div style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.5">Create a free account to upload MP3s directly.</div>
+          <button onclick="goTo('profileScreen','navProfile')" style="padding:10px 22px;border-radius:10px;background:var(--accent);border:none;color:#fff;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+            <i class="ti ti-user"></i> Create account
+          </button>
+        </div>
+
+        <!-- shown when logged in -->
+        <div id="uploadLoggedIn" style="display:none">
+          <div class="upload-drop" id="uploadDrop" onclick="document.getElementById('f-mp3-file').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+            <input type="file" id="f-mp3-file" accept="audio/mpeg,.mp3" multiple style="display:none" onchange="handleFileSelect(event)">
+            <i class="ti ti-file-music"></i>
+            <div class="upload-drop-title">Drop MP3s here or click to select</div>
+            <div class="upload-drop-sub">One or several · MP3 only · max. 15 MB each</div>
+          </div>
+          <div class="upload-queue" id="uploadQueue" style="display:none"></div>
+          <div class="upload-progress-wrap" id="uploadProgressWrap">
+            <div class="upload-progress-bar"><div class="upload-progress-fill" id="uploadProgressFill"></div></div>
+            <div class="upload-progress-lbl" id="uploadProgressLbl">Uploading...</div>
+          </div>
+          <div class="upload-error" id="uploadError"></div>
+        </div>
+      </div>
+
+      <div class="field-group" id="single-title-group" style="display:none">
         <label class="field-label">Track title *</label>
         <input type="text" id="f-title" placeholder="e.g. Midnight Drive">
       </div>
-      <div class="field-group field-row">
-        <div>
-          <label class="field-label">BPM *</label>
-          <input type="number" id="f-bpm" placeholder="140">
-        </div>
-        <div>
-          <label class="field-label">Key</label>
-          <input type="text" id="f-key" placeholder="F# Min">
-        </div>
-      </div>
+
+      <div id="submitSingleFields">
       <div class="field-group">
         <label class="field-label">Genre *</label>
         <select id="f-genre">
@@ -3389,70 +3479,27 @@
           <option>Sample</option>
         </select>
       </div>
-      <div class="field-group">
-        <label class="field-label">Preview type *</label>
-        <select id="f-preview-type" onchange="updatePreviewLabel()">
-          <option value="">Select type...</option>
-          <option value="YouTube">YouTube</option>
-          <option value="SoundCloud">SoundCloud</option>
-          <option value="MP3">MP3 — upload directly</option>
-        </select>
-      </div>
-
-      <!-- URL preview (YouTube / SoundCloud) -->
-      <div class="field-group" id="preview-url-group" style="display:none">
-        <label class="field-label" id="preview-url-label">Preview URL *</label>
-        <input type="url" id="f-preview" placeholder="https://...">
-        <div id="preview-hint" style="font-size:11px;color:var(--text-3);margin-top:5px"></div>
-      </div>
-
-      <!-- MP3 File Upload -->
-      <div class="field-group" id="preview-mp3-group" style="display:none">
-        <label class="field-label">MP3 file *</label>
-
-        <!-- shown when NOT logged in -->
-        <div id="uploadLoginHint" style="display:none;background:var(--bg-2);border:0.5px solid var(--border-2);border-radius:14px;padding:18px 16px;text-align:center">
-          <i class="ti ti-lock" style="font-size:26px;color:var(--accent-mid);display:block;margin-bottom:8px"></i>
-          <div style="font-size:14px;font-weight:600;margin-bottom:4px">Account required</div>
-          <div style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.5">Create a free account to upload MP3s directly.</div>
-          <button onclick="goTo('profileScreen','navProfile')" style="padding:10px 22px;border-radius:10px;background:var(--accent);border:none;color:#fff;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
-            <i class="ti ti-user"></i> Create account
-          </button>
+      <div class="field-group field-row" id="submitBpmRow">
+        <div>
+          <label class="field-label">BPM <span style="color:var(--text-3);font-weight:400">(optional)</span></label>
+          <input type="number" id="f-bpm" placeholder="140">
         </div>
-
-        <!-- shown when logged in -->
-        <div id="uploadLoggedIn" style="display:none">
-          <div class="upload-drop" id="uploadDrop" onclick="document.getElementById('f-mp3-file').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
-            <input type="file" id="f-mp3-file" accept="audio/mpeg,.mp3" style="display:none" onchange="handleFileSelect(event)">
-            <i class="ti ti-file-music"></i>
-            <div class="upload-drop-title">Drop MP3 here or click to select</div>
-            <div class="upload-drop-sub">MP3 only · max. 15 MB</div>
-          </div>
-          <div class="upload-file-selected" id="uploadFileSelected" style="display:none">
-            <i class="ti ti-file-music"></i>
-            <span class="upload-file-name" id="uploadFileName">–</span>
-            <span class="upload-file-size" id="uploadFileSize">–</span>
-            <button class="upload-remove" onclick="removeFile()" title="Remove"><i class="ti ti-x"></i></button>
-          </div>
-          <div class="upload-progress-wrap" id="uploadProgressWrap">
-            <div class="upload-progress-bar"><div class="upload-progress-fill" id="uploadProgressFill"></div></div>
-            <div class="upload-progress-lbl" id="uploadProgressLbl">Uploading...</div>
-          </div>
-          <div class="upload-error" id="uploadError"></div>
-
+        <div>
+          <label class="field-label">Key <span style="color:var(--text-3);font-weight:400">(optional)</span></label>
+          <input type="text" id="f-key" placeholder="F# Min">
         </div>
       </div>
       <div class="field-group">
         <label class="field-label">Where can people buy this beat? <span style="color:var(--text-3);font-weight:400">(optional)</span></label>
         <input type="url" id="f-buy" placeholder="BeatStars, Splice, Instagram, Website...">
-        <div style="font-size:11px;color:var(--text-3);margin-top:5px">BeatStars, Splice, Loopmasters, your website — where fans buy the beat</div>
       </div>
-      <div class="field-group">
-        <label class="field-label">Anything else?</label>
+      </div>
+      <div class="field-group" id="submitBatchNote">
+        <label class="field-label">Anything else? <span id="batchNoteHint" style="color:var(--text-3);font-weight:400"></span></label>
         <textarea id="f-note" placeholder="Additional info, collab requests..."></textarea>
       </div>
       <div class="my-page-add-actions">
-        <button class="submit-btn" onclick="doSubmitForm()"><i class="ti ti-plus"></i> Add beat</button>
+        <button type="button" class="submit-btn" id="submitBeatBtn" onclick="doSubmitForm()"><i class="ti ti-plus"></i> Add beat</button>
         <button type="button" class="btn-secondary my-page-back" onclick="hideMyPageAddBeat()" style="margin:0;width:100%;justify-content:center"><i class="ti ti-arrow-left"></i> Back to My Page</button>
       </div>
       <div class="success-msg" id="successMsg">
@@ -5275,37 +5322,77 @@ document.getElementById('catRow').querySelectorAll('.cat-pill').forEach(btn => {
 // ─── MAKE.COM WEBHOOK ─────────────────────────────────────────────────────
 const WEBHOOK_URL = 'https://hook.eu1.make.com/emrsw3rs980mwsi3a1b3kyfcobec3ahb';
 
-// ─── PREVIEW TYPE TOGGLE ──────────────────────────────────────────────────
-let _mp3File = null;      // selected File object
-let _mp3PublicUrl = null; // uploaded Supabase URL
+// ─── PREVIEW TYPE + MP3 UPLOAD ────────────────────────────────────────────
+let _mp3File = null;
+let _mp3PublicUrl = null;
+let _mp3Queue = [];
+let _mp3QueueId = 0;
 
 const MAX_FILE_MB = 15;
+const MAX_MP3_QUEUE = 10;
 const ALLOWED_MIME = 'audio/mpeg';
 const SUPA_BUCKET  = 'beats';
+
+function titleFromFilename(name) {
+  let t = name.replace(/\.mp3$/i, '').replace(/[_-]+/g, ' ').trim();
+  if (t.length > 80) t = t.slice(0, 80);
+  return t || 'Untitled';
+}
+
+function resetAddBeatForm() {
+  ['f-title', 'f-bpm', 'f-key', 'f-preview', 'f-buy', 'f-note'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  ['f-genre', 'f-type'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.selectedIndex = 0;
+  });
+  const pt = document.getElementById('f-preview-type');
+  if (pt) pt.value = currentUser ? 'MP3' : '';
+}
+
+function syncSubmitBtnLabel() {
+  const btn = document.getElementById('submitBeatBtn');
+  if (!btn || btn.disabled) return;
+  const pt = document.getElementById('f-preview-type')?.value;
+  const n = _mp3Queue.length;
+  if (pt === 'MP3' && n > 1) {
+    btn.innerHTML = `<i class="ti ti-upload"></i> Upload all ${n} beats`;
+  } else {
+    btn.innerHTML = '<i class="ti ti-plus"></i> Add beat';
+  }
+}
 
 function updatePreviewLabel() {
   const type = document.getElementById('f-preview-type').value;
   const urlGroup = document.getElementById('preview-url-group');
   const mp3Group = document.getElementById('preview-mp3-group');
+  const titleGroup = document.getElementById('single-title-group');
   const label    = document.getElementById('preview-url-label');
   const hint     = document.getElementById('preview-hint');
   const input    = document.getElementById('f-preview');
 
   urlGroup.style.display = 'none';
   mp3Group.style.display = 'none';
+  if (titleGroup) titleGroup.style.display = 'none';
 
   if (!type) return;
 
   if (type === 'YouTube') {
     urlGroup.style.display = 'block';
+    if (titleGroup) titleGroup.style.display = 'block';
     label.textContent = 'YouTube Link *';
     input.placeholder = 'https://youtube.com/watch?v=...';
     hint.textContent = 'Preview link — YouTube or SoundCloud URL fans can hear';
+    clearMp3Queue();
   } else if (type === 'SoundCloud') {
     urlGroup.style.display = 'block';
+    if (titleGroup) titleGroup.style.display = 'block';
     label.textContent = 'SoundCloud Link *';
     input.placeholder = 'https://soundcloud.com/...';
     hint.textContent = 'Preview link — direct SoundCloud track URL';
+    clearMp3Queue();
   } else if (type === 'MP3') {
     mp3Group.style.display = 'block';
     const loginHint  = document.getElementById('uploadLoginHint');
@@ -5313,181 +5400,370 @@ function updatePreviewLabel() {
     if (currentUser) {
       loginHint.style.display  = 'none';
       loggedInEl.style.display = 'block';
-      if (!_mp3File) resetUploadUI();
-
+      if (!_mp3Queue.length) resetUploadUI();
     } else {
       loginHint.style.display  = 'block';
       loggedInEl.style.display = 'none';
     }
   }
+  syncSubmitBtnLabel();
+  syncQueueFormLayout();
 }
 
-// ── Drag & Drop helpers ──
+const SUBMIT_GENRES = ['Trap','Drill','R&B','Lo-Fi','Afrobeats','Synthwave','Acoustic','Boom Bap','Other'];
+const SUBMIT_TYPES = ['Full Beat','Loop','Drum Kit','Sample'];
+
+function genreSelectHtml(selected, id, onchange) {
+  const opts = SUBMIT_GENRES.map(g =>
+    `<option value="${g}"${g === selected ? ' selected' : ''}>${g}</option>`).join('');
+  return `<select id="${id}" onchange="${onchange}"><option value="">Select genre...</option>${opts}</select>`;
+}
+
+function typeSelectHtml(selected, id, onchange) {
+  const opts = SUBMIT_TYPES.map(t =>
+    `<option value="${t}"${t === selected ? ' selected' : ''}>${t}</option>`).join('');
+  return `<select id="${id}" onchange="${onchange}"><option value="">Select type...</option>${opts}</select>`;
+}
+
+function buildQueueSummary(item, index) {
+  const parts = [item.title?.trim() || 'Untitled'];
+  if (item.bpm) parts.push(item.bpm + ' BPM');
+  if (item.genre) parts.push(item.genre);
+  return `Track ${index + 1} · ${parts.join(' · ')}`;
+}
+
+function syncQueueFormLayout() {
+  const hasQueue = _mp3Queue.length > 0;
+  const isMp3 = document.getElementById('f-preview-type')?.value === 'MP3';
+  const singleFields = document.getElementById('submitSingleFields');
+  const noteHint = document.getElementById('batchNoteHint');
+  if (singleFields) singleFields.style.display = (isMp3 && hasQueue) ? 'none' : 'block';
+  if (noteHint) noteHint.textContent = (isMp3 && hasQueue) ? '(applies to whole batch)' : '';
+}
+
+function validateMp3File(file) {
+  if (file.type !== ALLOWED_MIME && !file.name.toLowerCase().endsWith('.mp3')) {
+    return 'MP3 files only.';
+  }
+  if (file.size > MAX_FILE_MB * 1024 * 1024) {
+    return `File too large — max. ${MAX_FILE_MB} MB.`;
+  }
+  return null;
+}
+
+function renderUploadQueue() {
+  const wrap = document.getElementById('uploadQueue');
+  if (!wrap) return;
+  if (!_mp3Queue.length) {
+    wrap.style.display = 'none';
+    wrap.innerHTML = '';
+    _mp3File = null;
+    syncQueueFormLayout();
+    syncSubmitBtnLabel();
+    return;
+  }
+  wrap.style.display = 'flex';
+  _mp3File = _mp3Queue[0].file;
+  wrap.innerHTML = _mp3Queue.map((item, index) => {
+    const openClass = item.expanded ? ' open' : '';
+    const chev = item.expanded ? 'ti-chevron-down' : 'ti-chevron-right';
+    return `
+    <div class="upload-queue-acc${openClass}" data-id="${item.id}">
+      <button type="button" class="upload-queue-head" onclick="toggleQueueExpand('${item.id}')">
+        <i class="ti upload-queue-chevron ${chev}"></i>
+        <span class="upload-queue-summary" id="summary-${item.id}">${escHtml(buildQueueSummary(item, index))}</span>
+        <span class="upload-queue-file">${escHtml(item.file.name)}</span>
+      </button>
+      <div class="upload-queue-body" style="display:${item.expanded ? 'block' : 'none'}">
+        <div class="upload-queue-fields">
+          <div>
+            <label class="field-label">Title *</label>
+            <input type="text" value="${escHtml(item.title)}" placeholder="Track title"
+              oninput="updateQueueField('${item.id}', 'title', this.value)">
+          </div>
+          <div class="upload-queue-row">
+            <div>
+              <label class="field-label">BPM <span style="color:var(--text-3);font-weight:400">(optional)</span></label>
+              <input type="number" value="${escHtml(item.bpm || '')}" placeholder="140"
+                oninput="updateQueueField('${item.id}', 'bpm', this.value)">
+            </div>
+            <div>
+              <label class="field-label">Key <span style="color:var(--text-3);font-weight:400">(optional)</span></label>
+              <input type="text" value="${escHtml(item.key || '')}" placeholder="F# Min"
+                oninput="updateQueueField('${item.id}', 'key', this.value)">
+            </div>
+          </div>
+          <div>
+            <label class="field-label">Genre *</label>
+            ${genreSelectHtml(item.genre, 'qg-' + item.id, `updateQueueField('${item.id}', 'genre', this.value)`)}
+          </div>
+          <div>
+            <label class="field-label">Type *</label>
+            ${typeSelectHtml(item.type, 'qt-' + item.id, `updateQueueField('${item.id}', 'type', this.value)`)}
+          </div>
+          <div>
+            <label class="field-label">Buy link <span style="color:var(--text-3);font-weight:400">(optional)</span></label>
+            <input type="url" value="${escHtml(item.buyLink || '')}" placeholder="https://beatstars.com/beat/..."
+              oninput="updateQueueField('${item.id}', 'buyLink', this.value)">
+            <div style="font-size:11px;color:var(--text-3);margin-top:4px">Direct link to this beat on BeatStars, Splice, etc.</div>
+          </div>
+          <button type="button" class="upload-queue-remove" onclick="removeQueueItem('${item.id}')"><i class="ti ti-trash"></i> Remove</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  syncQueueFormLayout();
+  syncSubmitBtnLabel();
+}
+
+function updateQueueField(id, field, value) {
+  const item = _mp3Queue.find(q => q.id === id);
+  if (!item) return;
+  item[field] = value;
+  if (field === 'title' || field === 'bpm' || field === 'genre') {
+    const idx = _mp3Queue.findIndex(q => q.id === id);
+    const el = document.getElementById('summary-' + id);
+    if (el && idx >= 0) el.textContent = buildQueueSummary(item, idx);
+  }
+}
+
+function toggleQueueExpand(id) {
+  const item = _mp3Queue.find(q => q.id === id);
+  if (!item) return;
+  item.expanded = !item.expanded;
+  const acc = document.querySelector(`.upload-queue-acc[data-id="${id}"]`);
+  if (!acc) return;
+  acc.classList.toggle('open', item.expanded);
+  const body = acc.querySelector('.upload-queue-body');
+  const icon = acc.querySelector('.upload-queue-chevron');
+  if (body) body.style.display = item.expanded ? 'block' : 'none';
+  if (icon) icon.className = 'ti upload-queue-chevron ' + (item.expanded ? 'ti-chevron-down' : 'ti-chevron-right');
+}
+
+function expandQueueItem(id) {
+  const item = _mp3Queue.find(q => q.id === id);
+  if (item && !item.expanded) {
+    item.expanded = true;
+    renderUploadQueue();
+  }
+}
+
+function addFilesToQueue(fileList) {
+  const errEl = document.getElementById('uploadError');
+  if (errEl) errEl.style.display = 'none';
+  const files = Array.from(fileList || []);
+  if (!files.length) return;
+
+  const previewSel = document.getElementById('f-preview-type');
+  if (previewSel && previewSel.value !== 'MP3') {
+    previewSel.value = 'MP3';
+    updatePreviewLabel();
+  }
+
+  let added = 0;
+  const errors = [];
+  for (const file of files) {
+    if (_mp3Queue.length >= MAX_MP3_QUEUE) {
+      errors.push(`Max. ${MAX_MP3_QUEUE} files per batch.`);
+      break;
+    }
+    const err = validateMp3File(file);
+    if (err) { errors.push(`${file.name}: ${err}`); continue; }
+    const dup = _mp3Queue.some(q => q.file.name === file.name && q.file.size === file.size);
+    if (dup) continue;
+    const isFirst = _mp3Queue.length === 0 && added === 0;
+    _mp3Queue.push({
+      id: 'q' + (++_mp3QueueId),
+      file,
+      title: titleFromFilename(file.name),
+      bpm: '',
+      key: '',
+      genre: '',
+      type: '',
+      buyLink: '',
+      expanded: isFirst
+    });
+    added++;
+  }
+
+  if (errors.length && errEl) {
+    errEl.textContent = errors[0];
+    errEl.style.display = 'block';
+  } else if (added && errEl) {
+    errEl.style.display = 'none';
+  }
+  renderUploadQueue();
+}
+
+function removeQueueItem(id) {
+  _mp3Queue = _mp3Queue.filter(q => q.id !== id);
+  renderUploadQueue();
+  if (!_mp3Queue.length) resetUploadUI();
+}
+
+function clearMp3Queue() {
+  _mp3Queue = [];
+  _mp3File = null;
+  _mp3PublicUrl = null;
+  renderUploadQueue();
+}
+
 function handleDragOver(e) {
   e.preventDefault();
-  document.getElementById('uploadDrop').classList.add('dragover');
+  document.getElementById('uploadDrop')?.classList.add('dragover');
 }
 function handleDragLeave(e) {
-  document.getElementById('uploadDrop').classList.remove('dragover');
+  document.getElementById('uploadDrop')?.classList.remove('dragover');
 }
 function handleDrop(e) {
   e.preventDefault();
-  document.getElementById('uploadDrop').classList.remove('dragover');
-  const file = e.dataTransfer?.files?.[0];
-  if (file) validateAndSetFile(file);
+  document.getElementById('uploadDrop')?.classList.remove('dragover');
+  addFilesToQueue(e.dataTransfer?.files);
 }
 function handleFileSelect(e) {
-  const file = e.target.files?.[0];
-  if (file) validateAndSetFile(file);
-}
-
-function validateAndSetFile(file) {
-  const errEl = document.getElementById('uploadError');
-  errEl.style.display = 'none';
-
-  if (file.type !== ALLOWED_MIME && !file.name.toLowerCase().endsWith('.mp3')) {
-    errEl.textContent = 'Nur MP3-Dateien erlaubt.';
-    errEl.style.display = 'block';
-    return;
-  }
-  if (file.size > MAX_FILE_MB * 1024 * 1024) {
-    errEl.textContent = `File too large — max. ${MAX_FILE_MB} MB.`;
-    errEl.style.display = 'block';
-    return;
-  }
-
-  _mp3File = file;
-  _mp3PublicUrl = null; // reset — needs new upload
-
-  // Show file info
-  document.getElementById('uploadDrop').style.display = 'none';
-  const sel = document.getElementById('uploadFileSelected');
-  sel.style.display = 'flex';
-  document.getElementById('uploadFileName').textContent = file.name;
-  document.getElementById('uploadFileSize').textContent = (file.size / (1024*1024)).toFixed(1) + ' MB';
-}
-
-function removeFile() {
-  _mp3File = null;
-  _mp3PublicUrl = null;
-  resetUploadUI();
+  addFilesToQueue(e.target.files);
+  e.target.value = '';
 }
 
 function resetUploadUI() {
-  document.getElementById('uploadDrop').style.display = 'flex';
-  document.getElementById('uploadFileSelected').style.display = 'none';
-  document.getElementById('uploadProgressWrap').style.display = 'none';
-  document.getElementById('uploadProgressFill').style.width = '0%';
-  document.getElementById('uploadError').style.display = 'none';
-  // Safari fix: completely replace the file input so onchange fires reliably again
+  const drop = document.getElementById('uploadDrop');
+  if (drop) drop.style.display = 'flex';
+  const progressWrap = document.getElementById('uploadProgressWrap');
+  if (progressWrap) progressWrap.style.display = 'none';
+  const progressFill = document.getElementById('uploadProgressFill');
+  if (progressFill) progressFill.style.width = '0%';
+  const errEl = document.getElementById('uploadError');
+  if (errEl) errEl.style.display = 'none';
   const oldInput = document.getElementById('f-mp3-file');
   if (oldInput) {
     const newInput = document.createElement('input');
     newInput.type = 'file';
     newInput.id = 'f-mp3-file';
     newInput.accept = 'audio/mpeg,.mp3';
+    newInput.multiple = true;
     newInput.style.display = 'none';
     newInput.onchange = handleFileSelect;
     oldInput.parentNode.replaceChild(newInput, oldInput);
   }
 }
 
+async function getSupabaseAccessToken() {
+  let accessToken = null;
+  try {
+    const storageKey = `sb-${SUPA_URL.split('//')[1].split('.')[0]}-auth-token`;
+    const stored = localStorage.getItem(storageKey);
+    if (stored) accessToken = JSON.parse(stored)?.access_token;
+  } catch (e) { /* ignore */ }
+  if (!accessToken) {
+    const { data } = await Promise.race([
+      supa.auth.getSession(),
+      new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 4000))
+    ]);
+    accessToken = data?.session?.access_token;
+  }
+  if (!accessToken) throw new Error('Session expired — please sign out and sign back in.');
+  return accessToken;
+}
+
+async function uploadMp3File(file, onProgress) {
+  if (!file) throw new Error('no file');
+  if (!currentUser) throw new Error('Not signed in — please log in first.');
+
+  const accessToken = await getSupabaseAccessToken();
+  const ext = file.name.split('.').pop();
+  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+  return await new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    const uploadUrl = `${SUPA_URL}/storage/v1/object/${SUPA_BUCKET}/${fileName}`;
+
+    xhr.upload.addEventListener('progress', e => {
+      if (e.lengthComputable && onProgress) {
+        const pct = Math.round((e.loaded / e.total) * 95);
+        onProgress(pct);
+      }
+    });
+
+    xhr.addEventListener('load', () => {
+      if (xhr.status === 200 || xhr.status === 201) {
+        resolve(`${SUPA_URL}/storage/v1/object/public/${SUPA_BUCKET}/${fileName}`);
+      } else {
+        let errMsg = 'Upload failed (status ' + xhr.status + ')';
+        try { errMsg = JSON.parse(xhr.responseText).message || errMsg; } catch (e) {}
+        reject(new Error(errMsg));
+      }
+    });
+
+    xhr.addEventListener('error', () => reject(new Error('Network error during upload — please check your connection.')));
+    xhr.addEventListener('timeout', () => reject(new Error('Upload timeout — file too large or connection too slow.')));
+    xhr.timeout = 120000;
+    xhr.open('POST', uploadUrl);
+    xhr.setRequestHeader('Authorization', `Bearer ${accessToken}`);
+    xhr.setRequestHeader('x-upsert', 'true');
+    xhr.setRequestHeader('Cache-Control', '3600');
+    xhr.send(file);
+  });
+}
 
 async function uploadMp3ToSupabase() {
   if (!_mp3File) throw new Error('no file');
-
-  // Check currentUser first (instant, no network call)
-  if (!currentUser) throw new Error('Not signed in — please log in first.');
-
-  // Get token synchronously from localStorage — no async hanging
-  let accessToken = null;
-  try {
-    // Supabase stores session in localStorage under this key
-    const storageKey = `sb-${SUPA_URL.split('//')[1].split('.')[0]}-auth-token`;
-    const stored = localStorage.getItem(storageKey);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      accessToken = parsed?.access_token;
-      console.log('[BeatSwipe] Token from localStorage:', accessToken ? 'found' : 'missing');
-    }
-  } catch(e) {
-    console.warn('[BeatSwipe] localStorage read failed:', e.message);
-  }
-
-  // Fallback: try getSession with short timeout
-  if (!accessToken) {
-    try {
-      const { data } = await Promise.race([
-        supa.auth.getSession(),
-        new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 4000))
-      ]);
-      accessToken = data?.session?.access_token;
-    } catch(e) {
-      console.warn('[BeatSwipe] getSession fallback failed:', e.message);
-    }
-  }
-
-  if (!accessToken) throw new Error('Session expired — please sign out and sign back in.');
-  console.log('[BeatSwipe] Using token:', accessToken.slice(0,20) + '...');
-  const session = { access_token: accessToken };
-
-  const ext = _mp3File.name.split('.').pop();
-  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-  console.log('[BeatSwipe] Uploading via REST, file:', fileName, 'size:', _mp3File.size);
-
-  // Show progress bar
   const progressWrap = document.getElementById('uploadProgressWrap');
   const progressFill = document.getElementById('uploadProgressFill');
   const progressLbl  = document.getElementById('uploadProgressLbl');
   progressWrap.style.display = 'block';
   progressFill.style.width = '5%';
   progressLbl.textContent = 'Uploading…';
-
-  // Use XHR instead of fetch — gives real progress events and no CORS issues
-  return await new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    const uploadUrl = `${SUPA_URL}/storage/v1/object/${SUPA_BUCKET}/${fileName}`;
-
-    xhr.upload.addEventListener('progress', e => {
-      if (e.lengthComputable) {
-        const pct = Math.round((e.loaded / e.total) * 95);
-        progressFill.style.width = pct + '%';
-        progressLbl.textContent = `Uploading… ${pct}%`;
-      }
-    });
-
-    xhr.addEventListener('load', () => {
-      console.log('[BeatSwipe] XHR status:', xhr.status, xhr.responseText);
-      if (xhr.status === 200 || xhr.status === 201) {
-        progressFill.style.width = '100%';
-        progressLbl.textContent = 'Upload complete ✓';
-        const publicUrl = `${SUPA_URL}/storage/v1/object/public/${SUPA_BUCKET}/${fileName}`;
-        resolve(publicUrl);
-      } else {
-        progressWrap.style.display = 'none';
-        let errMsg = 'Upload failed (status ' + xhr.status + ')';
-        try { errMsg = JSON.parse(xhr.responseText).message || errMsg; } catch(e) {}
-        reject(new Error(errMsg));
-      }
-    });
-
-    xhr.addEventListener('error', () => {
-      progressWrap.style.display = 'none';
-      reject(new Error('Network error during upload — please check your connection.'));
-    });
-
-    xhr.addEventListener('timeout', () => {
-      progressWrap.style.display = 'none';
-      reject(new Error('Upload timeout — file too large or connection too slow.'));
-    });
-
-    xhr.timeout = 120000; // 2 min timeout
-    xhr.open('POST', uploadUrl);
-    xhr.setRequestHeader('Authorization', `Bearer ${session.access_token}`);
-    xhr.setRequestHeader('x-upsert', 'true');
-    xhr.setRequestHeader('Cache-Control', '3600');
-    xhr.send(_mp3File);
+  const url = await uploadMp3File(_mp3File, pct => {
+    progressFill.style.width = pct + '%';
+    progressLbl.textContent = `Uploading… ${pct}%`;
   });
+  progressFill.style.width = '100%';
+  progressLbl.textContent = 'Upload complete ✓';
+  return url;
+}
+
+async function postBeatWebhook(payload) {
+  const controller = new AbortController();
+  const webhookTimeout = setTimeout(() => controller.abort(), 10000);
+  try {
+    const res = await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal,
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) console.warn('[BeatSwipe] Webhook returned non-ok — treating as success');
+    return true;
+  } catch (fetchErr) {
+    console.warn('[BeatSwipe] Webhook failed (file may already be uploaded):', fetchErr.message);
+    return true;
+  } finally {
+    clearTimeout(webhookTimeout);
+  }
+}
+
+function getResolvedBuyLink() {
+  return document.getElementById('f-buy')?.value.trim() || '';
+}
+
+function setSubmitBtnLoading(loading, label) {
+  const btn = document.getElementById('submitBeatBtn');
+  if (!btn) return;
+  btn.disabled = loading;
+  if (loading) {
+    btn.innerHTML = `<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> ${label || 'Sending...'}`;
+  } else {
+    syncSubmitBtnLabel();
+  }
+}
+
+function clearBeatFormAfterSubmit() {
+  ['f-title', 'f-bpm', 'f-key', 'f-preview', 'f-note'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  clearMp3Queue();
+  resetUploadUI();
 }
 
 // ─── SUBMIT ───────────────────────────────────────────────────────────────
@@ -5502,130 +5778,183 @@ async function doSubmitForm() {
   const prodEl = document.getElementById('f-producer');
   if (prodEl) prodEl.value = producer;
 
-  const fields = ['f-title','f-bpm','f-genre','f-type','f-preview-type'];
-  const vals = fields.map(id => document.getElementById(id).value.trim());
-  if (vals.some(v => !v)) { showToast('Please fill in all required fields.', 'error'); return; }
-
   const previewType = document.getElementById('f-preview-type').value;
+  if (!previewType) {
+    showToast('Please select a preview type.', 'error');
+    return;
+  }
 
-  // Validate preview input based on type
+  const buyLink = getResolvedBuyLink();
+  const note = document.getElementById('f-note').value.trim();
+
+  if (previewType === 'MP3') {
+    if (!_mp3Queue.length) {
+      showToast('Please add at least one MP3 file.', 'error');
+      return;
+    }
+    for (const item of _mp3Queue) {
+      const label = item.title.trim() || item.file.name;
+      if (!item.title.trim()) {
+        showToast('Please add a title for each track.', 'error');
+        expandQueueItem(item.id);
+        return;
+      }
+      if (!item.genre.trim()) {
+        showToast(`Select a genre for "${label}".`, 'error');
+        expandQueueItem(item.id);
+        return;
+      }
+      if (!item.type.trim()) {
+        showToast(`Select a type for "${label}".`, 'error');
+        expandQueueItem(item.id);
+        return;
+      }
+    }
+    return doSubmitMp3Batch({ producer, note });
+  }
+
+  const genre = document.getElementById('f-genre').value.trim();
+  const type = document.getElementById('f-type').value.trim();
+  if (!genre || !type) {
+    showToast('Please fill in genre and type.', 'error');
+    return;
+  }
+
+  const bpm = document.getElementById('f-bpm').value.trim();
+  const key = document.getElementById('f-key').value.trim();
+
+  const title = document.getElementById('f-title').value.trim();
+  if (!title) { showToast('Please enter a track title.', 'error'); return; }
+
   let previewUrl = '';
   if (previewType === 'YouTube' || previewType === 'SoundCloud') {
     previewUrl = document.getElementById('f-preview')?.value.trim() || '';
     if (!previewUrl) { showToast('Please enter a preview link.', 'error'); return; }
-  } else if (previewType === 'MP3') {
-    if (!_mp3File) { showToast('Please select an MP3 file.', 'error'); return; }
   }
 
-  const title    = document.getElementById('f-title').value.trim();
-  const bpm      = document.getElementById('f-bpm').value.trim();
-  const genre    = document.getElementById('f-genre').value.trim();
-  const type     = document.getElementById('f-type').value.trim();
-  const buyLink  = document.getElementById('f-buy').value.trim();
-  const key      = document.getElementById('f-key').value.trim();
-  const note     = document.getElementById('f-note').value.trim();
-
-  const btn = document.querySelector('.submit-btn');
-  btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Sending...';
-  btn.disabled = true;
+  setSubmitBtnLoading(true, 'Sending...');
 
   try {
-    // Upload MP3 to Supabase Storage first if needed
-    if (previewType === 'MP3') {
-      const errEl = document.getElementById('uploadError');
-      errEl.style.display = 'none';
-      try {
-        previewUrl = await uploadMp3ToSupabase();
-        _mp3PublicUrl = previewUrl;
-      } catch(uploadErr) {
-        console.error('[BeatSwipe] Upload error:', uploadErr);
-        errEl.textContent = 'Upload failed: ' + uploadErr.message;
-        errEl.style.display = 'block';
-        // Also scroll error into view so user sees it
-        errEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        btn.innerHTML = '<i class="ti ti-plus"></i> Add beat';
-        btn.disabled = false;
-        return;
-      }
-    }
-
-    const controller = new AbortController();
-    const webhookTimeout = setTimeout(() => controller.abort(), 10000);
-    let res;
-    try {
-      res = await fetch(WEBHOOK_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: controller.signal,
-        body: JSON.stringify({
-          Producer:    producer,
-          Title:       title,
-          BPM:         parseFloat(bpm) || 0,
-          Key:         key,
-          Genre:       genre,
-          Type:        type,
-          PreviewType: previewType,
-          PreviewURL:  previewUrl,
-          BuyLink:     buyLink,
-          Note:        note,
-          Status:      'New'
-        })
-      });
-    } catch(fetchErr) {
-      // If webhook times out or fails, still show success — file is already uploaded
-      console.warn('[BeatSwipe] Webhook failed (file already uploaded):', fetchErr.message);
-      res = { ok: true };
-    } finally {
-      clearTimeout(webhookTimeout);
-    }
-
-    if (!res.ok) {
-      console.warn('[BeatSwipe] Webhook returned non-ok, but file uploaded — treating as success');
-    }
-
-    // Success — refresh My Page
-    addMyPendingBeat(title);
-    const successMsg = document.getElementById('successMsg');
-    if (successMsg) successMsg.style.display = 'block';
-    btn.innerHTML = '<i class="ti ti-plus"></i> Add beat';
-    btn.disabled = false;
-    btn.style.display = 'flex';
-
-    const keepProducer = producer;
-    ['f-title','f-bpm','f-key','f-genre','f-type','f-preview-type','f-preview','f-buy','f-note'].forEach(id => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      if (el.tagName === 'SELECT') el.selectedIndex = 0;
-      else el.value = '';
+    await postBeatWebhook({
+      Producer: producer,
+      Title: title,
+      BPM: parseFloat(bpm) || 0,
+      Key: key,
+      Genre: genre,
+      Type: type,
+      PreviewType: previewType,
+      PreviewURL: previewUrl,
+      BuyLink: buyLink,
+      Note: note,
+      Status: 'New'
     });
-    const prodEl = document.getElementById('f-producer');
-    if (prodEl) prodEl.value = keepProducer;
-    document.getElementById('preview-url-group').style.display = 'none';
-    document.getElementById('preview-mp3-group').style.display = 'none';
-    _mp3File = null;
-    _mp3PublicUrl = null;
-    resetUploadUI();
 
-    setTimeout(() => {
-      if (successMsg) successMsg.style.display = 'none';
-      hideMyPageAddBeat();
-      renderMyPage();
-    }, 1200);
-
-  } catch(e) {
+    addMyPendingBeat(title);
+    finishSubmitSuccess(1);
+  } catch (e) {
     console.error('[BeatSwipe] submitForm error:', e);
-    btn.innerHTML = '<i class="ti ti-plus"></i> Add beat';
-    btn.disabled = false;
-    // Show error visibly in the form instead of an alert
+    setSubmitBtnLoading(false);
     const errEl = document.getElementById('uploadError');
     if (errEl) {
-      errEl.textContent = 'Error: ' + (e.message || 'Unknown error');
+      errEl.textContent = 'Error: ' + (e.message || 'Something went wrong');
       errEl.style.display = 'block';
       errEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
     } else {
       showToast('Error: ' + (e.message || 'Something went wrong'), 'error', 3600);
     }
   }
+}
+
+async function doSubmitMp3Batch(shared) {
+  const total = _mp3Queue.length;
+  const queue = _mp3Queue.slice();
+  const errEl = document.getElementById('uploadError');
+  const progressWrap = document.getElementById('uploadProgressWrap');
+  const progressFill = document.getElementById('uploadProgressFill');
+  const progressLbl = document.getElementById('uploadProgressLbl');
+  if (errEl) errEl.style.display = 'none';
+  if (progressWrap) progressWrap.style.display = 'block';
+
+  setSubmitBtnLoading(true, `Uploading 1 of ${total}…`);
+
+  const submitted = [];
+  try {
+    for (let i = 0; i < queue.length; i++) {
+      const item = queue[i];
+      const n = i + 1;
+      setSubmitBtnLoading(true, `Uploading ${n} of ${total}…`);
+      progressLbl.textContent = `Uploading ${n} of ${total} — ${item.title}`;
+      progressFill.style.width = '5%';
+
+      let previewUrl;
+      try {
+        previewUrl = await uploadMp3File(item.file, pct => {
+          progressFill.style.width = Math.max(5, pct) + '%';
+        });
+      } catch (uploadErr) {
+        throw new Error(`"${item.title}": ${uploadErr.message}`);
+      }
+
+      progressLbl.textContent = `Saving ${n} of ${total}…`;
+      await postBeatWebhook({
+        Producer: shared.producer,
+        Title: item.title.trim(),
+        BPM: parseFloat(item.bpm) || 0,
+        Key: item.key || '',
+        Genre: item.genre,
+        Type: item.type,
+        PreviewType: 'MP3',
+        PreviewURL: previewUrl,
+        BuyLink: (item.buyLink || '').trim(),
+        Note: shared.note,
+        Status: 'New'
+      });
+      addMyPendingBeat(item.title.trim());
+      submitted.push(item.title.trim());
+      progressFill.style.width = '100%';
+    }
+
+    finishSubmitSuccess(submitted.length);
+  } catch (e) {
+    console.error('[BeatSwipe] batch submit error:', e);
+    setSubmitBtnLoading(false);
+    if (progressWrap) progressWrap.style.display = 'none';
+    if (errEl) {
+      errEl.textContent = submitted.length
+        ? `${submitted.length} uploaded. Failed on next: ${e.message}`
+        : e.message;
+      errEl.style.display = 'block';
+      errEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+      showToast(e.message || 'Upload failed', 'error', 3600);
+    }
+    if (submitted.length) {
+      _mp3Queue = _mp3Queue.filter(q => !submitted.includes(q.title.trim()));
+      renderUploadQueue();
+      renderMyPage();
+    }
+  }
+}
+
+function finishSubmitSuccess(count) {
+  const successMsg = document.getElementById('successMsg');
+  if (successMsg) {
+    const p = successMsg.querySelector('p');
+    if (p) {
+      p.textContent = count > 1
+        ? `${count} beats submitted! We'll review them within 48h.`
+        : 'Beat submitted! We\'ll review it within 48h.';
+    }
+    successMsg.style.display = 'block';
+  }
+  setSubmitBtnLoading(false);
+  clearBeatFormAfterSubmit();
+
+  setTimeout(() => {
+    if (successMsg) successMsg.style.display = 'none';
+    hideMyPageAddBeat();
+    renderMyPage();
+  }, count > 1 ? 1600 : 1200);
 }
 
 
@@ -6936,18 +7265,15 @@ function copyPortfolioLink(ev) {
 function resetSubmitForAnother() {
   const successMsg = document.getElementById('successMsg');
   if (successMsg) successMsg.style.display = 'none';
-  const prod = document.getElementById('f-producer')?.value.trim();
-  ['f-title','f-bpm','f-key','f-genre','f-type','f-preview-type','f-preview','f-buy','f-note'].forEach(id => {
+  ['f-title', 'f-bpm', 'f-key', 'f-preview', 'f-note'].forEach(id => {
     const el = document.getElementById(id);
-    if (!el) return;
-    if (el.tagName === 'SELECT') el.selectedIndex = 0;
-    else el.value = '';
+    if (el) el.value = '';
   });
-  document.getElementById('preview-url-group').style.display = 'none';
-  document.getElementById('preview-mp3-group').style.display = 'none';
-  _mp3File = null;
-  _mp3PublicUrl = null;
+  clearMp3Queue();
   resetUploadUI();
+  resetAddBeatForm();
+  updatePreviewLabel();
+  syncSubmitBtnLabel();
   document.getElementById('f-title')?.focus();
 }
 
@@ -7148,13 +7474,22 @@ function showMyPageAddBeat() {
   if (prodEl) prodEl.value = _userProfile?.producer_name || '';
   const successMsg = document.getElementById('successMsg');
   if (successMsg) successMsg.style.display = 'none';
+  clearMp3Queue();
+  resetAddBeatForm();
   if (currentUser) {
     const loggedIn = document.getElementById('uploadLoggedIn');
     const loginHint = document.getElementById('uploadLoginHint');
     if (loggedIn) loggedIn.style.display = 'block';
     if (loginHint) loginHint.style.display = 'none';
   }
-  document.getElementById('f-title')?.focus();
+  updatePreviewLabel();
+  syncSubmitBtnLabel();
+  const pt = document.getElementById('f-preview-type')?.value;
+  if (pt === 'YouTube' || pt === 'SoundCloud') {
+    document.getElementById('f-title')?.focus();
+  } else {
+    document.getElementById('f-genre')?.focus();
+  }
 }
 
 function hideMyPageAddBeat() {
