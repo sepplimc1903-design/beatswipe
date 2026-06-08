@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-08-v40 — per-track upload, no prefilled fields (preview) -->
+<!-- deploy: 2026-06-08-v44 — white waveform, UI polish, profile guard, beat manage -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -575,9 +575,15 @@
         color: var(--accent-mid);
       }
       @media (min-width: 1100px) {
-        .discover-kbd-hints { display: flex; }
-        .discover-side-hint--skip { display: none; }
-        .discover-side-hint--save {
+        body.discover-active .discover-kbd-hints {
+          display: flex;
+          top: 63%;
+        }
+        body.discover-active .discover-side-hint--skip {
+          display: flex;
+          left: max(32px, calc(50% - var(--w-discover) / 2 - 72px));
+        }
+        body.discover-active .discover-side-hint--save {
           left: calc(50% + var(--w-discover) / 2 + 40px);
           right: auto;
         }
@@ -587,7 +593,13 @@
       .card-glow.glow-toward-skip { opacity: 0.14 !important; filter: blur(48px) !important; }
       .play-btn { box-shadow: 0 2px 12px rgba(124,58,237,0.22); }
       .btn-save { box-shadow: 0 4px 16px rgba(124,58,237,0.26); }
-      .btn-skip { box-shadow: 0 2px 12px rgba(248,113,113,0.08); }
+      .btn-skip {
+        box-shadow: 0 5px 22px rgba(248,113,113,0.2), 0 0 0 5px rgba(248,113,113,0.09), inset 0 1px 0 rgba(255,255,255,0.07);
+      }
+      .btn-skip:hover {
+        box-shadow: 0 6px 28px rgba(248,113,113,0.32), 0 0 0 6px rgba(248,113,113,0.14), inset 0 1px 0 rgba(255,255,255,0.1);
+        border-color: rgba(248,113,113,0.62) !important;
+      }
       .yt-play-icon { box-shadow: 0 4px 16px rgba(124,58,237,0.26); }
       .desktop-topbar {
         background: rgba(5, 5, 8, 0.78);
@@ -1425,7 +1437,7 @@
     .player-area { background: var(--bg-3); border-radius: 16px; border: 0.5px solid var(--border); overflow: hidden; }
     .waveform-wrap { padding: 16px 16px 10px; cursor: pointer; }
     .waveform { height: 54px; display: flex; align-items: center; gap: 2px; }
-    .wbar { flex: 1; border-radius: 2px; min-height: 3px; transition: height 0.12s ease, opacity 0.12s ease; }
+    .wbar { flex: 1; border-radius: 2px; min-height: 3px; background: rgba(255,255,255,0.42); transition: height 0.12s ease, opacity 0.12s ease; }
     .player-controls { display: flex; align-items: center; gap: 10px; padding: 0 14px 14px; }
     .play-btn {
       width: 44px; height: 44px; border-radius: 50%;
@@ -1466,11 +1478,19 @@
       border-radius: 50%; border: none;
       display: flex; align-items: center; justify-content: center;
       cursor: pointer;
-      transition: transform 0.28s cubic-bezier(0.34, 1.45, 0.64, 1), opacity 0.15s;
+      transition: transform 0.28s cubic-bezier(0.34, 1.45, 0.64, 1), box-shadow 0.22s ease, border-color 0.22s ease, opacity 0.15s;
       -webkit-touch-callout: none;
     }
-    .btn-skip { width: 64px; height: 64px; background: #1a1a1a; border: 1.5px solid rgba(248,113,113,0.45) !important; box-shadow: 0 4px 20px rgba(248,113,113,0.12); }
-    .btn-skip i { font-size: 26px; color: #f87171; }
+    .btn-skip {
+      width: 64px; height: 64px;
+      background: linear-gradient(165deg, rgba(248,113,113,0.18) 0%, rgba(24,15,15,1) 50%, rgba(14,11,11,1) 100%);
+      border: 1px solid rgba(248,113,113,0.5) !important;
+      box-shadow: 0 5px 24px rgba(248,113,113,0.24), 0 0 0 5px rgba(248,113,113,0.1), inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+    .btn-skip i {
+      font-size: 26px; color: #f87171;
+      filter: drop-shadow(0 0 5px rgba(248,113,113,0.35));
+    }
     .btn-save { width: 72px; height: 72px; background: var(--accent); border: none !important; box-shadow: 0 6px 28px rgba(124,58,237,0.5), 0 0 0 6px rgba(124,58,237,0.12); }
     .btn-save i { font-size: 30px; color: #fff; }
     .empty-card { text-align: center; padding: 40px 20px; color: var(--text-2); font-size: 14px; line-height: 1.6; }
@@ -1616,6 +1636,44 @@
     }
     .my-page-beat-icon i { color: var(--accent-mid); font-size: 18px; }
     .my-page-beat-title { flex: 1; font-size: 14px; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .my-page-beat-row--live { cursor: default; }
+    .my-page-beat-grip {
+      width: 28px; height: 36px; border: none; background: none; color: var(--text-3);
+      display: flex; align-items: center; justify-content: center; cursor: grab; flex-shrink: 0;
+      border-radius: 8px; transition: color 0.15s, background 0.15s;
+    }
+    .my-page-beat-grip:active { cursor: grabbing; }
+    .my-page-beat-grip:hover { color: var(--text-2); background: rgba(255,255,255,0.04); }
+    .my-page-beat-actions { display: flex; gap: 4px; flex-shrink: 0; }
+    .my-page-beat-act {
+      width: 32px; height: 32px; border-radius: 8px; border: 0.5px solid var(--border);
+      background: rgba(255,255,255,0.03); color: var(--text-2); cursor: pointer;
+      display: flex; align-items: center; justify-content: center; transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    .my-page-beat-act:hover { color: var(--text); border-color: var(--border-2); background: rgba(255,255,255,0.06); }
+    .my-page-beat-act--danger:hover { color: #f87171; border-color: rgba(248,113,113,0.35); background: rgba(248,113,113,0.08); }
+    .my-page-beat-act:disabled { opacity: 0.35; pointer-events: none; }
+    .my-page-beat-row--dragging { opacity: 0.45; }
+    .my-page-beat-row--drag-over { border-color: rgba(124,58,237,0.45); background: rgba(124,58,237,0.06); }
+    .beat-edit-modal {
+      position: fixed; inset: 0; z-index: 12000; display: none; align-items: center; justify-content: center;
+      padding: 20px; background: rgba(0,0,0,0.65); backdrop-filter: blur(6px);
+    }
+    .beat-edit-modal.open { display: flex; }
+    .beat-edit-card {
+      width: 100%; max-width: 400px; max-height: 90dvh; overflow-y: auto;
+      background: var(--bg); border: 0.5px solid var(--border-2); border-radius: 18px;
+      padding: 22px 20px 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .beat-edit-head { font-size: 17px; font-weight: 700; margin-bottom: 4px; letter-spacing: -0.3px; }
+    .beat-edit-sub { font-size: 12px; color: var(--text-3); margin-bottom: 16px; }
+    .beat-edit-actions { display: flex; gap: 8px; margin-top: 8px; }
+    .beat-edit-actions .btn-secondary,
+    .beat-edit-actions .submit-btn { flex: 1; margin-top: 0; }
+    .profile-unsaved-hint {
+      font-size: 12px; color: #fbbf24; margin-top: 8px; display: none; align-items: center; gap: 6px;
+    }
+    .profile-unsaved-hint.visible { display: flex; }
     .my-page-status {
       font-size: 10px; font-weight: 700; letter-spacing: 0.3px; text-transform: uppercase;
       padding: 4px 10px; border-radius: 100px; flex-shrink: 0;
@@ -2268,7 +2326,7 @@
     @media (min-width: 1100px) {
       body.portfolio-active .discover-kbd-hints {
         display: flex !important;
-        top: 42%;
+        top: 63%;
       }
       body.portfolio-active .discover-kbd-hints--left {
         left: max(16px, calc(50% - var(--w-portfolio) / 2 - 236px));
@@ -3784,6 +3842,54 @@
   </div><!-- /desktop-right -->
   </div><!-- /desktop-layout -->
 
+  <div class="beat-edit-modal" id="beatEditModal" onclick="if(event.target===this)closeBeatEditModal()">
+    <div class="beat-edit-card" role="dialog" aria-labelledby="beatEditTitle">
+      <div class="beat-edit-head" id="beatEditTitle">Edit beat</div>
+      <div class="beat-edit-sub">Changes go live on your portfolio after save.</div>
+      <div class="field-group">
+        <label class="field-label">Title *</label>
+        <input type="text" id="beat-edit-title" placeholder="Track title">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Genre *</label>
+        <select id="beat-edit-genre">
+          <option value="">Select genre...</option>
+          <option>Trap</option><option>Drill</option><option>R&B</option>
+          <option>Lo-Fi</option><option>Afrobeats</option><option>Synthwave</option>
+          <option>Acoustic</option><option>Boom Bap</option><option>Other</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Type *</label>
+        <select id="beat-edit-type">
+          <option value="">Select type...</option>
+          <option>Full Beat</option>
+          <option>Loop</option>
+          <option>Drum Kit</option>
+          <option>Sample</option>
+        </select>
+      </div>
+      <div class="field-group field-row">
+        <div>
+          <label class="field-label">BPM <span style="color:var(--text-3);font-weight:400">(optional)</span></label>
+          <input type="number" id="beat-edit-bpm" placeholder="140">
+        </div>
+        <div>
+          <label class="field-label">Key <span style="color:var(--text-3);font-weight:400">(optional)</span></label>
+          <input type="text" id="beat-edit-key" placeholder="F# Min">
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Buy link <span style="color:var(--text-3);font-weight:400">(optional)</span></label>
+        <input type="url" id="beat-edit-buy" placeholder="BeatStars track link">
+      </div>
+      <div class="beat-edit-actions">
+        <button type="button" class="btn-secondary" onclick="closeBeatEditModal()">Cancel</button>
+        <button type="button" class="submit-btn" id="beatEditSaveBtn" onclick="saveBeatEdit()"><i class="ti ti-check"></i> Save</button>
+      </div>
+    </div>
+  </div>
+
   <div class="bs-toast-wrap" id="bsToastWrap" aria-live="polite" role="status"></div>
 
 <script>
@@ -3932,6 +4038,8 @@ function applyGoTo(screenId, navId) {
 }
 
 function goTo(screenId, navId) {
+  const currentScreen = document.querySelector('.screen.active');
+  if (currentScreen?.id === 'profileScreen' && screenId !== 'profileScreen' && !confirmDiscardProfileChanges()) return;
   if (INVITE_PROTECTED.has(screenId) && !hasInviteAccess()) {
     showInviteGate(screenId, navId);
     return;
@@ -4583,7 +4691,7 @@ function renderCard() {
   counter.textContent = (source.length - list.length + 1) + ' / ' + source.length;
   const d = list[0];
   const bars = Array(36).fill(0).map(() =>
-    `<div class="wbar" style="background:${d.color};height:${Math.round(Math.random()*14+3)}px;opacity:0.55"></div>`
+    `<div class="wbar" style="height:${Math.round(Math.random()*14+3)}px;opacity:0.55"></div>`
   ).join('');
 
   const useYT = isYouTube(d.mp3);
@@ -5074,7 +5182,7 @@ function buildCratePreviewHTML(d) {
   const embedSrc = ytId ? `https://www.youtube.com/embed/${ytId}?rel=0&modestbranding=1` : '';
   const scEmbedSrc = useSC ? `https://w.soundcloud.com/player/?url=${encodeURIComponent(d.mp3)}&color=%237C3AED&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false` : '';
   const bars = Array(28).fill(0).map(() =>
-    `<div class="wbar cp-wbar" style="background:${d.color};height:${Math.round(Math.random()*14+3)}px;opacity:0.55"></div>`
+    `<div class="wbar cp-wbar" style="height:${Math.round(Math.random()*14+3)}px;opacity:0.55"></div>`
   ).join('');
   let playerHTML = '';
   if (useYT && embedSrc) {
@@ -6010,6 +6118,51 @@ supa.auth.onAuthStateChange(async (event, session) => {
 let authMode = 'login'; // 'login' | 'signup'
 
 let _userProfile = null; // cached profile data
+let _profileFormSnapshot = null;
+
+function getProfileFormState() {
+  const nameEl = document.getElementById('ep-name');
+  if (!nameEl) return null;
+  return {
+    producer_name: document.getElementById('ep-name')?.value?.trim() || '',
+    bio: document.getElementById('ep-bio')?.value?.trim() || '',
+    instagram: document.getElementById('ep-instagram')?.value?.trim() || '',
+    soundcloud: document.getElementById('ep-soundcloud')?.value?.trim() || '',
+    beatstars: document.getElementById('ep-beatstars')?.value?.trim() || '',
+    youtube: document.getElementById('ep-youtube')?.value?.trim() || '',
+  };
+}
+
+function captureProfileFormSnapshot() {
+  _profileFormSnapshot = getProfileFormState();
+  updateProfileUnsavedHint();
+}
+
+function isProfileDirty() {
+  if (!_profileFormSnapshot) return false;
+  const cur = getProfileFormState();
+  if (!cur) return false;
+  return Object.keys(cur).some(k => cur[k] !== (_profileFormSnapshot[k] || ''));
+}
+
+function updateProfileUnsavedHint() {
+  const hint = document.getElementById('profileUnsavedHint');
+  if (hint) hint.classList.toggle('visible', isProfileDirty());
+}
+
+function confirmDiscardProfileChanges() {
+  if (!isProfileDirty()) return true;
+  return confirm('You have unsaved profile changes. Discard them?');
+}
+
+function bindProfileFormWatch() {
+  ['ep-name', 'ep-bio', 'ep-instagram', 'ep-soundcloud', 'ep-beatstars', 'ep-youtube'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el || el._profileWatch) return;
+    el._profileWatch = true;
+    el.addEventListener('input', updateProfileUnsavedHint);
+  });
+}
 
 async function loadUserProfile() {
   if (!currentUser) return;
@@ -6124,6 +6277,7 @@ function renderProfile() {
           <button class="save-profile-btn" onclick="saveProfile()" id="saveProfileBtn">
             <i class="ti ti-check"></i> Save profile
           </button>
+          <div class="profile-unsaved-hint" id="profileUnsavedHint"><i class="ti ti-alert-circle"></i> Unsaved changes</div>
           <div class="profile-saved-msg" id="profileSavedMsg">✓ Profile saved!</div>
         </div>
       </div>
@@ -6164,7 +6318,10 @@ function renderProfile() {
     `;
     wrap._activeTab = activeTab;
     updateDesktopTopbarAuth();
+    captureProfileFormSnapshot();
+    bindProfileFormWatch();
   } else {
+    _profileFormSnapshot = null;
     wrap.innerHTML = `
       <div class="profile-guest-scroll">
         <div class="auth-box">
@@ -6218,6 +6375,8 @@ function renderProfile() {
 function switchProfileTab(tab) {
   const wrap = document.getElementById('profileWrap');
   if (!wrap) return;
+  const activeTab = wrap._activeTab || 'profile';
+  if (activeTab === 'profile' && tab !== 'profile' && !confirmDiscardProfileChanges()) return;
   wrap._activeTab = tab;
   renderProfile();
 }
@@ -6361,6 +6520,7 @@ async function saveProfile() {
       if (msg) { msg.style.display = 'block'; setTimeout(() => msg.style.display = 'none', 3000); }
       showToast('Profile saved!', 'success');
       renderProfile();
+      captureProfileFormSnapshot();
     } else {
       const errText = await res.text();
       showToast('Error saving profile. Please try again.', 'error', 3600);
@@ -6933,7 +7093,7 @@ function buildBeatCardHTML(d, opts) {
   const hideProducer = opts && opts.hideProducer;
   const portfolioWrap = opts && opts.portfolioWrap;
   const bars = Array(36).fill(0).map(() =>
-    `<div class="wbar" style="background:${d.color};height:${Math.round(Math.random()*14+3)}px;opacity:0.55"></div>`
+    `<div class="wbar" style="height:${Math.round(Math.random()*14+3)}px;opacity:0.55"></div>`
   ).join('');
   const useYT = isYouTube(d.mp3);
   const useSC = isSoundCloud(d.mp3);
@@ -7167,7 +7327,11 @@ function showPortfolioNotFound(slug) {
 async function openPortfolio(producerName, opts) {
   opts = opts || {};
   const allBeats = Object.values(_rawDb).flat();
-  const beats = allBeats.filter(b => b.producer === producerName);
+  const profile = await loadPortfolioProfile(producerName);
+  const beats = sortBeatsByOrder(
+    allBeats.filter(b => b.producer === producerName),
+    getBeatOrderForProducer(producerName, profile)
+  );
   if (!beats.length && !opts.fromRoute) return;
 
   if (!opts.fromRoute) {
@@ -7191,7 +7355,6 @@ async function openPortfolio(producerName, opts) {
   document.body.classList.add('portfolio-active');
 
   const color = beats[0]?.color || 'var(--accent)';
-  const profile = await loadPortfolioProfile(producerName);
   renderPortfolioHeader(producerName, profile, color);
   renderPortfolioCard();
   playPortfolioEnterAnim();
@@ -7453,10 +7616,227 @@ function addMyPendingBeat(title) {
   localStorage.setItem(key, JSON.stringify(list));
 }
 
+function parseBeatOrder(raw) {
+  if (!raw) return null;
+  if (Array.isArray(raw)) return raw.filter(Boolean);
+  try {
+    const p = JSON.parse(raw);
+    return Array.isArray(p) ? p.filter(Boolean) : null;
+  } catch (e) { return null; }
+}
+
+function getStoredBeatOrderIds() {
+  const fromProfile = parseBeatOrder(_userProfile?.beat_order);
+  if (fromProfile?.length) return fromProfile;
+  const key = myPageStorageKey('beat_order');
+  if (!key) return [];
+  try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch (e) { return []; }
+}
+
+function sortBeatsByOrder(beats, orderIds) {
+  if (!orderIds?.length) return beats.slice();
+  const orderMap = new Map(orderIds.map((id, i) => [id, i]));
+  return beats.slice().sort((a, b) => {
+    const ai = orderMap.has(a.id) ? orderMap.get(a.id) : 9999;
+    const bi = orderMap.has(b.id) ? orderMap.get(b.id) : 9999;
+    if (ai !== bi) return ai - bi;
+    return (a.title || '').localeCompare(b.title || '');
+  });
+}
+
+function getBeatOrderForProducer(producerName, profile) {
+  const own = (_userProfile?.producer_name || '').trim() === (producerName || '').trim();
+  if (own) return getStoredBeatOrderIds();
+  return parseBeatOrder(profile?.beat_order) || [];
+}
+
+async function persistBeatOrder(ids) {
+  const key = myPageStorageKey('beat_order');
+  if (key) localStorage.setItem(key, JSON.stringify(ids));
+  const token = await getAccessToken();
+  if (!token || !currentUser) return;
+  try {
+    const res = await fetch(`${SUPA_URL}/rest/v1/profiles`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+        apikey: SUPA_KEY,
+        Prefer: 'resolution=merge-duplicates,return=minimal'
+      },
+      body: JSON.stringify({ id: currentUser.id, beat_order: ids, updated_at: new Date().toISOString() })
+    });
+    if (res.ok) _userProfile = { ..._userProfile, beat_order: ids };
+  } catch (e) {}
+}
+
+function syncBeatOrderWithLive(liveBeats) {
+  const ids = liveBeats.map(b => b.id);
+  const stored = getStoredBeatOrderIds().filter(id => ids.includes(id));
+  ids.forEach(id => { if (!stored.includes(id)) stored.push(id); });
+  if (stored.length) void persistBeatOrder(stored);
+  return stored;
+}
+
 function getMyLiveBeats() {
   const name = _userProfile?.producer_name?.trim();
   if (!name) return [];
-  return Object.values(_rawDb || {}).flat().filter(b => b.producer === name);
+  const beats = Object.values(_rawDb || {}).flat().filter(b => b.producer === name);
+  return sortBeatsByOrder(beats, getStoredBeatOrderIds());
+}
+
+function findMyBeatById(beatId) {
+  return getMyLiveBeats().find(b => b.id === beatId) || Object.values(_rawDb || {}).flat().find(b => b.id === beatId);
+}
+
+function parseBpmValue(bpmStr) {
+  if (!bpmStr || bpmStr === '--- BPM') return '';
+  const n = parseInt(String(bpmStr).replace(/\s*BPM/i, ''), 10);
+  return Number.isNaN(n) ? '' : String(n);
+}
+
+function parseKeyValue(keyStr) {
+  if (!keyStr || keyStr === 'N/A') return '';
+  return keyStr;
+}
+
+let _editingBeatId = null;
+
+function openBeatEditModal(beatId) {
+  const beat = findMyBeatById(beatId);
+  if (!beat) return;
+  _editingBeatId = beatId;
+  document.getElementById('beat-edit-title').value = beat.title || '';
+  document.getElementById('beat-edit-genre').value = beat.genre && beat.genre !== 'Other' ? beat.genre : (beat.genre || '');
+  document.getElementById('beat-edit-type').value = beat.type || '';
+  document.getElementById('beat-edit-bpm').value = parseBpmValue(beat.bpm);
+  document.getElementById('beat-edit-key').value = parseKeyValue(beat.key);
+  document.getElementById('beat-edit-buy').value = beat.buy || '';
+  document.getElementById('beatEditModal')?.classList.add('open');
+}
+
+function closeBeatEditModal() {
+  _editingBeatId = null;
+  document.getElementById('beatEditModal')?.classList.remove('open');
+}
+
+async function manageBeatRequest(action, beatId, fields) {
+  const token = await getAccessToken();
+  if (!token) throw new Error('Session expired — please sign in again.');
+  const res = await fetch('/api/manage-beat', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify({ action, beatId, fields })
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+
+async function saveBeatEdit() {
+  if (!_editingBeatId) return;
+  const title = document.getElementById('beat-edit-title')?.value.trim();
+  const genre = document.getElementById('beat-edit-genre')?.value.trim();
+  const type = document.getElementById('beat-edit-type')?.value.trim();
+  const bpm = document.getElementById('beat-edit-bpm')?.value.trim();
+  const key = document.getElementById('beat-edit-key')?.value.trim();
+  const buy = document.getElementById('beat-edit-buy')?.value.trim();
+  if (!title) { showToast('Title is required.', 'error'); return; }
+  if (!genre || !type) { showToast('Genre and type are required.', 'error'); return; }
+
+  const btn = document.getElementById('beatEditSaveBtn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Saving...';
+  }
+  try {
+    await manageBeatRequest('update', _editingBeatId, { title, genre, type, bpm, key, buy });
+    closeBeatEditModal();
+    showToast('Beat updated!', 'success');
+    await loadBeats();
+    renderMyPage();
+  } catch (e) {
+    showToast(e.message || 'Could not update beat.', 'error', 3600);
+  }
+  if (btn) {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-check"></i> Save';
+  }
+}
+
+async function deleteMyBeat(beatId) {
+  const beat = findMyBeatById(beatId);
+  if (!beat) return;
+  if (!confirm(`Remove "${beat.title}" from your live portfolio?`)) return;
+  try {
+    await manageBeatRequest('delete', beatId);
+    const nextOrder = getStoredBeatOrderIds().filter(id => id !== beatId);
+    await persistBeatOrder(nextOrder);
+    showToast('Beat removed.', 'success');
+    await loadBeats();
+    renderMyPage();
+  } catch (e) {
+    showToast(e.message || 'Could not remove beat.', 'error', 3600);
+  }
+}
+
+async function applyMyBeatOrder(ids) {
+  await persistBeatOrder(ids);
+  renderMyPage();
+}
+
+function moveMyBeat(beatId, direction) {
+  const live = getMyLiveBeats();
+  const ids = live.map(b => b.id);
+  const idx = ids.indexOf(beatId);
+  if (idx < 0) return;
+  const next = idx + direction;
+  if (next < 0 || next >= ids.length) return;
+  [ids[idx], ids[next]] = [ids[next], ids[idx]];
+  void applyMyBeatOrder(ids);
+}
+
+function initMyPageBeatDrag() {
+  const list = document.querySelector('.my-page-beat-list--sortable');
+  if (!list || list._dragInit) return;
+  list._dragInit = true;
+  let dragId = null;
+
+  list.querySelectorAll('.my-page-beat-row--live').forEach(row => {
+    row.addEventListener('dragstart', e => {
+      dragId = row.dataset.beatId;
+      row.classList.add('my-page-beat-row--dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    row.addEventListener('dragend', () => {
+      dragId = null;
+      row.classList.remove('my-page-beat-row--dragging');
+      list.querySelectorAll('.my-page-beat-row--drag-over').forEach(el => el.classList.remove('my-page-beat-row--drag-over'));
+    });
+    row.addEventListener('dragover', e => {
+      e.preventDefault();
+      if (!dragId || row.dataset.beatId === dragId) return;
+      row.classList.add('my-page-beat-row--drag-over');
+    });
+    row.addEventListener('dragleave', () => row.classList.remove('my-page-beat-row--drag-over'));
+    row.addEventListener('drop', e => {
+      e.preventDefault();
+      row.classList.remove('my-page-beat-row--drag-over');
+      const targetId = row.dataset.beatId;
+      if (!dragId || !targetId || dragId === targetId) return;
+      const live = getMyLiveBeats();
+      const ids = live.map(b => b.id);
+      const from = ids.indexOf(dragId);
+      const to = ids.indexOf(targetId);
+      if (from < 0 || to < 0) return;
+      ids.splice(from, 1);
+      ids.splice(to, 0, dragId);
+      void applyMyBeatOrder(ids);
+    });
+  });
 }
 
 function getMyPageUrl() {
@@ -7581,19 +7961,29 @@ function completeMyPageOnboarding() {
   renderMyPage();
 }
 
-function renderMyPageBeatRows() {
+function renderMyPageBeatRows(opts) {
+  const sortable = !opts || opts.sortable !== false;
   const live = getMyLiveBeats();
+  if (sortable && live.length) syncBeatOrderWithLive(live);
   const pending = getMyPendingBeats();
   const pendingFiltered = pending.filter(p => !live.find(b => b.title === p.title));
   if (!live.length && !pendingFiltered.length) {
     return `<div class="my-page-empty"><i class="ti ti-music-off" style="font-size:28px;display:block;margin-bottom:8px;opacity:0.5"></i>No beats yet.<br>Tap below to add your first one.</div>`;
   }
-  let html = '<div class="my-page-beat-list">';
-  live.forEach(b => {
-    html += `<div class="my-page-beat-row">
+  const listClass = sortable && live.length ? 'my-page-beat-list my-page-beat-list--sortable' : 'my-page-beat-list';
+  let html = `<div class="${listClass}">`;
+  live.forEach((b, i) => {
+    const idEsc = escHtml(b.id);
+    html += `<div class="my-page-beat-row my-page-beat-row--live" data-beat-id="${idEsc}"${sortable ? ' draggable="true"' : ''}>
+      ${sortable ? `<button type="button" class="my-page-beat-grip" aria-label="Drag to reorder" tabindex="-1"><i class="ti ti-grip-vertical"></i></button>` : ''}
       <div class="my-page-beat-icon"><i class="ti ti-music"></i></div>
       <div class="my-page-beat-title">${escHtml(b.title)}</div>
-      <span class="my-page-status my-page-status--live">Live</span>
+      ${sortable ? `<div class="my-page-beat-actions">
+        <button type="button" class="my-page-beat-act" onclick="moveMyBeat('${idEsc}', -1)" aria-label="Move up"${i === 0 ? ' disabled' : ''}><i class="ti ti-chevron-up"></i></button>
+        <button type="button" class="my-page-beat-act" onclick="moveMyBeat('${idEsc}', 1)" aria-label="Move down"${i === live.length - 1 ? ' disabled' : ''}><i class="ti ti-chevron-down"></i></button>
+        <button type="button" class="my-page-beat-act" onclick="openBeatEditModal('${idEsc}')" aria-label="Edit beat"><i class="ti ti-pencil"></i></button>
+        <button type="button" class="my-page-beat-act my-page-beat-act--danger" onclick="deleteMyBeat('${idEsc}')" aria-label="Remove beat"><i class="ti ti-trash"></i></button>
+      </div>` : '<span class="my-page-status my-page-status--live">Live</span>'}
     </div>`;
   });
   pendingFiltered.forEach(p => {
@@ -7633,7 +8023,7 @@ function renderMyPageDashboard() {
         </div>
       </div>` : ''}
       ${liveCount < 3 ? `<div class="my-page-hint"><strong>Tip:</strong> Add at least 3 beats before sharing your link in your bio.</div>` : ''}
-      <div style="font-size:12px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.4px;font-weight:600;margin-bottom:8px">Your beats</div>
+      <div style="font-size:12px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.4px;font-weight:600;margin-bottom:8px">Your beats${liveCount ? ' · drag or use arrows to reorder' : ''}</div>
       ${renderMyPageBeatRows()}
       <button type="button" class="submit-btn" onclick="showMyPageAddBeat()"><i class="ti ti-plus"></i> Add new beat</button>
       <div style="font-size:12px;color:var(--text-3);text-align:center;margin-top:14px;line-height:1.5">Edit avatar & bio in <a onclick="goTo('profileScreen','navProfile')" style="color:var(--accent-mid);cursor:pointer">Profile</a></div>
@@ -7685,7 +8075,7 @@ function renderMyPageOnboarding() {
         <div class="submit-title" style="margin-bottom:6px">Add your beats</div>
         <div class="my-page-hint"><strong>Min. 3 beats</strong> recommended before you share your link in your bio. Each beat is reviewed within 48h.</div>
         <div style="font-size:13px;color:var(--text-2);margin-bottom:12px">${total} beat${total === 1 ? '' : 's'} added${live ? ` (${live} live)` : ''}</div>
-        ${renderMyPageBeatRows()}
+        ${renderMyPageBeatRows({ sortable: false })}
         <button type="button" class="submit-btn" onclick="showMyPageAddBeat()" style="margin-bottom:10px"><i class="ti ti-plus"></i> Add beat</button>
         <button type="button" class="btn-secondary" onclick="finishMyPageOnboarding()" style="width:100%;justify-content:center;padding:13px;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;border:0.5px solid var(--border-2);background:none;color:var(--text)">Finish setup</button>
       </div>`;
@@ -7750,5 +8140,6 @@ async function renderMyPage() {
 
   _myPageObStep = 0;
   main.innerHTML = renderMyPageDashboard();
+  initMyPageBeatDrag();
 }
 </script>
