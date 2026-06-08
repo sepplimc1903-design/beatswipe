@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-08-v46 — mobile portfolio back btn above header -->
+<!-- deploy: 2026-06-08-v48b — fix nav switch scrollbar wobble -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -369,22 +369,33 @@
     .dtb-logo span { color: var(--accent-mid); }
     .dtb-nav {
       justify-self: center;
-      display: flex; align-items: stretch; gap: 2px; height: var(--topbar-h);
+      position: relative;
+      display: flex; align-items: center; gap: 2px; height: var(--topbar-h);
     }
+    .dtb-nav-indicator {
+      position: absolute; top: 0; left: 0;
+      height: 36px;
+      border-radius: 100px;
+      background: rgba(124,58,237,0.1);
+      border: 0.5px solid rgba(167,139,250,0.22);
+      backdrop-filter: blur(18px) saturate(1.3);
+      -webkit-backdrop-filter: blur(18px) saturate(1.3);
+      box-shadow: 0 1px 14px rgba(124,58,237,0.12), inset 0 1px 0 rgba(255,255,255,0.06);
+      pointer-events: none; z-index: 0;
+      opacity: 0;
+      transition: transform 0.34s cubic-bezier(0.22,1,0.36,1), width 0.34s cubic-bezier(0.22,1,0.36,1), opacity 0.18s ease;
+      will-change: transform, width;
+    }
+    .dtb-nav-indicator.visible { opacity: 1; }
     .dtb-tab {
       background: none; border: none;
-      color: var(--text-2); font-size: 14px; font-weight: 500;
-      padding: 0 16px; cursor: pointer; position: relative;
-      transition: color 0.2s; white-space: nowrap;
+      color: var(--text-3); font-size: 14px; font-weight: 500;
+      padding: 0 16px; cursor: pointer; position: relative; z-index: 1;
+      height: 36px; display: flex; align-items: center;
+      transition: color 0.28s cubic-bezier(0.22,1,0.36,1); white-space: nowrap;
     }
-    .dtb-tab:hover { color: var(--text); }
+    .dtb-tab:hover { color: var(--text-2); }
     .dtb-tab.active { color: var(--text); font-weight: 600; }
-    .dtb-tab.active::after {
-      content: ''; position: absolute;
-      bottom: 0; left: 10px; right: 10px;
-      height: 2px; background: var(--accent);
-      border-radius: 2px 2px 0 0;
-    }
     .dtb-auth { justify-self: end; display: flex; align-items: center; }
     .dtb-signin {
       padding: 8px 18px; border-radius: 100px;
@@ -424,6 +435,10 @@
       body.site-scroll {
         overflow-x: hidden;
         overflow-y: auto;
+      }
+      body.nav-switching {
+        overflow: hidden !important;
+        height: 100dvh;
       }
       .desktop-layout {
         width: 100%; max-width: none; margin: 0; gap: 0;
@@ -607,7 +622,6 @@
         -webkit-backdrop-filter: blur(24px) saturate(1.15);
         border-bottom-color: rgba(255,255,255,0.06);
       }
-      .dtb-tab.active::after { height: 1.5px; background: rgba(167,139,250,0.75); }
       .dtb-signin:hover { border-color: rgba(255,255,255,0.22); color: var(--text); }
       .discover-filter-btn:hover { border-color: rgba(255,255,255,0.18); color: var(--text); }
       .dtb-user-btn:hover { box-shadow: 0 0 0 2px rgba(255,255,255,0.12); }
@@ -1146,13 +1160,6 @@
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
       }
-      .shell > .screen { transition: opacity 0.18s ease; }
-      .shell > .screen.screen-fade-out {
-        opacity: 0;
-        pointer-events: none;
-      }
-      .shell > .screen.screen-entering { opacity: 0; }
-      .shell > .screen.active { opacity: 1; }
       .reveal-on-scroll {
         opacity: 0;
         transform: translateY(12px);
@@ -1293,16 +1300,66 @@
     }
 
     /* NAV */
-    .nav-bar { display: flex; border-top: 0.5px solid var(--border); background: var(--bg); flex-shrink: 0; padding-bottom: env(safe-area-inset-bottom); }
-    .nav-tab { flex: 1; padding: 10px 0 8px; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; background: none; border: none; color: var(--text-2); font-size: 10px; font-weight: 500; letter-spacing: 0.3px; transition: color 0.2s; }
-    .nav-tab.active { color: var(--accent-mid); }
-    .nav-tab i { font-size: 22px; }
-    .nav-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--accent-mid); opacity: 0; transition: opacity 0.2s; }
-    .nav-tab.active .nav-dot { opacity: 1; }
+    .nav-bar {
+      display: flex; position: relative;
+      border-top: 0.5px solid rgba(255,255,255,0.08);
+      background: rgba(9,9,11,0.84);
+      backdrop-filter: blur(20px) saturate(1.2);
+      -webkit-backdrop-filter: blur(20px) saturate(1.2);
+      flex-shrink: 0; padding-bottom: env(safe-area-inset-bottom);
+    }
+    .nav-indicator {
+      position: absolute; top: 0; left: 0;
+      height: 52px;
+      border-radius: 16px;
+      background: rgba(124,58,237,0.1);
+      border: 0.5px solid rgba(167,139,250,0.22);
+      backdrop-filter: blur(18px) saturate(1.3);
+      -webkit-backdrop-filter: blur(18px) saturate(1.3);
+      box-shadow: 0 1px 14px rgba(124,58,237,0.12), inset 0 1px 0 rgba(255,255,255,0.06);
+      pointer-events: none; z-index: 0;
+      opacity: 0;
+      transition: transform 0.34s cubic-bezier(0.22,1,0.36,1), width 0.34s cubic-bezier(0.22,1,0.36,1), opacity 0.18s ease;
+      will-change: transform, width;
+    }
+    .nav-indicator.visible { opacity: 1; }
+    .nav-tab {
+      flex: 1; padding: 8px 0 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+      cursor: pointer; background: none; border: none; position: relative; z-index: 1;
+      color: var(--text-3); font-size: 10px; font-weight: 500; letter-spacing: 0.3px;
+      transition: color 0.28s cubic-bezier(0.22,1,0.36,1);
+    }
+    .nav-tab.active { color: var(--text); }
+    .nav-tab i { font-size: 22px; transition: color 0.28s cubic-bezier(0.22,1,0.36,1); }
+    .nav-tab.active i { color: var(--accent-mid); }
+    .nav-dot { display: none; }
+    @media (prefers-reduced-motion: reduce) {
+      .nav-indicator, .dtb-nav-indicator { transition: none !important; }
+      .shell > .screen { transition: none !important; }
+      .shell > .screen.screen-entering,
+      .shell > .screen.screen-fade-out { opacity: 1; }
+      .shell > .screen > .page-inner { transition: none !important; transform: none !important; }
+    }
 
     /* SCREENS */
     .screen { display: none; flex: 1; flex-direction: column; overflow: hidden; min-height: 0; }
     .screen.active { display: flex; }
+    .shell > .screen {
+      transition: opacity 0.24s cubic-bezier(0.22,1,0.36,1);
+    }
+    .shell > .screen.screen-fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .shell > .screen.screen-entering {
+      opacity: 0;
+    }
+    .shell > .screen > .page-inner {
+      transition: transform 0.24s cubic-bezier(0.22,1,0.36,1);
+    }
+    .shell > .screen.screen-entering > .page-inner {
+      transform: translateY(-6px);
+    }
 
     /* TOP BAR */
     .top-bar { display: flex; align-items: center; justify-content: space-between; padding: var(--py) var(--px) 12px; flex-shrink: 0; }
@@ -3281,6 +3338,7 @@
 <header class="desktop-topbar" id="desktopTopbar">
   <button type="button" class="dtb-logo" onclick="goTo('landScreen','navHome')">Beat<span>Swipe</span></button>
   <nav class="dtb-nav" aria-label="Main navigation">
+    <div class="dtb-nav-indicator" id="dtbNavIndicator" aria-hidden="true"></div>
     <button type="button" class="dtb-tab active" id="dtbHome" onclick="goTo('landScreen','navHome')">Home</button>
     <button type="button" class="dtb-tab" id="dtbDiscover" onclick="goTo('discoverScreen','navDiscover')">Discover</button>
     <button type="button" class="dtb-tab" id="dtbCrate" onclick="goTo('crateScreen','navCrate')">Favorites</button>
@@ -3655,6 +3713,7 @@
 
   <!-- BOTTOM NAV -->
   <div class="nav-bar">
+    <div class="nav-indicator" id="navIndicator" aria-hidden="true"></div>
     <button class="nav-tab active" id="navHome" onclick="goTo('landScreen','navHome')"><i class="ti ti-home"></i>Home<div class="nav-dot"></div></button>
     <button class="nav-tab" id="navDiscover" onclick="goTo('discoverScreen','navDiscover')"><i class="ti ti-headphones"></i>Discover<div class="nav-dot"></div></button>
     <button class="nav-tab" id="navCrate" onclick="goTo('crateScreen','navCrate')"><i class="ti ti-shopping-cart"></i>Favorites<div class="nav-dot"></div></button>
@@ -3979,6 +4038,40 @@ function showToast(message, type = 'info', duration = 2800) {
   }, duration);
 }
 
+function positionNavIndicator(indicator, container, tab, opts) {
+  if (!indicator || !container || !tab) return;
+  opts = opts || {};
+  const padX = opts.padX ?? 6;
+  const pillH = opts.pillH ?? 36;
+  const barRect = container.getBoundingClientRect();
+  const tabRect = tab.getBoundingClientRect();
+  const w = Math.max(0, tabRect.width - padX * 2);
+  const x = tabRect.left - barRect.left + padX;
+  const y = opts.centerInNav
+    ? (barRect.height - pillH) / 2
+    : tabRect.top - barRect.top + (tabRect.height - pillH) / 2;
+  indicator.style.width = w + 'px';
+  indicator.style.transform = `translate(${x}px, ${y}px)`;
+  indicator.classList.add('visible');
+}
+
+function updateNavIndicator(navId) {
+  if (!navId) return;
+  const dtbId = navId.replace(/^nav/, 'dtb');
+  const mobileTab = document.getElementById(navId);
+  const mobileBar = document.querySelector('.nav-bar');
+  const mobileInd = document.getElementById('navIndicator');
+  if (mobileTab && mobileBar && mobileInd && mobileBar.offsetParent !== null) {
+    positionNavIndicator(mobileInd, mobileBar, mobileTab, { padX: 10, pillH: 52 });
+  }
+  const dtbTab = document.getElementById(dtbId);
+  const dtbNav = document.querySelector('.dtb-nav');
+  const dtbInd = document.getElementById('dtbNavIndicator');
+  if (dtbTab && dtbNav && dtbInd && dtbNav.offsetParent !== null) {
+    positionNavIndicator(dtbInd, dtbNav, dtbTab, { padX: 8, pillH: 36, centerInNav: true });
+  }
+}
+
 function setActiveNav(navId) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.dtb-tab').forEach(t => t.classList.remove('active'));
@@ -3986,7 +4079,19 @@ function setActiveNav(navId) {
   document.getElementById(navId)?.classList.add('active');
   const dtbId = navId.replace(/^nav/, 'dtb');
   document.getElementById(dtbId)?.classList.add('active');
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => updateNavIndicator(navId));
+  });
 }
+
+let _navIndicatorResizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(_navIndicatorResizeTimer);
+  _navIndicatorResizeTimer = setTimeout(() => {
+    const active = document.querySelector('.nav-tab.active');
+    if (active?.id) updateNavIndicator(active.id);
+  }, 120);
+});
 
 function updateDesktopTopbarAuth() {
   const el = document.getElementById('dtbAuth');
@@ -4061,21 +4166,26 @@ function submitInviteCode() {
   else if (pending) goTo(pending.screenId, pending.navId);
 }
 
+function playScreenEnterAnim(screenEl) {
+  if (!screenEl || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  screenEl.classList.add('screen-entering');
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => screenEl.classList.remove('screen-entering'));
+  });
+}
+
 function applyGoTo(screenId, navId) {
   const next = document.getElementById(screenId);
   if (!next) return;
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active', 'screen-fade-out', 'screen-entering'));
   next.classList.add('active');
-  if (isDesktop()) {
-    next.classList.add('screen-entering');
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => next.classList.remove('screen-entering'));
-    });
-  }
+  playScreenEnterAnim(next);
   document.body.classList.toggle('discover-active', screenId === 'discoverScreen');
   document.body.classList.toggle('portfolio-active', screenId === 'portfolioScreen');
   document.body.classList.toggle('site-scroll', isDesktop() && screenId !== 'discoverScreen');
-  if (isDesktop() && screenId !== 'discoverScreen') window.scrollTo(0, 0);
+  if (isDesktop() && screenId !== 'discoverScreen' && screenId !== 'portfolioScreen') {
+    window.scrollTo(0, 0);
+  }
   setActiveNav(navId);
   if (screenId !== 'discoverScreen') hideDiscoverSyncHint();
   if (screenId === 'discoverScreen') {
@@ -4107,9 +4217,16 @@ function goTo(screenId, navId) {
   if (!next) return;
   if (current === next) { setActiveNav(navId); return; }
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (isDesktop() && current && !reducedMotion) {
+  if (current && !reducedMotion) {
+    setActiveNav(navId);
+    if (isDesktop()) document.body.classList.add('nav-switching');
     current.classList.add('screen-fade-out');
-    setTimeout(() => applyGoTo(screenId, navId), 160);
+    setTimeout(() => {
+      applyGoTo(screenId, navId);
+      if (isDesktop()) {
+        setTimeout(() => document.body.classList.remove('nav-switching'), 260);
+      }
+    }, 100);
     return;
   }
   applyGoTo(screenId, navId);
@@ -7632,6 +7749,10 @@ initApp().then(() => {
     }
   }
   updateDesktopTopbarAuth();
+  const activeNavId = document.querySelector('.nav-tab.active')?.id || 'navHome';
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => updateNavIndicator(activeNavId));
+  });
 });
 
 function toggleDsgvo() {
