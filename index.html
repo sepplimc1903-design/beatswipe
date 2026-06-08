@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-09-v53 — mobile linear wash, swipe clip fix, portfolio fly polish -->
+<!-- deploy: 2026-06-09-v54 — portfolio preview saves not stored -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -5727,7 +5727,14 @@ function doSwipe(dir) {
     const list = getPortfolioList();
     const item = list[0];
     if (!item) return;
-    if (dir === 'right') {
+    if (_portfolioPreview) {
+      if (!_portfolioPreviewPassed.includes(item.id)) _portfolioPreviewPassed.push(item.id);
+      if (dir === 'left') {
+        if (!_portfolioSkipped.includes(item.id)) _portfolioSkipped.push(item.id);
+      } else {
+        _portfolioSkipped = _portfolioSkipped.filter(id => id !== item.id);
+      }
+    } else if (dir === 'right') {
       if (!crate.find(i => i.id === item.id)) {
         crate.push(item);
         _lastSavedBeatId = item.id;
@@ -7453,6 +7460,8 @@ let _portfolioSwipeLock = false;
 let _prevScreen = 'discoverScreen';
 let _prevNav = 'navDiscover';
 let _portfolioShowBack = false;
+let _portfolioPreview = false;
+let _portfolioPreviewPassed = [];
 
 function setPortfolioBackVisible(show) {
   _portfolioShowBack = !!show;
@@ -7571,6 +7580,9 @@ function resetSiteMeta() {
 }
 
 function getPortfolioList() {
+  if (_portfolioPreview) {
+    return _portfolioBeats.filter(b => !_portfolioPreviewPassed.includes(b.id));
+  }
   const crateIds = new Set(crate.map(b => b.id));
   return _portfolioBeats.filter(b => !crateIds.has(b.id) && !_portfolioSkipped.includes(b.id));
 }
@@ -7581,6 +7593,18 @@ function getPortfolioSavedBeats() {
 }
 
 function buildPortfolioDoneHTML() {
+  if (_portfolioPreview) {
+    const skipped = _portfolioSkipped.length;
+    const replayBtn = skipped > 0 ? `
+      <button type="button" class="portfolio-replay-btn" onclick="replayPortfolioSkipped()">
+        <i class="ti ti-refresh" style="font-size:15px;color:var(--accent-mid);vertical-align:-2px;margin-right:6px"></i>Replay ${skipped} skipped beat${skipped === 1 ? '' : 's'}
+      </button>` : '';
+    return `<div class="portfolio-surface"><div class="portfolio-done">
+      <div class="portfolio-done-head"><i class="ti ti-check"></i>Preview complete</div>
+      <div class="portfolio-done-sub">This is what fans see from your bio link. Saves here are not stored.</div>
+      ${replayBtn}
+    </div></div>`;
+  }
   const saved = getPortfolioSavedBeats();
   const skipped = _portfolioSkipped.length;
   const replayBtn = skipped > 0 ? `
@@ -8055,6 +8079,10 @@ document.addEventListener('touchend', e => {
 }, { passive: true });
 
 function replayPortfolioSkipped() {
+  if (_portfolioPreview) {
+    const skippedSet = new Set(_portfolioSkipped);
+    _portfolioPreviewPassed = _portfolioPreviewPassed.filter(id => !skippedSet.has(id));
+  }
   _portfolioSkipped = [];
   setPortfolioDoneMode(false);
   renderPortfolioCard();
@@ -8094,10 +8122,12 @@ async function openPortfolio(producerName, opts) {
   setPortfolioBackVisible(!opts.fromRoute);
 
   _portfolioMode = true;
+  _portfolioPreview = !!opts.preview;
   _portfolioProducer = producerName;
   _portfolioBeats = beats;
   _portfolioIdx = 0;
   _portfolioSkipped = [];
+  _portfolioPreviewPassed = [];
   _portfolioSwipeLock = false;
 
   document.documentElement.classList.remove('portfolio-route-boot');
@@ -8130,6 +8160,8 @@ function exitPortfolioMode() {
   resetSwipeGestureState();
   setPortfolioBackVisible(false);
   _portfolioMode = false;
+  _portfolioPreview = false;
+  _portfolioPreviewPassed = [];
   _portfolioProducer = null;
   document.body.classList.remove('portfolio-active', 'portfolio-swipe-done');
   document.body.style.removeProperty('--pf-glow');
@@ -8147,6 +8179,8 @@ async function handlePortfolioPopstate() {
   if (_portfolioMode) {
     setPortfolioBackVisible(false);
     _portfolioMode = false;
+    _portfolioPreview = false;
+    _portfolioPreviewPassed = [];
     _portfolioProducer = null;
     document.body.classList.remove('portfolio-active', 'portfolio-swipe-done');
     resetSiteMeta();
@@ -8718,7 +8752,7 @@ function hideMyPageAddBeat() {
 function previewMyPage() {
   const name = _userProfile?.producer_name?.trim();
   if (!name) return;
-  openPortfolio(name);
+  openPortfolio(name, { preview: true });
 }
 
 async function saveOnboardingProfile() {
