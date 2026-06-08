@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-09-v54 — portfolio preview saves not stored -->
+<!-- deploy: 2026-06-09-v55 — favorites sync from DB authoritative -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -6020,16 +6020,22 @@ async function removeBeatFromCrate(beatId) {
   crate = crate.filter(b => b.id !== beatId);
   if (_selectedCrateId === beatId) _selectedCrateId = crate[0]?.id || null;
   renderCrate();
-  // Aus Supabase entfernen (falls eingeloggt)
   if (!currentUser) return;
   const token = await getAccessToken();
   if (!token) return;
   try {
-    await fetch(`${SUPA_URL}/rest/v1/crates?user_id=eq.${currentUser.id}&beat_id=eq.${beatId}`, {
+    const res = await fetch(`${SUPA_URL}/rest/v1/crates?user_id=eq.${currentUser.id}&beat_id=eq.${beatId}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}`, 'apikey': SUPA_KEY }
     });
-  } catch(e) { console.warn('removeBeatFromCrate error:', e); }
+    if (!res.ok) {
+      console.warn('removeBeatFromCrate failed:', res.status);
+      showToast('Could not sync removal — try again.', 'error');
+    }
+  } catch(e) {
+    console.warn('removeBeatFromCrate error:', e);
+    showToast('Could not sync removal — try again.', 'error');
+  }
 }
 
 // ─── CATEGORY PILLS ───────────────────────────────────────────────────────
@@ -6718,10 +6724,14 @@ supa.auth.onAuthStateChange(async (event, session) => {
   renderProfile();
   updateDesktopTopbarAuth();
   if (currentUser) {
-    const localCrate = [...crate];
-    await syncCrateFromDB();
-    localCrate.forEach(b => { if (!crate.find(i => i.id === b.id)) crate.push(b); });
-    for (const b of localCrate) await saveBeatToDB(b);
+    if (event === 'SIGNED_IN') {
+      const guestCrate = [...crate];
+      await syncCrateFromDB();
+      guestCrate.forEach(b => { if (!crate.find(i => i.id === b.id)) crate.push(b); });
+      for (const b of guestCrate) await saveBeatToDB(b);
+    } else if (event !== 'TOKEN_REFRESHED') {
+      await syncCrateFromDB();
+    }
     restoreSkippedState();
     saveSkippedState();
     await loadUserProfile();
@@ -7331,16 +7341,16 @@ async function syncCrateFromDB() {
     });
     if (!res.ok) return;
     const data = await res.json();
-    if (data && data.length) {
-      data.forEach(row => {
-        try {
-          const beat = JSON.parse(row.beat_data);
-          if (!crate.find(i => i.id === beat.id)) crate.push(beat);
-        } catch(e) {}
-      });
-      renderCrate();
-      renderCard();
-    }
+    const fromDb = [];
+    (data || []).forEach(row => {
+      try {
+        const beat = JSON.parse(row.beat_data);
+        if (!fromDb.find(i => i.id === beat.id)) fromDb.push(beat);
+      } catch (e) {}
+    });
+    crate = fromDb;
+    renderCrate();
+    renderCard();
   } catch(e) { console.warn('syncCrateFromDB error:', e); }
 }
 
