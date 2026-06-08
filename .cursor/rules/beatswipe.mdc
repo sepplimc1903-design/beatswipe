@@ -179,16 +179,19 @@ NIEMALS „Tinder" verwenden (Marke). Stattdessen:
 
 ## Favorites / Crate Sync (Supabase `crates`)
 
-- **Ziel:** Eingeloggt = Favorites auf Mobile + Laptop immer gleich (Supabase `crates` = Source of Truth)
+- **Ziel:** Eingeloggt = Favorites auf Mobile + Laptop gleich (Supabase `crates` = Source of Truth)
 - **Guest:** Saves nur in-memory (`crate` Array) — Reload = weg; Hint `showMobileSyncHint`
-- **JS:** `syncCrateFromDB`, `saveBeatToDB`, `removeBeatFromCrate`, `flushPendingCrateSaves`, `_pendingGuestCrateMerge`, `_cratePendingSaves`, `_crateSyncInFlight`
-- **v55:** `syncCrateFromDB` ersetzt `crate` komplett aus DB (kein Merge-only)
-- **v56:** Guest-Merge nur bei explizitem Login (`handleAuth` setzt `_pendingGuestCrateMerge`) — **nicht** bei iOS `SIGNED_IN` Session-Restore; Crate-GET mit `cache: 'no-store'`
-- **v57:** Favorites über **`/api/crate`** (Service Role server-side); `await saveBeatToDB`, pending queue, Token-Refresh; Luca: Save hält nach Reload lokal ✅
+- **API:** **`api/crate.js`** — GET/POST/DELETE; braucht **`SUPABASE_SERVICE_ROLE_KEY`** in Vercel + `.env.local` (Legacy service_role aus Supabase Dashboard)
+- **Client:** Save/Sync/Remove über `/api/crate` (nicht direkt Supabase REST) — umgeht RLS-Blocker
+- **Sync-Zeitpunkt:** Gleiches Gerät = Save/Remove **sofort** in UI; **Cross-Device** erst bei **Reload** / App neu öffnen (kein Live-Polling)
+- **JS:** `syncCrateFromDB`, `saveBeatToDB`, `queueSaveBeatToDB`, `removeBeatFromCrate`, `flushPendingCrateSaves`, `updateCrateCountUI`, `_pendingGuestCrateMerge`, `_cratePendingSaves`, `_crateSyncInFlight`
+- **v55–v56:** DB-replace sync; Guest-Merge nur expliziter Login
+- **v57:** `/api/crate` + Token-Refresh + pending queue — Save hält nach Reload ✅ (Luca lokal + Vercel)
+- **v57b–c:** Swipe-Perf — **kein** `await saveBeatToDB` vor Fly; Mobile: Fly-Clone auf `body` **vor** `renderCard()`; deferred `renderCrate` + Save (~520ms Mobile)
 
-## Stand Code (Juni 2026 — Session-Update v57)
+## Stand Code (Juni 2026 — Session-Update v57c)
 
-**Production (GitHub/Vercel):** `deploy: 2026-06-09-v57`
+**Production (GitHub/Vercel):** `deploy: 2026-06-09-v57c`
 
 ### Shipped v34 (2026-06-08)
 
@@ -339,8 +342,16 @@ NIEMALS „Tinder" verwenden (Marke). Stattdessen:
 **Favorites Save-Persistenz**
 
 - **`api/crate.js`** — GET/POST/DELETE mit `SUPABASE_SERVICE_ROLE_KEY` (Vercel + `.env.local`)
-- Client: Save/Sync/Remove über `/api/crate`; Token-Refresh; pending queue
-- Luca: Save hält nach Reload lokal ✅; Production nach Deploy retesten (Laptop + Mobile)
+- Client: Save/Sync/Remove über `/api/crate`; Token-Refresh; `_cratePendingSaves` + `flushPendingCrateSaves`
+- Luca: Save hält nach Reload ✅; Laptop + Mobile sync via Reload
+
+### Shipped v57b–c (2026-06-09)
+
+**Discover Swipe Perf (nach v57 Lag-Fix)**
+
+- **v57b:** `queueSaveBeatToDB` non-blocking; `updateCrateCountUI` statt vollem `renderCrate()` vor Fly; Mobile Save API deferred
+- **v57c:** Mobile Discover — Fly-Clone `fixed` auf `body` (`.discover-fly-clone--viewport`); **`renderCard()` 48ms nach Fly-Start**; `renderCard({ deferAudio: true })` auf Mobile
+- **Lesson:** `await saveBeatToDB` oder `renderCard()` **vor** Fly = spürbarer Lag (v.a. Mobile)
 
 ### Früher shipped (v22–v52, weiterhin gültig)
 
@@ -349,13 +360,15 @@ NIEMALS „Tinder" verwenden (Marke). Stattdessen:
 
 ### Bekannte offene Probleme
 
-**Favorites Sync — v57 shipped, Production retesten**
+**Favorites Sync — v57c shipped (Luca bestätigt)**
 
 | Symptom | Status |
 |---------|--------|
-| Discover-Save verschwindet nach Reload (eingeloggt) | ✅ v57 lokal; **Production nach Deploy retesten** |
-| Laptop ↔ Mobile immer gleich | ⚠️ retesten nach v57 Deploy |
+| Discover-Save verschwindet nach Reload (eingeloggt) | ✅ v57 |
+| Laptop ↔ Mobile gleich (nach Reload) | ✅ v57 laut Luca |
+| Swipe-Lag nach v57 Save-Fix | ✅ v57b–c |
 | Preview → keine Saves | ✅ v54 |
+| Live-Sync ohne Reload cross-device | ❌ bewusst nicht (Phase 1) |
 
 **Autoplay — Luca: grundsätzlich ok; Edge Cases offen**
 
@@ -395,15 +408,18 @@ NIEMALS „Tinder" verwenden (Marke). Stattdessen:
 - **`SIGNED_IN` auf iOS bei jedem Reload** → lokaler `crate` wurde in DB zurückgeschrieben (v56: nur expliziter Login-Merge)
 - **Fly-Clone `position:relative` auf Mobile** → Flex-Slot doppelte Höhe → Zoom-out (v53: nur `.dragging` relative)
 - **`syncCrateFromDB` merge-only** → Deletes auf anderem Gerät kamen zurück (v55: replace)
-- **`saveBeatToDB` fire-and-forget ohne `res.ok`** → Save weg nach Reload (v57-local: await + pending queue — **noch verifizieren**)
+- **`saveBeatToDB` fire-and-forget ohne `res.ok`** → Save weg nach Reload (v57: `/api/crate` + pending queue)
+- **`await saveBeatToDB` vor Fly-Animation** → Swipe-Lag (v57b: `queueSaveBeatToDB`)
+- **`renderCard()` vor Mobile-Fly** → verzögerter Ruckler (v57c: Fly zuerst, render deferred)
+- **Direkter Supabase REST auf `crates` ohne RLS/Service Role** → Save schlägt fehl (403) — v57: `/api/crate`
 
 ### Nächste Arbeit (Reihenfolge für neuen Chat)
 
-1. **Favorites Sync Production retesten (v57)** — beatswipe.app Save → Reload Laptop + Mobile; Remove cross-device
-2. **Mobile App Ambient Feinschliff** — Linear-Wash Lesbarkeit; **`/p/` unangetastet**
-3. **Profile polish** — Hero/Settings Mobile Feinschliff
-4. Optional: OG-Image pro Producer
-5. Optional: Upload — Title leer statt Dateiname
+1. **Mobile App Ambient Feinschliff** — Linear-Wash Lesbarkeit; **`/p/` unangetastet**
+2. **Profile polish** — Hero/Settings Mobile Feinschliff
+3. Optional: OG-Image pro Producer
+4. Optional: Upload — Title leer statt Dateiname
+5. Optional: Live Favorites-Sync (Polling/Realtime) — nicht MVP
 
 ## Arbeitsweise
 
@@ -416,8 +432,9 @@ NIEMALS „Tinder" verwenden (Marke). Stattdessen:
 - Ein Feature → ein Commit → deployen → testen → nächstes Feature
 - Vor jedem Schritt: `grep "accent:" index.html` → muss `#7C3AED` sein
 - Gezielte Edits, nie komplette Neuschreibung
-- Dateien: `index.html` (~9080 Zeilen), `vercel.json`, `og-image.png`, `api/beats.js`, `api/pending-beats.js`, `api/manage-beat.js`, `.gitignore`, `.cursor/rules/beatswipe.mdc`
-- **Aktuell:** Production v56 auf GitHub/Vercel; lokal v57-local uncommitted (Favorites Save-Persistenz)
+- Dateien: `index.html` (~9140 Zeilen), `vercel.json`, `og-image.png`, `api/beats.js`, `api/pending-beats.js`, `api/manage-beat.js`, `api/crate.js`, `.gitignore`, `.cursor/rules/beatswipe.mdc`
+- **Env (nie committen):** `.env.local` — `SUPABASE_SERVICE_ROLE_KEY`, `AIRTABLE_TOKEN`, optional `SUPABASE_URL` / `SUPABASE_ANON_KEY`
+- **Aktuell:** Production v57c auf GitHub/Vercel
 - Live testen: `beatswipe.app/p/clyriax` + Hard-Refresh (`Cmd+Shift+R`)
 - Lokal: `cd beatswipe && npx vercel dev` → `http://localhost:3000` (Port 3001 falls 3000 belegt); Hard-Refresh nach Edits
 - `.env.local` **nie** committen (in `.gitignore`)
@@ -428,7 +445,7 @@ NIEMALS „Tinder" verwenden (Marke). Stattdessen:
 
 - Vercel Production synced mit GitHub `main`
 - `vercel.json` **existiert** (nur SPA-Rewrites für `/p/*` — nötig sonst 404)
-- APIs: `api/beats.js` (GET, Cache 45s), `api/pending-beats.js` (GET, Auth), `api/manage-beat.js` (POST update/delete, Auth + Airtable)
+- APIs: `api/beats.js` (GET, Cache 45s), `api/pending-beats.js` (GET, Auth), `api/manage-beat.js` (POST update/delete, Auth + Airtable), **`api/crate.js`** (GET/POST/DELETE Favorites, Auth + Service Role)
 - Kein api/beat.js, api/catalog.js, api/track.js
 - Share-Feature entfernt (bleibt weg)
 
@@ -453,11 +470,12 @@ NIEMALS „Tinder" verwenden (Marke). Stattdessen:
 - Swipe: Portfolio commit on **touchend**; Clone-Fly in `doSwipe`; Wobble: `.portfolio-surface.wobble`
 - **v53 Swipe:** `initSwipeGesture` IIFE — `pinCardForMobileDrag` (Discover only), `resetSwipeGestureState`; `playPortfolioEnterAnim` Mobile nur Header; `flyOutPortfolioCard` Clone an `#portfolioCardWrap`
 
-## Favorites / Crate Sync — relevante Code-Stellen (index.html)
+## Favorites / Crate Sync — relevante Code-Stellen
 
-- JS: `syncCrateFromDB`, `saveBeatToDB`, `flushPendingCrateSaves`, `removeBeatFromCrate`, `renderCrate`, `doSwipe` (Discover + Portfolio Save)
-- State: `crate`, `_cratePendingSaves`, `_pendingGuestCrateMerge`, `_crateSyncInFlight`
-- Auth: `onAuthStateChange` — Guest-Merge nur `SIGNED_IN && _pendingGuestCrateMerge`; `handleAuth` setzt Merge-Flag
+- **API:** `api/crate.js` — env `SUPABASE_SERVICE_ROLE_KEY`
+- **JS:** `syncCrateFromDB`, `saveBeatToDB`, `queueSaveBeatToDB`, `flushPendingCrateSaves`, `removeBeatFromCrate`, `updateCrateCountUI`, `renderCrate`, `doSwipe`, `flyOutDiscoverCard` (Mobile `.discover-fly-clone--viewport`)
+- State: `crate`, `_cratePendingSaves`, `_pendingGuestCrateMerge`, `_crateSyncInFlight`, `_authInitReady`
+- Auth: `onAuthStateChange` — Guest-Merge nur `SIGNED_IN && _pendingGuestCrateMerge`; `getAccessToken` mit `expires_at` + refresh
 - Supabase: `crates` Tabelle (`user_id`, `beat_id`, `beat_data`)
 
 ## My Page — relevante Code-Stellen (index.html)
@@ -527,7 +545,7 @@ NIEMALS „Tinder" verwenden (Marke). Stattdessen:
 - Funktionen NIE außerhalb Haupt-script duplizieren
 - Onboard + Cookie-Banner: skippen wenn `_portfolioMode`
 - Vercel `env pull` kann `AIRTABLE_TOKEN=""` liefern — Token manuell in `.env.local`
-- **Favorites:** `syncCrateFromDB` = replace aus DB; nie lokalen `crate` bei jedem `SIGNED_IN` zurück in DB mergen (iOS Session-Restore); `saveBeatToDB` muss awaited + `res.ok` — sonst Reload verliert Save
+- **Favorites:** `syncCrateFromDB` = replace aus DB; nie lokalen `crate` bei jedem `SIGNED_IN` zurück in DB mergen (iOS Session-Restore); Saves über `/api/crate` + `SUPABASE_SERVICE_ROLE_KEY`; **`queueSaveBeatToDB` nicht awaiten vor Fly**; Mobile Fly vor `renderCard`
 
 ## Invite Gate (Private Beta)
 

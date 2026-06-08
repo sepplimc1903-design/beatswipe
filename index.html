@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-09-v57 — favorites persist via /api/crate -->
+<!-- deploy: 2026-06-09-v57c — mobile discover fly before renderCard -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -2901,6 +2901,12 @@
       #cardWrap .beat-card.discover-fly-clone {
         position: absolute !important;
       }
+      .beat-card.discover-fly-clone--viewport {
+        position: fixed !important;
+        z-index: 650;
+        pointer-events: none;
+        margin: 0;
+      }
       #discoverScreen .action-row {
         position: relative;
         z-index: 16;
@@ -5166,9 +5172,10 @@ function seekCrateTo(e) {
   seekTo(e);
 }
 
-function renderCard() {
+function renderCard(opts) {
   pauseTrackForCardSwap();
   _audioPanel = 'discover';
+  const deferAudio = opts && opts.deferAudio;
   const wrap = document.getElementById('cardWrap');
   const source = getDiscoverSourceList(cat);
   const list = getDiscoverList(cat);
@@ -5286,7 +5293,9 @@ function renderCard() {
         b.style.height = Math.round(Math.random() * 14 + 3) + 'px';
       });
     }, 600);
-    loadTrack(d.mp3);
+    const runLoad = () => loadTrack(d.mp3);
+    if (deferAudio) setTimeout(runLoad, 120);
+    else runLoad();
   }
 
   if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -5296,7 +5305,9 @@ function renderCard() {
       card.addEventListener('animationend', () => card.classList.remove('card-enter'), { once: true });
     }
   }
-  maybeAutoplayPreview(useYT, useSC);
+  const runPreview = () => maybeAutoplayPreview(useYT, useSC);
+  if (deferAudio) setTimeout(runPreview, 140);
+  else runPreview();
 }
 
 // ─── iOS :active + touch press feedback ───────────────────────────────────
@@ -5721,7 +5732,22 @@ function playPortfolioEnterAnim() {
   if (!isMobileUI()) cardWrap?.classList.add('portfolio-enter-played');
 }
 
-async function doSwipe(dir) {
+function queueSaveBeatToDB(beat) {
+  const run = () => {
+    saveBeatToDB(beat).then(saved => {
+      if (!saved) showToast('Could not save to Favorites — try again.', 'error');
+    });
+  };
+  if (isMobileUI()) {
+    setTimeout(run, 520);
+  } else if (typeof requestIdleCallback === 'function') {
+    requestIdleCallback(run, { timeout: 1500 });
+  } else {
+    setTimeout(run, 0);
+  }
+}
+
+function doSwipe(dir) {
   const card = document.getElementById('theCard');
   if (!card) return;
   if (_portfolioMode && _portfolioSwipeLock) return;
@@ -5742,12 +5768,8 @@ async function doSwipe(dir) {
       if (!crate.find(i => i.id === item.id)) {
         crate.push(item);
         _lastSavedBeatId = item.id;
-        if (currentUser) {
-          const saved = await saveBeatToDB(item);
-          if (!saved) showToast('Could not save to Favorites — try again.', 'error');
-        } else {
-          showMobileSyncHint(incrementGuestSaveCount());
-        }
+        if (currentUser) queueSaveBeatToDB(item);
+        else showMobileSyncHint(incrementGuestSaveCount());
       }
       _portfolioSkipped = _portfolioSkipped.filter(id => id !== item.id);
     } else {
@@ -5764,28 +5786,27 @@ async function doSwipe(dir) {
   const list = getDiscoverList(cat);
   const item = list[0];
   if (!item) return;
+  let savedThisSwipe = false;
   if (dir === 'right') {
     if (!crate.find(i => i.id === item.id)) {
       crate.push(item);
       _lastSavedBeatId = item.id;
-      if (currentUser) {
-        const saved = await saveBeatToDB(item);
-        if (!saved) showToast('Could not save to Favorites — try again.', 'error');
-      } else {
-        showMobileSyncHint(incrementGuestSaveCount());
-      }
+      savedThisSwipe = true;
+      if (currentUser) queueSaveBeatToDB(item);
+      else showMobileSyncHint(incrementGuestSaveCount());
     }
     skippedIds[cat] = skippedIds[cat].filter(id => id !== item.id);
     saveSkippedState();
-    renderCrate();
+    updateCrateCountUI();
   } else {
     if (!skippedIds[cat].includes(item.id)) skippedIds[cat].push(item.id);
     saveSkippedState();
   }
   saveSwipeState();
   flyOutDiscoverCard(dir, () => {
-    renderCard();
+    renderCard({ deferAudio: isMobileUI() });
     tryAutoplayFromGesture();
+    if (savedThisSwipe) renderCrate();
   });
 }
 
@@ -5913,10 +5934,9 @@ function renderCratePreview(d) {
   }
 }
 
-function renderCrate() {
-  const body = document.getElementById('crateBody');
-  const lbl = document.getElementById('crateCountLbl');
+function updateCrateCountUI() {
   const countTxt = crate.length + ' beat' + (crate.length === 1 ? '' : 's') + ' saved';
+  const lbl = document.getElementById('crateCountLbl');
   if (lbl) lbl.textContent = countTxt;
   const pageDesc = document.getElementById('cratePageDesc');
   if (pageDesc) {
@@ -5924,6 +5944,15 @@ function renderCrate() {
       ? countTxt + ' — license directly from the producer.'
       : 'Your saved beats — license directly from the producer.';
   }
+  const sub = document.getElementById('dcSub');
+  if (sub) sub.textContent = crate.length + ' beat' + (crate.length === 1 ? '' : 's') + ' in Favorites';
+}
+
+function renderCrate() {
+  const body = document.getElementById('crateBody');
+  updateCrateCountUI();
+  const onCrate = document.getElementById('crateScreen')?.classList.contains('active');
+  if (!onCrate && isMobileUI()) return;
   if (!crate.length) {
     _selectedCrateId = null;
     _previewLoadedId = null;
@@ -7815,28 +7844,53 @@ function flyOutDiscoverCard(dir, onReplaced) {
 
   const dragTransform = flyEl.style.transform;
   const clone = flyEl.cloneNode(true);
-  clone.classList.remove('dragging', 'spring-snap', 'card-enter');
+  clone.classList.remove('dragging', 'spring-snap', 'card-enter', 'swipe-drag-pinned');
+  clone.style.position = '';
+  clone.style.left = '';
+  clone.style.top = '';
+  clone.style.width = '';
+  clone.style.margin = '';
   if (dragTransform) clone.style.transform = dragTransform;
   clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
-
-  onReplaced();
-
+  clone.style.willChange = 'transform, opacity';
   clone.classList.add('discover-fly-clone');
-  wrap.appendChild(clone);
-  void clone.offsetWidth;
-  clone.classList.add(dir === 'left' ? 'fly-left' : 'fly-right');
 
+  const flyClass = dir === 'left' ? 'fly-left' : 'fly-right';
   let done = false;
   const finish = () => {
     if (done) return;
     done = true;
+    clone.style.willChange = '';
     clone.remove();
   };
+
+  if (isMobileUI()) {
+    const rect = flyEl.getBoundingClientRect();
+    clone.classList.add('discover-fly-clone--viewport');
+    clone.style.position = 'fixed';
+    clone.style.left = rect.left + 'px';
+    clone.style.top = rect.top + 'px';
+    clone.style.width = rect.width + 'px';
+    clone.style.zIndex = '650';
+    document.body.appendChild(clone);
+    void clone.offsetWidth;
+    flyEl.style.visibility = 'hidden';
+    requestAnimationFrame(() => {
+      clone.classList.add(flyClass);
+      setTimeout(onReplaced, 48);
+    });
+  } else {
+    onReplaced();
+    wrap.appendChild(clone);
+    void clone.offsetWidth;
+    clone.classList.add(flyClass);
+  }
+
   clone.addEventListener('transitionend', e => {
     if (e.target !== clone || e.propertyName !== 'transform') return;
     finish();
   });
-  setTimeout(finish, 450);
+  setTimeout(finish, 480);
 }
 
 function buildBeatCardHTML(d, opts) {
