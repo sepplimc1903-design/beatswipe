@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-09-v55 — favorites sync from DB authoritative -->
+<!-- deploy: 2026-06-09-v56 — mobile favorites SIGNED_IN restore fix -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -4867,6 +4867,8 @@ async function initApp() {
 
 // ─── AUDIO STATE ──────────────────────────────────────────────────────────
 let cat = 'full', crate = [];
+let _pendingGuestCrateMerge = null;
+let _crateSyncInFlight = null;
 let _lastSavedBeatId = null;
 // Per-category swipe index
 const catIdx = { full: 0, loops: 0, drums: 0, samples: 0 };
@@ -6724,8 +6726,9 @@ supa.auth.onAuthStateChange(async (event, session) => {
   renderProfile();
   updateDesktopTopbarAuth();
   if (currentUser) {
-    if (event === 'SIGNED_IN') {
-      const guestCrate = [...crate];
+    if (event === 'SIGNED_IN' && _pendingGuestCrateMerge?.length) {
+      const guestCrate = _pendingGuestCrateMerge;
+      _pendingGuestCrateMerge = null;
       await syncCrateFromDB();
       guestCrate.forEach(b => { if (!crate.find(i => i.id === b.id)) crate.push(b); });
       for (const b of guestCrate) await saveBeatToDB(b);
@@ -7027,7 +7030,9 @@ async function handleAuth() {
     }
   }
   if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Loading...'; }
-  
+
+  if (!currentUser && crate.length) _pendingGuestCrateMerge = [...crate];
+
   let error;
   if (authMode === 'login') {
     ({ error } = await supa.auth.signInWithPassword({ email, password: pass }));
@@ -7036,6 +7041,7 @@ async function handleAuth() {
   }
 
   if (error) {
+    _pendingGuestCrateMerge = null;
     if (msg) { msg.className = 'auth-msg error'; msg.textContent = error.message; }
     if (btn) { btn.disabled = false; btn.innerHTML = `<i class="ti ti-arrow-right"></i> ${authMode === 'login' ? 'Sign in' : 'Create account'}`; }
   } else if (authMode === 'signup') {
@@ -7070,6 +7076,7 @@ async function signOut() {
   _userProfile = null;
   _myPendingBeatsCache = null;
   _myPendingBeatsCacheAt = 0;
+  _pendingGuestCrateMerge = null;
   crate = [];
   resetGuestSwipeState();
   renderCrate();
@@ -7333,25 +7340,40 @@ async function doAvatarUpload(blob) {
 
 async function syncCrateFromDB() {
   if (!currentUser) return;
-  const token = await getAccessToken();
-  if (!token) return;
-  try {
-    const res = await fetch(`${SUPA_URL}/rest/v1/crates?user_id=eq.${currentUser.id}&select=*`, {
-      headers: { 'Authorization': `Bearer ${token}`, 'apikey': SUPA_KEY, 'Accept': 'application/json' }
-    });
-    if (!res.ok) return;
-    const data = await res.json();
-    const fromDb = [];
-    (data || []).forEach(row => {
-      try {
-        const beat = JSON.parse(row.beat_data);
-        if (!fromDb.find(i => i.id === beat.id)) fromDb.push(beat);
-      } catch (e) {}
-    });
-    crate = fromDb;
-    renderCrate();
-    renderCard();
-  } catch(e) { console.warn('syncCrateFromDB error:', e); }
+  if (_crateSyncInFlight) return _crateSyncInFlight;
+  _crateSyncInFlight = (async () => {
+    const token = await getAccessToken();
+    if (!token) return;
+    try {
+      const res = await fetch(
+        `${SUPA_URL}/rest/v1/crates?user_id=eq.${currentUser.id}&select=*&_ts=${Date.now()}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'apikey': SUPA_KEY,
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          },
+          cache: 'no-store'
+        }
+      );
+      if (!res.ok) return;
+      const data = await res.json();
+      const fromDb = [];
+      (data || []).forEach(row => {
+        try {
+          const beat = JSON.parse(row.beat_data);
+          if (!fromDb.find(i => i.id === beat.id)) fromDb.push(beat);
+        } catch (e) {}
+      });
+      crate = fromDb;
+      renderCrate();
+      renderCard();
+    } catch (e) { console.warn('syncCrateFromDB error:', e); }
+    finally { _crateSyncInFlight = null; }
+  })();
+  return _crateSyncInFlight;
 }
 
 async function saveBeatToDB(beat) {
