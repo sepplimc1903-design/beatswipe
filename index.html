@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-08-v51 — pending beats API, beats cache, landing retry -->
+<!-- deploy: 2026-06-08-v52 — mobile purple ambient (app only), /p/ unchanged -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -135,6 +135,56 @@
 
     /* ── SHELL ── */
     .shell { width: 100%; max-width: 440px; height: 100vh; height: 100dvh; background: var(--bg); display: flex; flex-direction: column; position: relative; z-index: 1; overflow: hidden; }
+
+    /* Mobile ambient — purple wash on app pages (/p/ excluded below) */
+    @media (max-width: 899px) {
+      .shell { background: transparent; }
+      .bg-desktop {
+        background:
+          radial-gradient(ellipse 120% 80% at 50% 0%, rgba(124,58,237,0.14) 0%, transparent 58%),
+          #050508;
+      }
+      .bg-grid, .bg-noise { display: none; }
+      .bg-desktop::before {
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        border-radius: 0;
+        animation: none;
+        background:
+          radial-gradient(ellipse 100% 62% at 50% 18%, rgba(124,58,237,0.28) 0%, transparent 62%),
+          radial-gradient(ellipse 85% 52% at 50% 82%, rgba(124,58,237,0.16) 0%, transparent 68%);
+      }
+      .bg-desktop::after {
+        display: block;
+        content: '';
+        position: absolute;
+        inset: 0;
+        animation: none;
+        background:
+          radial-gradient(ellipse 55% 48% at 8% 52%, rgba(167,139,250,0.18) 0%, transparent 68%),
+          radial-gradient(ellipse 55% 48% at 92% 52%, rgba(124,58,237,0.15) 0%, transparent 68%);
+        pointer-events: none;
+      }
+      body.discover-active .bg-desktop::before {
+        background:
+          radial-gradient(ellipse 115% 72% at 50% 46%, rgba(124,58,237,0.32) 0%, transparent 62%),
+          radial-gradient(ellipse 88% 48% at 50% 4%, rgba(124,58,237,0.2) 0%, transparent 65%);
+      }
+      body.discover-active .bg-desktop::after {
+        background:
+          radial-gradient(ellipse 58% 44% at 4% 56%, rgba(248,113,113,0.1) 0%, transparent 68%),
+          radial-gradient(ellipse 58% 44% at 96% 56%, rgba(124,58,237,0.16) 0%, transparent 68%);
+      }
+      /* Portfolio /p/ — transparent shell so beat-color glow shows through */
+      body.portfolio-active .shell { background: transparent; }
+      body.portfolio-active .bg-desktop { background: var(--navy); }
+      body.portfolio-active .bg-desktop::before {
+        background: radial-gradient(ellipse 90% 58% at 50% 40%, var(--pf-glow, rgba(124,58,237,0.32)) 0%, transparent 72%);
+      }
+      body.portfolio-active .bg-desktop::after { display: none; }
+    }
 
     /* ── DESKTOP LAYOUT ── */
     .desktop-layout { width: 100%; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1; }

@@ -55,7 +55,7 @@ NIEMALS „Tinder" verwenden (Marke). Stattdessen:
 
 1. **Nicht eingeloggt:** Sign-in-Gate → Profile
 2. **Onboarding (einmalig, 3 Steps):** Profil (Name + Bio) → Beats hinzufügen (min. 3 empfohlen) → Ready + Copy link
-3. **Dashboard:** Bio-Link (Copy + Preview), Beat-Liste **Live** (Airtable) + **Pending** (localStorage), „+ Add new beat"
+3. **Dashboard:** Bio-Link (Copy + Preview), Beat-Liste **Live** (Airtable) + **Pending** (Airtable via API), „+ Add new beat"
 4. **Add beat:** Make.com-Webhook; Producer-Name aus Supabase-Profil (hidden `#f-producer`); **Back to My Page** oben + unten (v27)
 
 **Add Beat Upload (v38–v40, shipped):**
@@ -83,13 +83,17 @@ NIEMALS „Tinder" verwenden (Marke). Stattdessen:
 **State / Storage:**
 
 - Onboarding done: `localStorage bs_page_setup_${userId}` = `'1'`; Auto-Mark wenn `producer_name` + ≥1 Live-Beat
-- Pending beats: `localStorage bs_pending_beats_${userId}` (Array `{ title, submittedAt }`) — MVP, kein Backend
+- Pending beats: **`api/pending-beats.js`** (GET, Auth) — Airtable `Select` ∈ {New, Review, Pending}; localStorage nur Fallback bei API-Fehler; `refreshMyPendingBeats()` im Hintergrund + 60s Client-Cache
 - Beat order: `localStorage bs_beat_order_${userId}` + optional `profiles.beat_order`
 - Backend: Make.com → Airtable (Review/Approved), Supabase `profiles`
 
 **JS:** `renderMyPage`, `renderMyPageBeatRows`, `renderMyPageDashboard`, `renderMyPageOnboarding`, `showMyPageAddBeat`, `hideMyPageAddBeat`, `doSubmitForm`, `doSubmitMp3Batch`, `renderUploadQueue`, `resetAddBeatForm`, `addFilesToQueue`, `uploadMp3File`
 
-**Später (nicht MVP):** echte Pending-API, Title leer statt Dateiname (falls gewünscht)
+**Add beat (v50):** Kein Auto-Focus auf `#f-genre` beim Öffnen (Mobile öffnete sonst native Picker)
+
+**JS Pending:** `refreshMyPendingBeats`, `getMyPendingBeats`, `rerenderMyPageIfActive`, `_myPendingBeatsCache`
+
+**Später (nicht MVP):** Title leer statt Dateiname (falls gewünscht)
 
 ## Profile — Producer Identity (v33+)
 
@@ -144,9 +148,23 @@ NIEMALS „Tinder" verwenden (Marke). Stattdessen:
 - Desktop: `body.nav-switching` sperrt overflow während Tab-Wechsel (~360ms)
 - Mobile + Desktop; `prefers-reduced-motion` → instant
 
-## Stand Code (Juni 2026 — Session-Update v47–v49)
+## Discover — Mobile (v50, shipped)
 
-Letzter Deploy-Kommentar in `index.html`: `deploy: 2026-06-08-v49`
+- Swipe-Geste auf ganz `#cardWrap` (nicht nur `#theCard`); Toolbar kompakter (Wordmark aus, `swipe-hint` hidden)
+- `overflow-x: visible` + `overflow-y: hidden` auf card-wrap — keine schwarzen Clip-Kanten; `action-row` z-index 16 über Card
+- **SKIP/SAVE-Sticker** auf Card entfernt (`.swipe-label { display: none }`) — Mobile + Desktop
+- Glow auf Mobile Discover dezenter (`updateGlow` mobile branch)
+
+## Mobile App Ambient (v52, shipped — Feinschliff offen)
+
+- **≤899px App-Pages** (Landing, Discover, Profile, My Page, Favorites): lila Purple-Wash via `.bg-desktop` — **`.shell { background: transparent }`** (Regel muss **nach** base `.shell` stehen!)
+- Ellipse-Gradients oben/unten + seitliche Orbs; Discover etwas stärker
+- **`body.portfolio-active` ausgenommen** — `/p/` behält Beat-Farbe `--pf-glow` (orange etc.); Mobile Shell **transparent** damit Glow sichtbar
+- **Luca-Feedback nächster Chat:** Form der Orbs lenkt teils ab; transparente UI-Elemente auf Mobile teils schwer lesbar — Linear-Wash vs. Ellipsen noch tweaken; **nur App-Pages, `/p/` nicht mit App-Lila vermischen**
+
+## Stand Code (Juni 2026 — Session-Update v50–v52)
+
+Letzter Deploy-Kommentar in `index.html`: `deploy: 2026-06-08-v52`
 
 ### Shipped v34 (2026-06-08)
 
@@ -245,7 +263,30 @@ Letzter Deploy-Kommentar in `index.html`: `deploy: 2026-06-08-v49`
 - **Header:** `portfolioInitials()` Avatar-Fallback, Bio line-clamp, `.portfolio-progress` + `updatePortfolioProgress()`
 - JS: `slugToDisplayName`, `portfolioCardSkeletonHTML`, `showPortfolioLoadingState`, `updatePortfolioProgress`
 
-### Früher shipped (v22–v46, weiterhin gültig)
+### Shipped v50–v50b (2026-06-08)
+
+**Discover Mobile Swipe Polish + Add-Beat Fix**
+
+- Größere Touch-Swipe-Zone, Overflow-Fix, kompakte Toolbar, keine SKIP/SAVE-Sticker
+- Kein schwarzer Block über Skip/Save-Buttons beim Swipen
+- Add-beat: kein Auto-Focus Genre auf Mobile
+
+### Shipped v51 (2026-06-08)
+
+**Pending API, Beats Cache, Landing Retry**
+
+- **`api/pending-beats.js`:** Pending aus Airtable (New/Review/Pending; nicht Approved/Removed/Rejected)
+- **`api/beats.js`:** CDN-Cache `s-maxage=45`; Client `_beatsCache` 45s + 3× Retry
+- Landing `#beatsLoadBanner` + `retryLoadBeats()` bei API-Fehler
+- My Page: Pending-Refresh im Hintergrund (nicht blockierend), 60s Cache
+
+### Shipped v52 (2026-06-08)
+
+**Mobile Purple Ambient (App only)**
+
+- App-Mobile lila Hintergrund-Wash; Portfolio `/p/` ausgenommen (Beat-`--pf-glow` + transparente Shell)
+
+### Früher shipped (v22–v49, weiterhin gültig)
 
 - Autoplay Guard (v28), Portfolio Desktop Immersive (v28–v30), Profile Redesign (v33)
 - Portfolio/Discover Fly-Animation, My Page Dashboard + Onboarding (v26–v27)
@@ -261,7 +302,9 @@ Letzter Deploy-Kommentar in `index.html`: `deploy: 2026-06-08-v49`
 | `/p/` Sofort beim Link-Öffnen | ❌ bewusst nicht verfolgt (Browser-Policy) |
 | YouTube | ❌ generell unzuverlässig |
 
-**Sonst niedrige Prio:** Portfolio Mobile Glow, OG-Image pro Producer, API-Error-Retry auf Landing, Desktop-BG weiter tweaken (nur auf explizites Go)
+**Mobile App Ambient (v52) — Feinschliff offen:** Orbs-Form vs. Lesbarkeit bei Glass-UI; Luca will im nächsten Chat weiter tweaken. `/p/` Beat-Farbe-Glow (orange) muss erhalten bleiben — nicht mit App-Lila überlagern.
+
+**Sonst niedrige Prio:** OG-Image pro Producer, Desktop-BG weiter tweaken (nur auf explizites Go)
 
 **Bewusst geparkt (Luca-Entscheidungen Juni 2026):**
 
@@ -284,13 +327,10 @@ Letzter Deploy-Kommentar in `index.html`: `deploy: 2026-06-08-v49`
 
 ### Nächste Arbeit (Reihenfolge für neuen Chat)
 
-1. **Profile polish** — Hero/Settings Mobile Feinschliff
-2. **Portfolio Mobile Glow** — dezenter Beat-Farbe-Ambient auf Mobile (Desktop hat `--pf-glow`)
+1. **Mobile App Ambient Feinschliff** — Form/Lesbarkeit (Linear vs. Ellipsen, evtl. Shell leicht undurchsichtig); **`/p/` unangetastet** (Beat-`--pf-glow` transparent Shell)
+2. **Profile polish** — Hero/Settings Mobile Feinschliff
 3. Optional: OG-Image pro Producer
-4. Optional: My Page Pending serverseitig
-5. Optional: Landing API-Error/Retry wenn `/api/beats` fail
-6. Optional: `/api/beats` kurz cachen (wahrgenommene Speed)
-7. Optional: Upload — Title leer statt Dateiname
+4. Optional: Upload — Title leer statt Dateiname
 
 ## Arbeitsweise
 
@@ -303,7 +343,7 @@ Letzter Deploy-Kommentar in `index.html`: `deploy: 2026-06-08-v49`
 - Ein Feature → ein Commit → deployen → testen → nächstes Feature
 - Vor jedem Schritt: `grep "accent:" index.html` → muss `#7C3AED` sein
 - Gezielte Edits, nie komplette Neuschreibung
-- Dateien: `index.html` (~8510 Zeilen), `vercel.json`, `og-image.png`, `api/beats.js`, `api/manage-beat.js`, `.gitignore`, `.cursor/rules/beatswipe.mdc`
+- Dateien: `index.html` (~8770 Zeilen), `vercel.json`, `og-image.png`, `api/beats.js`, `api/pending-beats.js`, `api/manage-beat.js`, `.gitignore`, `.cursor/rules/beatswipe.mdc`
 - Live testen: `beatswipe.app/p/clyriax` + Hard-Refresh (`Cmd+Shift+R`)
 - Lokal: `cd beatswipe && npx vercel dev` → `http://localhost:3000` (Port 3001 falls 3000 belegt); Hard-Refresh nach Edits
 - `.env.local` **nie** committen (in `.gitignore`)
@@ -314,7 +354,7 @@ Letzter Deploy-Kommentar in `index.html`: `deploy: 2026-06-08-v49`
 
 - Vercel Production synced mit GitHub `main`
 - `vercel.json` **existiert** (nur SPA-Rewrites für `/p/*` — nötig sonst 404)
-- APIs: `api/beats.js` (GET), `api/manage-beat.js` (POST update/delete, Auth + Airtable)
+- APIs: `api/beats.js` (GET, Cache 45s), `api/pending-beats.js` (GET, Auth), `api/manage-beat.js` (POST update/delete, Auth + Airtable)
 - Kein api/beat.js, api/catalog.js, api/track.js
 - Share-Feature entfernt (bleibt weg)
 
@@ -322,7 +362,7 @@ Letzter Deploy-Kommentar in `index.html`: `deploy: 2026-06-08-v49`
 
 - Frontend: Single index.html
 - Beats-DB: Airtable (Base appB4LCctwYvuxK5S, Table tblkdiwaGP5e5xAot); Title intern TItle; Status = Select, Filter Approved
-- API: `api/beats.js` (GET, Cache-Control: no-store), `api/manage-beat.js` (POST); braucht `AIRTABLE_TOKEN` env (+ Supabase anon für manage-beat Auth)
+- API: `api/beats.js` (GET, `s-maxage=45`), `api/pending-beats.js` (GET, Auth), `api/manage-beat.js` (POST); braucht `AIRTABLE_TOKEN` env (+ Supabase anon für Auth-APIs)
 - Auth/Storage: Supabase (https://yprwklxolgrlyswqwkzr.supabase.co); Tabellen: crates, profiles (`beat_order` jsonb auf profiles)
 - Beat-Submit: Make.com Webhook (`WEBHOOK_URL` in index.html)
 - Audio: YouTube, SoundCloud, natives MP3
@@ -345,12 +385,20 @@ Letzter Deploy-Kommentar in `index.html`: `deploy: 2026-06-08-v49`
 - HTML: `#submitScreen` → `#myPageMain` + `#myPageAddBeat` → `#submitForm`, `#uploadQueue`, `#submitSingleFields`, `#submitBatchNote`
 - JS Queue: `_mp3Queue`, `addFilesToQueue`, `renderUploadQueue`, `toggleQueueExpand`, `updateQueueField`
 - JS Submit: `doSubmitForm`, `doSubmitMp3Batch`, `uploadMp3File`, `postBeatWebhook`, `resetAddBeatForm`, `syncQueueFormLayout`
-- JS My Page: `renderMyPage`, `renderMyPageBeatRows`, `showMyPageAddBeat`, `hideMyPageAddBeat`, `openBeatEditModal`, `saveBeatEdit`, `deleteMyBeat`, `moveMyBeat`, `persistBeatOrder`
+- JS My Page: `renderMyPage`, `renderMyPageBeatRows`, `refreshMyPendingBeats`, `showMyPageAddBeat`, `hideMyPageAddBeat`, `openBeatEditModal`, `saveBeatEdit`, `deleteMyBeat`, `moveMyBeat`, `persistBeatOrder`
 - Beat-Edit-Modal: `#beatEditModal`, `#beat-edit-*`
 
 ## Desktop Background (site-scroll) — relevante Code-Stellen (index.html)
 
 - `@media (min-width: 900px)` Block ~411+: `body.site-scroll .bg-desktop::before/::after` (v37 subtile Purple-Margins)
+
+## Mobile Ambient + Discover Mobile — relevante Code-Stellen (index.html)
+
+- `@media (max-width: 899px)` nach `.shell`: Mobile Purple-Wash + `body.portfolio-active` Override
+- Discover Mobile: gleicher Block + `/* Discover mobile — larger swipe zone */` (~2750+)
+- JS: `loadBeats`, `retryLoadBeats`, `fetchBeatsFromApi`, `_beatsCache`; `isSwipeGestureTarget` → `#cardWrap`
+- Landing: `#beatsLoadBanner`, `#beatsLoadRetryBtn`
+- Portfolio Glow: `setPortfolioGlow`, `--pf-glow`, `body.portfolio-active .bg-desktop::before`
 
 ## Profile — relevante Code-Stellen (index.html)
 
