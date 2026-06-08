@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-08-v31 — invite gate paused (open beta) -->
+<!-- deploy: 2026-06-08-v33 — profile producer layout polish -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -665,6 +665,9 @@
       .crate-card:hover { background: rgba(255,255,255,0.04); }
       .crate-header { padding-bottom: 14px; }
       .profile-edit-box,
+      .profile-hero,
+      .profile-section,
+      .profile-settings-card,
       .auth-box,
       .legal-links {
         background: rgba(255,255,255,0.03);
@@ -2334,8 +2337,231 @@
     .modal-apply:hover { opacity: 0.88; }
 
     /* ── PROFILE SCREEN ── */
-    .profile-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; padding: 10px 0 0; gap: 0; }
-    .auth-box { background: var(--bg-2); border-radius: 20px; border: 0.5px solid var(--border); padding: 24px; margin-top: 8px; }
+    .profile-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; padding: 0 0 8px; gap: 12px; }
+    .profile-glass {
+      background: rgba(255,255,255,0.03);
+      border: 0.5px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+    }
+    .profile-hero {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 18px 16px;
+      margin: 0 var(--px);
+    }
+    .profile-hero-avatar-wrap {
+      position: relative;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    .profile-hero-avatar,
+    .profile-hero-avatar-fallback {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--accent);
+      display: block;
+    }
+    .profile-hero-avatar-fallback {
+      background: var(--accent-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--accent-mid);
+    }
+    .profile-hero-camera {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid var(--bg);
+    }
+    .profile-hero-camera i { font-size: 10px; color: #fff; }
+    .profile-hero-body { flex: 1; min-width: 0; }
+    .profile-hero-name {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .profile-hero-email {
+      font-size: 13px;
+      color: var(--text-3);
+      margin-top: 2px;
+      word-break: break-all;
+    }
+    .profile-hero-link {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent-mid);
+      margin-top: 8px;
+      word-break: break-all;
+    }
+    .profile-hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .profile-hero-actions .btn-primary,
+    .profile-hero-actions .btn-secondary {
+      flex: 1;
+      min-width: 100px;
+      justify-content: center;
+      font-size: 13px;
+      padding: 10px 14px;
+    }
+    .profile-hero-hint {
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--text-2);
+      line-height: 1.5;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.03);
+      border: 0.5px solid var(--border);
+      border-radius: 12px;
+    }
+    .profile-section-wrap { padding: 0 var(--px); }
+    .profile-section-title {
+      font-size: 11px;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      padding-left: 2px;
+    }
+    .profile-section {
+      padding: 18px 16px;
+      margin-bottom: 4px;
+    }
+    .profile-section .field-group:last-child { margin-bottom: 0; }
+    .profile-social-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    .profile-form-footer {
+      padding: 4px var(--px) 8px;
+    }
+    .profile-settings-card {
+      background: rgba(255,255,255,0.03);
+      border: 0.5px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 10px;
+    }
+    .profile-stat-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .profile-stat-label {
+      font-size: 11px;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .profile-stat-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--accent-mid);
+    }
+    .profile-stat-icon { font-size: 22px; color: var(--text-3); }
+    .profile-settings-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .profile-settings-title i { color: var(--accent-mid); font-size: 16px; }
+    .profile-settings-desc {
+      font-size: 12px;
+      color: var(--text-2);
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+    .profile-newsletter-row {
+      display: flex;
+      gap: 8px;
+    }
+    .profile-newsletter-row input {
+      flex: 1;
+      font-size: 13px;
+      padding: 10px 12px;
+      border-radius: 10px;
+    }
+    .profile-newsletter-row button {
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: var(--accent);
+      border: none;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .profile-nl-msg { font-size: 11px; margin-top: 6px; min-height: 16px; }
+    .profile-account-section { display: flex; flex-direction: column; gap: 8px; }
+    .profile-account-label {
+      font-size: 11px;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .profile-action-btn {
+      width: 100%;
+      padding: 11px;
+      border-radius: 12px;
+      background: none;
+      border: 0.5px solid var(--border-2);
+      color: var(--text-3);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .profile-action-btn:hover { border-color: #f87171; color: #f87171; }
+    @media (min-width: 600px) {
+      .profile-social-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (min-width: 900px) {
+      .profile-hero { padding: 22px 24px; }
+      .profile-hero-avatar,
+      .profile-hero-avatar-fallback { width: 72px; height: 72px; }
+      .profile-hero-avatar-fallback { font-size: 28px; }
+      .profile-section { padding: 22px 24px; }
+    }
+    .auth-box {
+      background: rgba(255,255,255,0.03);
+      border-radius: 20px;
+      border: 0.5px solid rgba(255,255,255,0.08);
+      padding: 24px;
+      margin: 0 var(--px);
+    }
     .auth-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
     .auth-sub { font-size: 13px; color: var(--text-2); margin-bottom: 20px; line-height: 1.5; }
     .auth-tabs { display: flex; background: var(--bg-3); border-radius: 10px; padding: 3px; margin-bottom: 18px; gap: 3px; }
@@ -2349,7 +2575,7 @@
     .auth-msg.error { color: #f87171; }
     .auth-msg.success { color: #4ade80; }
     /* ── PROFILE TABS ── */
-    .profile-tabs { display: flex; background: var(--bg-2); border-radius: 14px; padding: 4px; gap: 4px; margin: 0 var(--px); border: 0.5px solid var(--border); flex-shrink: 0; }
+    .profile-tabs { display: flex; background: rgba(255,255,255,0.04); border-radius: 14px; padding: 4px; gap: 4px; margin: 0 var(--px); border: 0.5px solid var(--border); flex-shrink: 0; }
     .profile-tab { flex: 1; padding: 9px; border-radius: 10px; border: none; background: none; color: var(--text-3); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
     .profile-tab.active { background: var(--bg); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
     .profile-tab i { font-size: 15px; }
@@ -2979,11 +3205,7 @@
     <div class="page-inner page-inner--wide">
     <div class="site-page-head">
       <h1 class="site-page-title">Profile</h1>
-      <p class="site-page-desc">Manage your account, producer profile, and settings.</p>
-    </div>
-    <div class="top-bar">
-      <div class="wordmark">Beat<b>Swipe</b></div>
-      <div class="top-badge">Account</div>
+      <p class="site-page-desc">Your producer identity — name, bio, and bio link.</p>
     </div>
     <div class="profile-wrap" id="profileWrap">
       <!-- filled by JS -->
@@ -3355,11 +3577,10 @@ function applyGoTo(screenId, navId) {
 }
 
 function goTo(screenId, navId) {
-  // Invite gate paused — restore: uncomment block below
-  // if (INVITE_PROTECTED.has(screenId) && !hasInviteAccess()) {
-  //   showInviteGate(screenId, navId);
-  //   return;
-  // }
+  if (INVITE_PROTECTED.has(screenId) && !hasInviteAccess()) {
+    showInviteGate(screenId, navId);
+    return;
+  }
   if (_portfolioMode && screenId !== 'portfolioScreen') {
     exitPortfolioMode();
     try { history.replaceState(null, '', '/'); } catch(e) {}
@@ -5130,12 +5351,12 @@ async function loadUserProfile() {
   renderProfile();
 }
 
-function getAvatarHTML(size = 64) {
+function getAvatarHTML() {
   if (_userProfile?.avatar_url) {
-    return `<img src="${_userProfile.avatar_url}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;border:2px solid var(--accent)">`;
+    return `<img src="${escHtml(_userProfile.avatar_url)}" class="profile-hero-avatar" alt="">`;
   }
   const initials = (_userProfile?.producer_name || currentUser?.email || '?')[0].toUpperCase();
-  return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:var(--accent-light);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:${Math.round(size*0.38)}px;font-weight:700;color:var(--accent-mid);flex-shrink:0">${initials}</div>`;
+  return `<div class="profile-hero-avatar-fallback">${escHtml(initials)}</div>`;
 }
 
 function renderProfile() {
@@ -5146,23 +5367,30 @@ function renderProfile() {
   if (currentUser) {
     const p = _userProfile || {};
     const displayName = p.producer_name || currentUser.email.split('@')[0];
+    const slug = p.producer_name ? portfolioSlugFromName(p.producer_name) : '';
+    const heroLink = slug ? `beatswipe.app/p/${escHtml(slug)}` : '';
+    const heroActions = p.producer_name ? `
+          <div class="profile-hero-link">${heroLink}</div>
+          <div class="profile-hero-actions">
+            <button type="button" class="btn-primary" onclick="copyPortfolioLink()"><i class="ti ti-link"></i> Copy link</button>
+            <button type="button" class="btn-secondary" onclick="goTo('submitScreen','navSubmit')"><i class="ti ti-link"></i> My Page</button>
+            <button type="button" class="btn-secondary" onclick="previewMyPage()"><i class="ti ti-eye"></i> Preview</button>
+          </div>` : `
+          <div class="profile-hero-hint">Set your producer name below to get your bio link.</div>`;
     wrap.innerHTML = `
-      <!-- Avatar Header -->
-      <div style="display:flex;align-items:center;gap:14px;padding:0 0 10px">
-        <div style="position:relative;cursor:pointer;flex-shrink:0" onclick="document.getElementById('avatarFileInput').click()">
-          ${getAvatarHTML(52)}
-          <div style="position:absolute;bottom:0;right:0;width:18px;height:18px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center">
-            <i class="ti ti-camera" style="font-size:10px;color:#fff"></i>
-          </div>
+      <div class="profile-hero profile-glass">
+        <div class="profile-hero-avatar-wrap" onclick="document.getElementById('avatarFileInput').click()">
+          ${getAvatarHTML()}
+          <div class="profile-hero-camera"><i class="ti ti-camera"></i></div>
           <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="uploadAvatar(event)">
         </div>
-        <div style="flex:1;min-width:0">
-          <div class="profile-name">${escHtml(displayName)}</div>
-          <div class="profile-email">${currentUser.email}</div>
+        <div class="profile-hero-body">
+          <div class="profile-hero-name">${escHtml(displayName)}</div>
+          <div class="profile-hero-email">${escHtml(currentUser.email)}</div>
+          ${heroActions}
         </div>
       </div>
 
-      <!-- Tabs -->
       <div class="profile-tabs">
         <button class="profile-tab ${activeTab==='profile'?'active':''}" onclick="switchProfileTab('profile')">
           <i class="ti ti-user"></i> Profile
@@ -5172,20 +5400,24 @@ function renderProfile() {
         </button>
       </div>
 
-      <!-- Tab: Profile -->
       <div class="profile-tab-content ${activeTab==='profile'?'active':''}" id="ptProfile">
-        <div class="profile-edit-box" style="margin-top:0">
-          <div class="field-group">
-            <label class="field-label">Producer name</label>
-            <input type="text" id="ep-name" value="${escHtml(p.producer_name||'')}" placeholder="Your producer alias">
+        <div class="profile-section-wrap">
+          <div class="profile-section-title">Identity</div>
+          <div class="profile-section profile-glass">
+            <div class="field-group">
+              <label class="field-label">Producer name</label>
+              <input type="text" id="ep-name" value="${escHtml(p.producer_name||'')}" placeholder="Your producer alias">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Bio</label>
+              <textarea id="ep-bio" placeholder="Tell artists about your sound...">${escHtml(p.bio||'')}</textarea>
+            </div>
           </div>
-          <div class="field-group">
-            <label class="field-label">Bio</label>
-            <textarea id="ep-bio" placeholder="Tell artists about your sound...">${escHtml(p.bio||'')}</textarea>
-          </div>
-          <div class="field-group">
-            <label class="field-label">Social media & stores</label>
-            <div class="social-row">
+        </div>
+        <div class="profile-section-wrap">
+          <div class="profile-section-title">Links</div>
+          <div class="profile-section profile-glass">
+            <div class="profile-social-grid">
               <div class="social-field">
                 <i class="ti ti-brand-instagram"></i>
                 <input type="text" id="ep-instagram" value="${escHtml(p.instagram||'')}" placeholder="@username">
@@ -5204,46 +5436,42 @@ function renderProfile() {
               </div>
             </div>
           </div>
+        </div>
+        <div class="profile-form-footer">
           <button class="save-profile-btn" onclick="saveProfile()" id="saveProfileBtn">
             <i class="ti ti-check"></i> Save profile
           </button>
           <div class="profile-saved-msg" id="profileSavedMsg">✓ Profile saved!</div>
-          ${p.producer_name ? `<button type="button" class="btn-secondary" onclick="copyPortfolioLink()" style="margin-top:10px;width:100%;justify-content:center;font-size:13px;padding:11px 16px"><i class="ti ti-link"></i> Copy my link</button><div style="font-size:11px;color:var(--text-3);margin-top:6px;text-align:center">beatswipe.app/p/${portfolioSlugFromName(p.producer_name)}</div>` : ''}
         </div>
       </div>
 
-      <!-- Tab: Settings -->
       <div class="profile-tab-content ${activeTab==='settings'?'active':''}" id="ptSettings">
-        <!-- Crate stats -->
-        <div style="background:var(--bg-2);border-radius:16px;border:0.5px solid var(--border);padding:16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div class="profile-settings-card profile-stat-card">
           <div>
-            <div style="font-size:12px;color:var(--text-3);margin-bottom:2px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600">Favorites</div>
-            <div style="font-size:20px;font-weight:700;color:var(--accent-mid)">${crate.length} beat${crate.length===1?'':'s'} <span class="crate-sync-badge">synced</span></div>
+            <div class="profile-stat-label">Favorites</div>
+            <div class="profile-stat-value">${crate.length} beat${crate.length===1?'':'s'} <span class="crate-sync-badge">synced</span></div>
           </div>
-          <i class="ti ti-shopping-cart" style="font-size:22px;color:var(--text-3)"></i>
+          <i class="ti ti-shopping-cart profile-stat-icon"></i>
         </div>
 
-        <!-- Newsletter -->
-        <div style="background:var(--bg-2);border-radius:16px;border:0.5px solid var(--border);padding:16px;margin-bottom:10px">
-          <div style="font-size:13px;font-weight:700;margin-bottom:3px">🔥 New Beats by Email</div>
-          <div style="font-size:12px;color:var(--text-2);margin-bottom:10px;line-height:1.5">Be the first to know when new beats drop.</div>
-          <div style="display:flex;gap:8px">
-            <input type="email" id="nlEmail" value="${currentUser.email}" placeholder="your@email.com" style="flex:1;font-size:13px;padding:10px 12px;border-radius:10px;border:0.5px solid var(--border-2);background:var(--bg-3);color:var(--text)">
-            <button onclick="subscribeNewsletter()" style="padding:10px 14px;border-radius:10px;background:var(--accent);border:none;color:#fff;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap" id="nlBtn">Subscribe</button>
+        <div class="profile-settings-card">
+          <div class="profile-settings-title"><i class="ti ti-mail"></i> New beats by email</div>
+          <div class="profile-settings-desc">Be the first to know when new beats drop.</div>
+          <div class="profile-newsletter-row">
+            <input type="email" id="nlEmail" value="${escHtml(currentUser.email)}" placeholder="your@email.com">
+            <button type="button" onclick="subscribeNewsletter()" id="nlBtn">Subscribe</button>
           </div>
-          <div id="nlMsg" style="font-size:11px;margin-top:6px;min-height:16px"></div>
+          <div class="profile-nl-msg" id="nlMsg"></div>
         </div>
 
-        <!-- Danger zone -->
-        <div style="background:var(--bg-2);border-radius:16px;border:0.5px solid var(--border);padding:16px;margin-bottom:10px;display:flex;flex-direction:column;gap:8px">
-          <div style="font-size:12px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:4px">Account</div>
-          <button onclick="clearLocalData()" style="width:100%;padding:11px;border-radius:12px;background:none;border:0.5px solid var(--border-2);color:var(--text-3);font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:all 0.2s" onmouseover="this.style.borderColor='#f87171';this.style.color='#f87171'" onmouseout="this.style.borderColor='var(--border-2)';this.style.color='var(--text-3)'">
-            <i class="ti ti-trash" style="font-size:14px"></i> Clear local data
+        <div class="profile-settings-card profile-account-section">
+          <div class="profile-account-label">Account</div>
+          <button type="button" class="profile-action-btn" onclick="clearLocalData()">
+            <i class="ti ti-trash"></i> Clear local data
           </button>
-          <button class="logout-btn" style="margin-top:0" onclick="signOut()"><i class="ti ti-logout"></i> Sign out</button>
+          <button type="button" class="logout-btn" style="margin-top:0" onclick="signOut()"><i class="ti ti-logout"></i> Sign out</button>
         </div>
 
-        <!-- Legal -->
         <div class="legal-links">
           <a class="legal-link" onclick="openInfoModal('impressumModal')">Legal Notice <i class="ti ti-chevron-right"></i></a>
           <a class="legal-link" onclick="openInfoModal('privacyModal')">Privacy Policy <i class="ti ti-chevron-right"></i></a>
@@ -5283,15 +5511,14 @@ function renderProfile() {
         </button>
         <div class="auth-msg" id="authMsg"></div>
       </div>
-      <!-- Newsletter -->
-      <div style="background:var(--bg-2);border-radius:16px;border:0.5px solid var(--border);padding:16px;margin-top:12px">
-        <div style="font-size:14px;font-weight:700;margin-bottom:4px">🔥 New Beats by Email</div>
-        <div style="font-size:12px;color:var(--text-2);margin-bottom:12px;line-height:1.5">Be the first to know when new beats drop.</div>
-        <div style="display:flex;gap:8px">
-          <input type="email" id="nlEmail" placeholder="your@email.com" style="flex:1;font-size:13px;padding:10px 12px;border-radius:10px;border:0.5px solid var(--border-2);background:var(--bg-3);color:var(--text)">
-          <button onclick="subscribeNewsletter()" style="padding:10px 14px;border-radius:10px;background:var(--accent);border:none;color:#fff;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:opacity 0.2s" id="nlBtn">Subscribe</button>
+      <div class="profile-settings-card" style="margin-top:12px">
+        <div class="profile-settings-title"><i class="ti ti-mail"></i> New beats by email</div>
+        <div class="profile-settings-desc">Be the first to know when new beats drop.</div>
+        <div class="profile-newsletter-row">
+          <input type="email" id="nlEmail" placeholder="your@email.com">
+          <button type="button" onclick="subscribeNewsletter()" id="nlBtn">Subscribe</button>
         </div>
-        <div id="nlMsg" style="font-size:11px;margin-top:6px;min-height:16px"></div>
+        <div class="profile-nl-msg" id="nlMsg"></div>
       </div>
       <div class="legal-links">
         <a class="legal-link" onclick="openInfoModal('impressumModal')">Legal Notice <i class="ti ti-chevron-right"></i></a>
