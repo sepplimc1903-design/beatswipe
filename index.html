@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-08-v30 — portfolio skip icon + kbd hints side by side -->
+<!-- deploy: 2026-06-08-v31 — invite gate paused (open beta) -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -3355,10 +3355,11 @@ function applyGoTo(screenId, navId) {
 }
 
 function goTo(screenId, navId) {
-  if (INVITE_PROTECTED.has(screenId) && !hasInviteAccess()) {
-    showInviteGate(screenId, navId);
-    return;
-  }
+  // Invite gate paused — restore: uncomment block below
+  // if (INVITE_PROTECTED.has(screenId) && !hasInviteAccess()) {
+  //   showInviteGate(screenId, navId);
+  //   return;
+  // }
   if (_portfolioMode && screenId !== 'portfolioScreen') {
     exitPortfolioMode();
     try { history.replaceState(null, '', '/'); } catch(e) {}
