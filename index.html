@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-08-v35 — toast, text fixes, portfolio polish, landing mobile mockup -->
+<!-- deploy: 2026-06-08-v36 — my page add-beat mobile scroll -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -1080,6 +1080,11 @@
         overflow: visible;
         flex: none;
       }
+      body.site-scroll #myPageMain,
+      body.site-scroll #myPageAddBeat {
+        overflow: visible;
+        flex: none;
+      }
       body.site-scroll .profile-tab-content { padding-bottom: 32px; }
       .desktop-topbar {
         padding-inline: max(var(--px), calc((100% - var(--w-site)) / 2 + var(--px)));
@@ -1523,6 +1528,15 @@
     .submit-title { font-size: 20px; font-weight: 700; margin-bottom: 5px; }
     .submit-sub { font-size: 13px; color: var(--text-2); line-height: 1.55; }
     .submit-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 var(--px) 20px; min-height: 0; }
+    #myPageMain,
+    #myPageAddBeat {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+    }
+    #myPageAddBeat .submit-scroll { padding-bottom: 28px; }
     .submit-login-gate {
       flex: 1; display: flex; flex-direction: column;
       align-items: center; justify-content: center;
@@ -7114,7 +7128,7 @@ function showMyPageAddBeat() {
   const main = document.getElementById('myPageMain');
   const add = document.getElementById('myPageAddBeat');
   if (main) main.style.display = 'none';
-  if (add) add.style.display = 'block';
+  if (add) add.style.display = 'flex';
   const prodEl = document.getElementById('f-producer');
   if (prodEl) prodEl.value = _userProfile?.producer_name || '';
   const successMsg = document.getElementById('successMsg');
@@ -7359,7 +7373,7 @@ async function renderMyPage() {
 
   if (currentUser && !_userProfile) await loadUserProfile();
 
-  main.style.display = 'block';
+  main.style.display = 'flex';
 
   if (!currentUser) {
     main.innerHTML = `
