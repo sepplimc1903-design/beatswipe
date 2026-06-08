@@ -1,0 +1,427 @@
+---
+description: BeatSwipe product context, deploy workflow, and implementation priorities (Portfolio Pivot Juni 2026)
+alwaysApply: true
+---
+
+# BeatSwipe — Producer Portfolio (Pivot Juni 2026)
+
+BeatSwipe ist eine Web-App für kleine/indie Producer: kostenlose Swipe-Portfolio-Seite mit Link für die Instagram-Bio. Fans und Rapper swipen durch die Beats eines Producers, speichern Favorites und kaufen direkt beim Producer (BeatStars, Splice, etc.). BeatSwipe nimmt keinen Cut — Showcase only, Verkauf extern.
+
+Luca = Product Owner, Deployer, User #1 (produziert selbst seit paar Monaten, kein bestehendes Producer/Rapper-Netzwerk).
+
+## Marketing
+
+NIEMALS „Tinder" verwenden (Marke). Stattdessen:
+
+- Marken-Slogan: „Discover Beats. Save What Hits."
+- Portfolio-Produkt: „Your swipe page for the bio" / „Free swipe portfolio for producers"
+- Erklärung: „Swipe left to skip, right to save — hear a beat, decide in seconds"
+
+## Strategische Entscheidung (Juni 2026)
+
+- PIVOT: Weg vom offenen Zwei-Seiten-Marktplatz → Producer Portfolio Link als Kernprodukt
+- Zielgruppe Phase 1: kleine/indie Producer (100–5k Follower, Anfänger wie Luca)
+- Rapper/Fans kommen über Producer-Bio-Links, nicht über Homepage-Discovery
+- Monetarisierung: JETZT NICHT (Student, kein Gewerbe). Später optional: Producer Pro (Stats, Badge), Featured — nicht Cut vom Beat-Verkauf
+- Erfolg Phase 1 (8 Wochen): Luca nutzt eigenes Portfolio + ≥2–3 fremde Producer mit Link in Bio
+- Homepage beatswipe.app: Landing/Tool-Marketing + My Page — kein großer Rapper-Marktplatz am Start
+- **Producer-Onboarding:** Invite-Code von Luca per DM (kontrolliert) — My Page + Profile gated; Portfolio `/p/` immer offen für Fans
+
+## Portfolio-Link — Hauptprodukt
+
+- URL: beatswipe.app/p/producername (clean, stolz teilbar)
+- Vollbild-Swipe-Modus (Discover-Card-Qualität), NICHT Producer-Profil-Liste
+- Mobile-first (95% Traffic von Instagram) — **Mobile /p/ ok laut Luca**
+- **Laptop /p/ — v28–v30 shipped, Luca zufrieden** (immersives Full-Viewport-Layout, kein Phone-Frame mehr)
+- Kompakter Producer-Header: Avatar (oder **Initialen-Fallback**), Name, Bio (2 Zeilen Mobile / 1 Desktop), **Progress-Bar** + Counter, **Social-Icons** (Instagram, BeatStars, SoundCloud, YouTube aus Supabase-Profil, nur wenn gesetzt)
+- **Instant Boot (v49):** `/p/*` zeigt sofort Portfolio — Inline `portfolio-route-boot` + `showPortfolioLoadingState()` Skeleton (kein Landing-Flash)
+- Große Beat-Card + Skip/Save
+- Kein Bottom-Nav, kein Marketing-Footer, kein Invite-Gate auf Portfolio-Links
+- Desktop ab 1100px: Kbd-Hints links (`← skip`, `→ save`, `Space play`) bei `top: 63%` + Skip/Save Side-Hints (Skip links rot, Save rechts lila; symmetrisch, v42)
+- **In-App Preview Back (v45–v46):** `.portfolio-back-btn` nur wenn Portfolio **von innerhalb der App** geöffnet (`!opts.fromRoute`) — My Page/Profile Preview, Discover „by Producer". **Nicht** bei direktem `/p/`-Bio-Link. Mobile: eigene Zeile über Header (`portfolio-has-back` + extra header padding); Desktop: links neben Card-Spalte. JS: `setPortfolioBackVisible`, `closePortfolioPreview`, `_portfolioShowBack`
+- Done-State: Card vertikal wie Swipe-Position (`padding-bottom: 96px` auf Slot)
+- **Animationen (v35):** Page-Enter (Header + Card fade-up), Save-Burst 🔥 am Save-Button, Done-Confetti, Wobble bei unvollständigem Swipe (`.portfolio-surface.wobble`)
+- Autoplay nach erstem Tap (MP3 + Embeds) — **Luca: funktioniert für ihn**; Sofort-Autoplay beim Link-Öffnen bewusst geparkt (Browser-Limit)
+- Save (Flame) + Buy-Link zum Producer-Store
+- Subtil unten: „Powered by BeatSwipe" + „Get your own page"
+- Am Ende: Save-Zusammenfassung mit Buy-Links (nicht nur „All caught up")
+- Min. 3 Beats empfohlen bevor Producer linkt
+
+## My Page — Producer Dashboard (v26+, ersetzt Submit)
+
+**Nav:** Bottom + Desktop-Topbar: **„My Page"** (Icon `ti-link`), nicht mehr „Submit". Screen-ID bleibt `#submitScreen` (Kompatibilität).
+
+**Flow:**
+
+1. **Nicht eingeloggt:** Sign-in-Gate → Profile
+2. **Onboarding (einmalig, 3 Steps):** Profil (Name + Bio) → Beats hinzufügen (min. 3 empfohlen) → Ready + Copy link
+3. **Dashboard:** Bio-Link (Copy + Preview), Beat-Liste **Live** (Airtable) + **Pending** (localStorage), „+ Add new beat"
+4. **Add beat:** Make.com-Webhook; Producer-Name aus Supabase-Profil (hidden `#f-producer`); **Back to My Page** oben + unten (v27)
+
+**Add Beat Upload (v38–v40, shipped):**
+
+- **Multi-MP3:** Mehrere Dateien auf einmal (Drop/Select, max. 10) → Queue + „Upload all N beats"
+- **Accordion pro Track** (`.upload-queue-acc`): Title *, Genre *, Type *, BPM/Key optional, **Buy link optional** (direkter BeatStars-Track-Link)
+- **Keine Vorausfüllung:** Genre/Type/BPM/Key/Buy starten leer — kein localStorage-Memory, kein BeatStars-Profil-Fallback beim Submit
+- **Title:** nur aus Dateiname (`titleFromFilename`) — kein manuelles Prefill
+- **Preview type:** beim Öffnen `MP3` wenn eingeloggt (sonst keine Upload-Zone)
+- **Sobald Queue aktiv:** `#submitSingleFields` (globale Genre/Type/BPM/Buy) ausgeblendet — alles nur im Accordion
+- **Batch-Note:** `#f-note` bleibt global („applies to whole batch")
+- **YouTube/SoundCloud:** Einzelformular wie früher (`#submitSingleFields` sichtbar)
+- Upload: Supabase Storage (`uploadMp3File`) → Webhook pro Beat; Progress „Uploading N of M"
+
+**Mobile Scroll (v36):** `#myPageMain` + `#myPageAddBeat` als Flex-Column (`display:flex`, `min-height:0`); `.submit-scroll` scrollt. `showMyPageAddBeat()` setzt `display:flex` (nicht `block`).
+
+**Beat-Verwaltung (v44, shipped):**
+
+- Live-Beats: **Edit** (Modal `#beatEditModal`), **Delete** (confirm), **Reihenfolge** (Drag-Griff + Pfeile hoch/runter)
+- API: `api/manage-beat.js` — Auth via Supabase JWT, PATCH/DELETE Airtable (Delete: `Select: Removed` oder Record-Delete)
+- Reihenfolge: `localStorage bs_beat_order_${userId}` + Sync zu Supabase `profiles.beat_order` (jsonb) — **Spalte angelegt (Juni 2026)**; Fans lesen Order via `loadPortfolioProfile()` REST
+- Portfolio sortiert via `sortBeatsByOrder()` + `getBeatOrderForProducer()` in `openPortfolio`
+- JS: `openBeatEditModal`, `saveBeatEdit`, `deleteMyBeat`, `moveMyBeat`, `initMyPageBeatDrag`, `persistBeatOrder`, `manageBeatRequest`
+
+**State / Storage:**
+
+- Onboarding done: `localStorage bs_page_setup_${userId}` = `'1'`; Auto-Mark wenn `producer_name` + ≥1 Live-Beat
+- Pending beats: `localStorage bs_pending_beats_${userId}` (Array `{ title, submittedAt }`) — MVP, kein Backend
+- Beat order: `localStorage bs_beat_order_${userId}` + optional `profiles.beat_order`
+- Backend: Make.com → Airtable (Review/Approved), Supabase `profiles`
+
+**JS:** `renderMyPage`, `renderMyPageBeatRows`, `renderMyPageDashboard`, `renderMyPageOnboarding`, `showMyPageAddBeat`, `hideMyPageAddBeat`, `doSubmitForm`, `doSubmitMp3Batch`, `renderUploadQueue`, `resetAddBeatForm`, `addFilesToQueue`, `uploadMp3File`
+
+**Später (nicht MVP):** echte Pending-API, Title leer statt Dateiname (falls gewünscht)
+
+## Profile — Producer Identity (v33+)
+
+**Nav:** „Profile" (Bottom-Nav + Desktop-Topbar). Screen `#profileScreen`.
+
+**Eingeloggt (Producer-Fokus, v33):**
+
+- Kein redundantes `top-bar` (Wordmark) — nur `site-page-head`
+- **Hero Card** (`.profile-hero`): Avatar 64/72px, Name, Email, Bio-Link-Zeile, Quick Actions
+- Quick Actions (wenn `producer_name`): Copy link · My Page · Preview
+- Ohne `producer_name`: Hint „Set your producer name below…"
+- Tabs: **Profile** | **Settings**
+- Profile-Tab: Sektionen **Identity** (Name, Bio) + **Links** (Socials 2×2 Grid ab 600px) — Glass-Cards
+- Save profile unten; Copy link **nicht** mehr im Formular-Fuß
+- Settings: Favorites-Stat, Newsletter (`ti-mail`), Account (Clear data, Sign out), Legal
+
+**Ausgeloggt (v34):** Auth-Box + Newsletter (gleiche `auth-box`-Card-Größe) + Legal — scroll via `.profile-wrap--guest` + `.profile-guest-scroll`
+
+**JS:** `renderProfile`, `switchProfileTab`, `saveProfile`, `uploadAvatar`, `getAvatarHTML`, `copyPortfolioLink(event)`, `previewMyPage`
+**Supabase-Felder:** `ep-name`, `ep-bio`, `ep-instagram`, `ep-soundcloud`, `ep-beatstars`, `ep-youtube`
+
+**Unsaved guard (v44, shipped):**
+
+- `isProfileDirty()`, `confirmDiscardProfileChanges()` — bei Tab-Wechsel Profile→Settings und `goTo()` weg von Profile
+- Hint `#profileUnsavedHint` unter Save-Button; `bindProfileFormWatch()` auf `ep-*` Felder
+
+**Offen / evtl. nächster Chat:**
+
+- Hero/Settings/Mobile Feinschliff
+- Passwort/Email ändern — **nicht MVP**
+
+## Landing (Home)
+
+- **Desktop (900px+):** 2-Spalten-Hero mit `.hero-visual` Mockup (animierte Waveform)
+- **Mobile (v35):** Mockup sichtbar unter Hero (`@media max-width 899px` — gleiche `.hero-mockup-*` Klassen, kompakter)
+- **Live-Link CTA:** `.hero-live-link` → `/p/clyriax` + Hint „What fans see from your Instagram bio link"
+- Copy auf Pivot: FAQ „How do I get my producer page?", Onboarding Slide 4 „Producer? Get your page"
+- OG/Twitter Meta + `resetSiteMeta()` nutzen `_SITE_META.description` (Portfolio-Sprache, kein „license instantly")
+
+## Toast-System (v35)
+
+- **Kein `alert()` mehr** für Info/Success/Error — `showToast(message, type, duration)`
+- Types: `success` (grün), `error` (rot), `info` (lila)
+- Glass-Banner unten (`#bsToastWrap`, `.bs-toast-wrap`) — über Nav auf Mobile
+- **`confirm()` bleibt** für destruktive Ja/Nein (z. B. Reset swipe progress)
+- **Copy-Pulse:** `.copy-pulse` auf Copy-link-Button nach Erfolg (`copyPortfolioLink(event)`)
+
+## Nav / Screen Transitions (v48–v48b, shipped)
+
+- **Glass Pill Nav:** gleitende lila Glass-Capsule — `#navIndicator` (Mobile), `#dtbNavIndicator` (Desktop); JS: `positionNavIndicator`, `updateNavIndicator`, `setActiveNav`
+- **Screen Switch:** Fade + settle auf `.page-inner` (`translateY(-6px)`); **kein** transform auf `.screen` (verhindert Scrollbar-Wackeln auf Laptop)
+- Desktop: `body.nav-switching` sperrt overflow während Tab-Wechsel (~360ms)
+- Mobile + Desktop; `prefers-reduced-motion` → instant
+
+## Stand Code (Juni 2026 — Session-Update v47–v49)
+
+Letzter Deploy-Kommentar in `index.html`: `deploy: 2026-06-08-v49`
+
+### Shipped v34 (2026-06-08)
+
+**Profile Guest Scroll**
+
+- `.profile-wrap--guest` + `.profile-guest-scroll` — ausgeloggt scrollt zu Legal/Contact
+- Newsletter als zweite `auth-box` (nicht breite `profile-settings-card`)
+
+### Shipped v35 (2026-06-08)
+
+**Toast + Text-Fixes**
+
+- `showToast()` ersetzt alle `alert()`; Profile saved, Link copied, Form-Fehler, Avatar, etc.
+- Meta/OG, Discover-Subtitle, FAQ, Onboarding Slides 1+4, Onboard-Icon Purple-Border
+- Leere States: Portfolio-Pivot-Sprache
+
+**Portfolio Polish**
+
+- Header-Socials: `buildSocialHref()`, `buildPortfolioSocialsHTML()`, `renderPortfolioHeader()`
+- Wobble auf `.portfolio-surface` bei incomplete Swipe (Desktop)
+
+**Landing Mobile + Animationen**
+
+- Hero-Mockup auf Mobile, Live-Link `/p/clyriax`
+- `playPortfolioEnterAnim()`, `showSaveBurst()`, `spawnPortfolioConfetti()`, `copy-pulse`
+
+**Invite Gate**
+
+- `INVITE_PROTECTED`: `discoverScreen`, `crateScreen`, `submitScreen`, `profileScreen`
+- Portfolio `/p/` + Landing offen; Producer bekommt Code von Luca
+
+### Shipped v36 (2026-06-08)
+
+**My Page Add-Beat Mobile Scroll**
+
+- `#myPageMain`, `#myPageAddBeat`: `flex:1`, `display:flex`, `min-height:0`, `overflow:hidden`
+- `body.site-scroll` Override: `overflow:visible` auf Desktop
+
+### Shipped v37 (2026-06-08)
+
+**Desktop Site-Scroll Purple Margins**
+
+- Laptop ≥900px: dezenter Lila-Glow in leeren Seitenrändern auf Landing, Profile, My Page, Favorites (`body.site-scroll .bg-desktop::before/::after`)
+- Discover + Portfolio unverändert
+- **Luca-Entscheidung:** page-wide Purple-Wash + Topbar-Fade getestet → **abgelehnt**; v37 (subtile Orbs) behalten
+
+### Shipped v38–v40 (2026-06-08)
+
+**My Page Multi-Upload + Per-Track Accordion**
+
+- Multi-MP3-Queue, sequentieller Upload + Webhook pro Beat
+- Accordion mit Metadaten pro Track inkl. individuellem Buy-Link
+- Globale Genre/Type/Buy bei aktiver Queue entfernt
+- Keine Prefills / kein `submit_defaults` localStorage mehr
+- BPM/Key optional (Portfolio-Fokus)
+
+### Shipped v41–v43 (2026-06-08)
+
+**UI Polish — Waveform, Hints, Skip-Button**
+
+- Waveform `.wbar`: neutral `rgba(255,255,255,0.42)` statt `d.color` (Orange) — Cover-Icon behält Beat-Farbe
+- Discover Desktop ≥1100px: Skip-Side-Hint links (rot) wieder sichtbar; Kbd-Hints `top: 63%`
+- Portfolio Kbd-Hints ebenfalls `top: 63%` (v42)
+- `.btn-skip`: Gradient + Ring-Glow wie Save-Button, nur in Rot
+
+### Shipped v44 (2026-06-08)
+
+**Producer Beat Management + Profile Guard**
+
+- `api/manage-beat.js` — update/delete eigene Live-Beats
+- My Page: Edit-Modal, Delete, Drag/Arrow-Reihenfolge
+- Profile unsaved guard + gelber Hint
+
+### Shipped v45–v46 (2026-06-08)
+
+**Portfolio In-App Back Button**
+
+- `#portfolioBackBtn` / `.portfolio-back-btn` — nur In-App (`setPortfolioBackVisible(!opts.fromRoute)`)
+- v46: Mobile Platzierung über Header (kein Overlap mit Avatar)
+
+### Shipped v48–v48b (2026-06-08)
+
+**Glass Nav Pill + Screen Settle**
+
+- Gleitende lila Glass-Pill statt Unterstrich/Punkt (Mobile Bottom-Nav + Desktop Topbar)
+- Screen enter: opacity + `.page-inner` settle-down; sync mit Nav-Pill
+- v48b: Scrollbar-Flash/Wackeln auf Laptop gefixt (`nav-switching`, transform nur auf `.page-inner`)
+
+### Shipped v49 (2026-06-08)
+
+**Portfolio Polish — Boot, Order, Header**
+
+- **No Landing Flash:** `<head>` Inline-Script `portfolio-route-boot` + `showPortfolioLoadingState(slug)`
+- Skeleton: `portfolioHeaderSkeletonHTML()`, `portfolioCardSkeletonHTML()` während `loadBeats()`
+- **`beat_order`:** `loadPortfolioProfile()` via Supabase REST inkl. `beat_order`; `persistBeatOrder()` → jsonb
+- **Header:** `portfolioInitials()` Avatar-Fallback, Bio line-clamp, `.portfolio-progress` + `updatePortfolioProgress()`
+- JS: `slugToDisplayName`, `portfolioCardSkeletonHTML`, `showPortfolioLoadingState`, `updatePortfolioProgress`
+
+### Früher shipped (v22–v46, weiterhin gültig)
+
+- Autoplay Guard (v28), Portfolio Desktop Immersive (v28–v30), Profile Redesign (v33)
+- Portfolio/Discover Fly-Animation, My Page Dashboard + Onboarding (v26–v27)
+
+### Bekannte offene Probleme
+
+**Autoplay — Luca: grundsätzlich ok; Edge Cases offen**
+
+| Kontext | Status |
+|---------|--------|
+| `/p/` nach 1 Tap | ✅ laut Luca |
+| Discover / Portfolio Swipe-Chain | bei Bedarf auf echtem iPhone retesten |
+| `/p/` Sofort beim Link-Öffnen | ❌ bewusst nicht verfolgt (Browser-Policy) |
+| YouTube | ❌ generell unzuverlässig |
+
+**Sonst niedrige Prio:** Portfolio Mobile Glow, OG-Image pro Producer, API-Error-Retry auf Landing, Desktop-BG weiter tweaken (nur auf explizites Go)
+
+**Bewusst geparkt (Luca-Entscheidungen Juni 2026):**
+
+- **Producer Stats** (Swipe/Skip-Counts) — erst bei Traffic, später Producer Pro
+- **Light/White Mode** — Dark ist Brand; Aufwand hoch (~200 hardcoded Farben), nicht Phase 1
+- **Beat-Cover:** Music-Icon + Beat-Farbe bleibt (Waveform ist neutral); Initialen/Cover-Art später optional
+- **Portfolio Header:** kein Instagram-Story-Ring / keine Zentrierung — kompakter Header bleibt
+
+**Upload UX — erledigt (v40):** Multi-MP3, Accordion, kein Prefill. Nicht wieder einführen: Batch-Defaults, BeatStars-Buy-Fallback, localStorage submit memory (Luca will leere Felder).
+
+### Was in früheren Versuchen NICHT geholfen hat
+
+- `min-width: 100%` auf Card → Overflow
+- `overflow-y: auto` auf Slot während Swipe → Scrollbars
+- Phone-Frame Shell auf Desktop Portfolio — durch v28 ersetzt
+- Producer-Pfad ohne Invite-Gate für My Page — Luca will Code-Kontrolle; Gate wieder aktiv
+- Autoplay ohne Screen-Guard + globaler `click` → Handler auf allen Screens
+- Fly + delayed render ohne Clone → bricht Autoplay-Gesture
+- Kbd-Hints + Skip-Side-Hint Overlap — v30 gefixt
+
+### Nächste Arbeit (Reihenfolge für neuen Chat)
+
+1. **Profile polish** — Hero/Settings Mobile Feinschliff
+2. **Portfolio Mobile Glow** — dezenter Beat-Farbe-Ambient auf Mobile (Desktop hat `--pf-glow`)
+3. Optional: OG-Image pro Producer
+4. Optional: My Page Pending serverseitig
+5. Optional: Landing API-Error/Retry wenn `/api/beats` fail
+6. Optional: `/api/beats` kurz cachen (wahrgenommene Speed)
+7. Optional: Upload — Title leer statt Dateiname
+
+## Arbeitsweise
+
+- Cursor-Workspace: /Users/lucasvetina/game/beatswipe
+- Repo: sepplimc1903-design/beatswipe
+- Deploy: `git add` → `git commit` → `git push origin main` → Vercel baut automatisch (~1–2 Min.)
+- **Push:** nur wenn Luca explizit sagt (kann vorher lokal testen)
+- Push-Auth: GitHub Personal Access Token (HTTPS), Scope `repo`
+- NIEMALS index.html auf GitHub per Delete + Upload ersetzen
+- Ein Feature → ein Commit → deployen → testen → nächstes Feature
+- Vor jedem Schritt: `grep "accent:" index.html` → muss `#7C3AED` sein
+- Gezielte Edits, nie komplette Neuschreibung
+- Dateien: `index.html` (~8510 Zeilen), `vercel.json`, `og-image.png`, `api/beats.js`, `api/manage-beat.js`, `.gitignore`, `.cursor/rules/beatswipe.mdc`
+- Live testen: `beatswipe.app/p/clyriax` + Hard-Refresh (`Cmd+Shift+R`)
+- Lokal: `cd beatswipe && npx vercel dev` → `http://localhost:3000` (Port 3001 falls 3000 belegt); Hard-Refresh nach Edits
+- `.env.local` **nie** committen (in `.gitignore`)
+- Vercel Deploy-Limit kann Builds blockieren — Code auf GitHub ist trotzdem aktuell
+- Instagram-Assets liegen in `/Users/lucasvetina/game/claude/` — nicht im Repo
+
+## Deploy / Repo
+
+- Vercel Production synced mit GitHub `main`
+- `vercel.json` **existiert** (nur SPA-Rewrites für `/p/*` — nötig sonst 404)
+- APIs: `api/beats.js` (GET), `api/manage-beat.js` (POST update/delete, Auth + Airtable)
+- Kein api/beat.js, api/catalog.js, api/track.js
+- Share-Feature entfernt (bleibt weg)
+
+## Tech-Stack
+
+- Frontend: Single index.html
+- Beats-DB: Airtable (Base appB4LCctwYvuxK5S, Table tblkdiwaGP5e5xAot); Title intern TItle; Status = Select, Filter Approved
+- API: `api/beats.js` (GET, Cache-Control: no-store), `api/manage-beat.js` (POST); braucht `AIRTABLE_TOKEN` env (+ Supabase anon für manage-beat Auth)
+- Auth/Storage: Supabase (https://yprwklxolgrlyswqwkzr.supabase.co); Tabellen: crates, profiles (`beat_order` jsonb auf profiles)
+- Beat-Submit: Make.com Webhook (`WEBHOOK_URL` in index.html)
+- Audio: YouTube, SoundCloud, natives MP3
+
+## Portfolio — relevante Code-Stellen (index.html)
+
+- CSS: `/* ── PORTFOLIO SWIPE (/p/name) ── */` (~Zeile 1650+)
+- CSS Mobile: `@media (max-width: 599px)` Portfolio-Block
+- CSS Desktop: `@media (min-width: 600px)` + `900px` + `1100px` unter `body.portfolio-active`
+- HTML: `#portfolioScreen` → `#portfolioPageInner` → `#portfolioCardWrap` → `#portfolioCardSlot`
+- JS: `openPortfolio`, `showPortfolioLoadingState`, `closePortfolioPreview`, `setPortfolioBackVisible`, `renderPortfolioCard`, `renderPortfolioHeader`, `updatePortfolioProgress`, `portfolioInitials`, `loadPortfolioProfile`, `buildPortfolioSocialsHTML`, `flyOutPortfolioCard`, `setPortfolioDoneMode`, `playPortfolioEnterAnim`, `spawnPortfolioConfetti`, `sortBeatsByOrder`, `getBeatOrderForProducer`, `persistBeatOrder`
+- Boot: `<head>` `portfolio-route-boot`; Init: `_bootPortfolioSlug` → `showPortfolioLoadingState`
+- Back-Button: `#portfolioBackBtn`, `body.portfolio-has-back`
+- Swipe: Portfolio commit on **touchend**; Clone-Fly in `doSwipe`; Wobble: `.portfolio-surface.wobble`
+
+## My Page — relevante Code-Stellen (index.html)
+
+- CSS: `/* SUBMIT */` / `#myPageMain`, `#myPageAddBeat` (~Zeile 1520+)
+- CSS Upload: `/* ── MP3 FILE UPLOAD ── */` (~3078+); `.upload-queue-acc`, `.upload-queue-head`
+- HTML: `#submitScreen` → `#myPageMain` + `#myPageAddBeat` → `#submitForm`, `#uploadQueue`, `#submitSingleFields`, `#submitBatchNote`
+- JS Queue: `_mp3Queue`, `addFilesToQueue`, `renderUploadQueue`, `toggleQueueExpand`, `updateQueueField`
+- JS Submit: `doSubmitForm`, `doSubmitMp3Batch`, `uploadMp3File`, `postBeatWebhook`, `resetAddBeatForm`, `syncQueueFormLayout`
+- JS My Page: `renderMyPage`, `renderMyPageBeatRows`, `showMyPageAddBeat`, `hideMyPageAddBeat`, `openBeatEditModal`, `saveBeatEdit`, `deleteMyBeat`, `moveMyBeat`, `persistBeatOrder`
+- Beat-Edit-Modal: `#beatEditModal`, `#beat-edit-*`
+
+## Desktop Background (site-scroll) — relevante Code-Stellen (index.html)
+
+- `@media (min-width: 900px)` Block ~411+: `body.site-scroll .bg-desktop::before/::after` (v37 subtile Purple-Margins)
+
+## Profile — relevante Code-Stellen (index.html)
+
+- CSS: `/* ── PROFILE SCREEN ── */` (~Zeile 2550+); `.profile-wrap--guest`, `.profile-guest-scroll`
+- JS: `renderProfile`, `switchProfileTab`, `saveProfile`, `copyPortfolioLink`, `isProfileDirty`, `confirmDiscardProfileChanges`, `bindProfileFormWatch`
+
+## Nav — relevante Code-Stellen (index.html)
+
+- CSS: `/* NAV */` (~1300+); `.nav-indicator`, `.dtb-nav-indicator`, `.portfolio-progress`
+- HTML: `#navIndicator`, `#dtbNavIndicator`
+- JS: `setActiveNav`, `updateNavIndicator`, `positionNavIndicator`, `playScreenEnterAnim`, `goTo` / `applyGoTo`, `body.nav-switching`
+
+## Toast — relevante Code-Stellen (index.html)
+
+- CSS: `/* ── TOAST ── */` (~Zeile 2380+)
+- HTML: `#bsToastWrap`
+- JS: `showToast()` — direkt nach `escHtml()`
+
+## Landing — relevante Code-Stellen (index.html)
+
+- Mobile Mockup: `@media (max-width: 899px)` `#landScreen .hero-visual`
+- Live CTA: `.hero-live-cta`, `.hero-live-link` im Hero
+- Desktop Mockup: `@media (min-width: 900px)` `.hero-mockup-*`
+
+## Autoplay — relevante Code-Stellen (index.html)
+
+- Guards: `isDiscoverScreenActive()`, `isPortfolioScreenActive()`, `isAutoplayScreenActive()`
+- Unlock/Gesture: `handleAudioGesture()`, `tryAutoplayFromGesture()`, `maybeAutoplayPreview()`
+- Player scope: `getPlayerScope()`, `queryPlayerEl()`, `getActiveBeatMedia()`
+- Swipe: `doSwipe()` → sync render + `tryAutoplayFromGesture()`
+
+## Kritische technische Erkenntnisse
+
+- Supabase getSession() hängt → direkte fetch() REST/Storage, Token aus localStorage
+- Safari MP3: File Input per DOM-Replace zurücksetzen
+- Sign-out: 2s Timeout + sb-* localStorage clearen
+- Mobile: 100dvh + overflow hidden — **Scroll-Fixes:** Flex-Column + `min-height:0` + `overflow-y:auto` auf innerem Scroll-Container (Profile guest, My Page add-beat)
+- `body.site-scroll` (Desktop 900px+): inner containers `overflow:visible; flex:none` damit Body scrollt
+- Airtable nur über /api/beats Proxy
+- Funktionen NIE außerhalb Haupt-script duplizieren
+- Onboard + Cookie-Banner: skippen wenn `_portfolioMode`
+- Vercel `env pull` kann `AIRTABLE_TOKEN=""` liefern — Token manuell in `.env.local`
+
+## Invite Gate (Private Beta)
+
+- INVITE_CODES: BEATSWIPE25, beatswipe
+- **Gated:** Discover, Favorites, My Page, Profile
+- **Offen:** Landing, Portfolio `/p/name`
+- Producer-Flow: Luca schickt Code per Instagram DM → Sign-up → My Page
+- Gate in `goTo()` — zum Pausieren Block auskommentieren (v31-Muster), nicht löschen
+
+## Design
+
+- --accent: #7C3AED, --accent-mid: #A78BFA
+- App-Sprache: Englisch. „Favorites" (nicht Crate).
+- Glass-Pattern: `rgba(255,255,255,0.03)` + Border `rgba(255,255,255,0.08)`
+- Waveform: neutral weiß `.wbar` — Brand-Akzent auf Buttons (Lila Save, Rot Skip)
+- Beat-Cover-Icon: behält `d.color` aus Airtable (Orange ok als kleiner Akzent)
+- Animationen: `cubic-bezier(0.22,1,0.36,1)`; `prefers-reduced-motion` respektieren
+- Dark-only (kein Light-Mode-Button in Phase 1)
+
+## Test-URLs
+
+- Portfolio: `beatswipe.app/p/clyriax` (Lucas Test-Producer)
+- Landing Live-Link: Hero → `/p/clyriax`
+- My Page: eingeloggt als clyriax → Beat edit/delete/reorder, Preview mit Back-Pfeil
+- My Page: Add new beat (Multi-MP3 + Accordion)
+- Discover Desktop ≥1100px: Skip+Save Side-Hints + Kbd-Hints unten
+- My Page Mobile scroll: Add-beat Formular scrollt in `#myPageAddBeat`
+- Profile: ausgeloggt → scroll zu Legal; eingeloggt → Copy link (Toast)
+- Lokal: `localhost:3000` mit `npx vercel dev`
+- Nach Deploy: Hard-Refresh `Cmd+Shift+R`
+
+Kontakt: hellobeatswipe@gmail.com · Instagram: @beatswipe.app
