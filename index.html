@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-08-v45 — portfolio back button for in-app preview -->
+<!-- deploy: 2026-06-08-v46 — mobile portfolio back btn above header -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -1763,6 +1763,18 @@
     }
     .portfolio-back-btn:active { transform: scale(0.92); }
     body.portfolio-has-back .portfolio-back-btn { display: flex; }
+    @media (max-width: 599px) {
+      body.portfolio-has-back .portfolio-back-btn {
+        top: calc(env(safe-area-inset-top, 0px) + 8px);
+        left: 16px;
+        width: 36px;
+        height: 36px;
+      }
+      body.portfolio-has-back .portfolio-back-btn i { font-size: 18px; }
+      body.portfolio-has-back .portfolio-header {
+        padding-top: calc(env(safe-area-inset-top, 0px) + 50px);
+      }
+    }
     @media (min-width: 600px) {
       .portfolio-back-btn {
         top: calc(env(safe-area-inset-top, 0px) + 16px);
