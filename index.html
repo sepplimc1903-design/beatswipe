@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-08-v50 — discover mobile swipe polish, add-beat focus, no skip/save stickers -->
+<!-- deploy: 2026-06-08-v51 — pending beats API, beats cache, landing retry -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -1416,6 +1416,26 @@
     .btn-secondary { padding: 14px; border-radius: 14px; background: none; border: 0.5px solid var(--border-2); color: var(--text); font-size: 15px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s; }
     .btn-secondary:hover { background: var(--bg-2); }
     .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; border-top: 0.5px solid var(--border); border-bottom: 0.5px solid var(--border); }
+    .beats-load-banner {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      margin: 12px var(--px) 0;
+      padding: 11px 14px; border-radius: 12px;
+      background: rgba(248,113,113,0.08);
+      border: 0.5px solid rgba(248,113,113,0.2);
+      font-size: 13px; color: var(--text-2); line-height: 1.45;
+    }
+    .beats-load-banner[hidden] { display: none !important; }
+    .beats-load-banner i { font-size: 17px; color: #f87171; flex-shrink: 0; }
+    .beats-load-banner span { flex: 1; min-width: 160px; }
+    .beats-load-banner-btn {
+      padding: 7px 14px; border-radius: 100px;
+      background: rgba(255,255,255,0.06); border: 0.5px solid rgba(255,255,255,0.12);
+      color: var(--text); font-size: 12px; font-weight: 600;
+      cursor: pointer; flex-shrink: 0; font-family: inherit;
+      transition: background 0.18s ease, border-color 0.18s ease;
+    }
+    .beats-load-banner-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.18); }
+    .beats-load-banner-btn:disabled { opacity: 0.55; cursor: wait; }
     .stat-cell { padding: 18px 12px; text-align: center; border-right: 0.5px solid var(--border); }
     .stat-cell:last-child { border-right: none; }
     .stat-num { font-size: 22px; font-weight: 700; color: var(--accent-mid); margin-bottom: 2px; }
@@ -3545,6 +3565,11 @@
         <div class="stat-cell"><div class="stat-num" id="statProducers">–</div><div class="stat-lbl">Producers</div></div>
         <div class="stat-cell"><div class="stat-num">Free</div><div class="stat-lbl">Always</div></div>
       </div>
+      <div class="beats-load-banner" id="beatsLoadBanner" hidden>
+        <i class="ti ti-alert-circle"></i>
+        <span>Couldn't load the beats catalog. Discover may be empty until this is fixed.</span>
+        <button type="button" class="beats-load-banner-btn" id="beatsLoadRetryBtn" onclick="retryLoadBeats()">Try again</button>
+      </div>
       <div class="land-section-head reveal-on-scroll">
         <h2 class="land-section-title">How it works</h2>
         <p class="land-section-desc">One link for your bio — fans swipe, save, and buy from you directly.</p>
@@ -4465,6 +4490,9 @@ async function subscribeNewsletter() {
 // Beats werden live von Airtable geladen (nur Status = Approved)
 let db = { full: [], loops: [], drums: [], samples: [] };
 let _rawDb = { full: [], loops: [], drums: [], samples: [] }; // unfiltered copy
+const BEATS_CACHE_TTL_MS = 45000;
+let _beatsCache = null;
+let _beatsCacheAt = 0;
 
 function typeTocat(type) {
   if (!type) return 'full';
@@ -4492,18 +4520,72 @@ function applyBeatsList(beats) {
   return true;
 }
 
-async function loadBeats() {
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function updateBeatsLoadBanner(show) {
+  const el = document.getElementById('beatsLoadBanner');
+  if (el) el.hidden = !show;
+}
+
+async function fetchBeatsFromApi() {
+  const res = await fetch('/api/beats');
+  if (!res.ok) throw new Error('Beats API ' + res.status);
+  const data = await res.json();
+  if (!data?.beats) throw new Error('Invalid beats response');
+  return data.beats;
+}
+
+async function loadBeats(opts) {
+  const force = opts && opts.force;
+  const silent = opts && opts.silent;
   const wrap = document.getElementById('cardWrap');
-  if (wrap && !_portfolioMode) wrap.innerHTML = cardSkeletonHTML();
-  try {
-    const res = await fetch('/api/beats', { cache: 'no-store' });
-    if (!res.ok) return false;
-    const data = await res.json();
-    if (data && data.beats) return applyBeatsList(data.beats);
-    return false;
-  } catch(e) {
-    console.warn('loadBeats failed:', e);
-    return false;
+  if (wrap && !_portfolioMode && !silent) wrap.innerHTML = cardSkeletonHTML();
+
+  if (!force && _beatsCache && (Date.now() - _beatsCacheAt) < BEATS_CACHE_TTL_MS) {
+    applyBeatsList(_beatsCache);
+    updateBeatsLoadBanner(false);
+    return true;
+  }
+
+  let lastErr = null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const beats = await fetchBeatsFromApi();
+      _beatsCache = beats;
+      _beatsCacheAt = Date.now();
+      updateBeatsLoadBanner(false);
+      return applyBeatsList(beats);
+    } catch (e) {
+      lastErr = e;
+      console.warn(`loadBeats attempt ${attempt + 1} failed:`, e);
+      if (attempt < 2) await sleep(700 * (attempt + 1));
+    }
+  }
+
+  if (_beatsCache?.length) {
+    applyBeatsList(_beatsCache);
+    updateBeatsLoadBanner(false);
+    return true;
+  }
+
+  updateBeatsLoadBanner(true);
+  console.warn('loadBeats failed:', lastErr);
+  return false;
+}
+
+async function retryLoadBeats() {
+  const btn = document.getElementById('beatsLoadRetryBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Loading…'; }
+  const ok = await loadBeats({ force: true });
+  if (btn) { btn.disabled = false; btn.textContent = 'Try again'; }
+  if (ok) {
+    if (document.getElementById('discoverScreen')?.classList.contains('active')) renderCard();
+    updateStats();
+    showToast('Beats loaded.', 'success');
+  } else {
+    showToast('Still unable to load beats. Try again shortly.', 'error');
   }
 }
 
@@ -6357,9 +6439,10 @@ function finishSubmitSuccess(count) {
   setSubmitBtnLoading(false);
   clearBeatFormAfterSubmit();
 
-  setTimeout(() => {
+  setTimeout(async () => {
     if (successMsg) successMsg.style.display = 'none';
     hideMyPageAddBeat();
+    await refreshMyPendingBeats({ force: true });
     renderMyPage();
   }, count > 1 ? 1600 : 1200);
 }
@@ -6740,6 +6823,8 @@ async function signOut() {
 
   currentUser = null;
   _userProfile = null;
+  _myPendingBeatsCache = null;
+  _myPendingBeatsCacheAt = 0;
   crate = [];
   resetGuestSwipeState();
   renderCrate();
@@ -7998,6 +8083,10 @@ function renderSubmitScreen() {
 
 // ─── MY PAGE (producer dashboard) ─────────────────────────────────────────
 let _myPageObStep = 0;
+let _myPendingBeatsCache = null;
+let _myPendingBeatsCacheAt = 0;
+let _pendingRefreshInFlight = null;
+const PENDING_CACHE_TTL_MS = 60000;
 
 function myPageStorageKey(suffix) {
   return currentUser ? `bs_${suffix}_${currentUser.id}` : null;
@@ -8020,17 +8109,86 @@ function markMyPageOnboarded() {
   if (key) localStorage.setItem(key, '1');
 }
 
-function getMyPendingBeats() {
+function getMyPendingBeatsLocal() {
   const key = myPageStorageKey('pending_beats');
   if (!key) return [];
   try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) { return []; }
 }
 
+function getMyPendingBeats() {
+  if (_myPendingBeatsCache !== null) return _myPendingBeatsCache;
+  return getMyPendingBeatsLocal();
+}
+
+async function refreshMyPendingBeats(opts) {
+  const force = opts && opts.force;
+  if (!currentUser) {
+    _myPendingBeatsCache = [];
+    _myPendingBeatsCacheAt = 0;
+    return [];
+  }
+  if (!force && _myPendingBeatsCache !== null && (Date.now() - _myPendingBeatsCacheAt) < PENDING_CACHE_TTL_MS) {
+    return _myPendingBeatsCache;
+  }
+  if (_pendingRefreshInFlight) return _pendingRefreshInFlight;
+
+  _pendingRefreshInFlight = (async () => {
+    const token = await getAccessToken();
+    if (!token) {
+      _myPendingBeatsCache = getMyPendingBeatsLocal();
+      return _myPendingBeatsCache;
+    }
+    try {
+      const res = await fetch('/api/pending-beats', {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: 'no-store'
+      });
+      if (res.ok) {
+        const data = await res.json();
+        _myPendingBeatsCache = (data.pending || []).sort((a, b) => (b.submittedAt || 0) - (a.submittedAt || 0));
+        _myPendingBeatsCacheAt = Date.now();
+        const key = myPageStorageKey('pending_beats');
+        if (key) localStorage.removeItem(key);
+        return _myPendingBeatsCache;
+      }
+    } catch (e) {
+      console.warn('refreshMyPendingBeats failed:', e);
+    }
+    if (_myPendingBeatsCache === null) _myPendingBeatsCache = getMyPendingBeatsLocal();
+    return _myPendingBeatsCache;
+  })();
+
+  try {
+    return await _pendingRefreshInFlight;
+  } finally {
+    _pendingRefreshInFlight = null;
+  }
+}
+
+function rerenderMyPageIfActive() {
+  const add = document.getElementById('myPageAddBeat');
+  if (add && add.style.display !== 'none') return;
+  if (!document.getElementById('submitScreen')?.classList.contains('active')) return;
+  const main = document.getElementById('myPageMain');
+  if (!main || !currentUser) return;
+  if (!isMyPageOnboarded()) {
+    main.innerHTML = renderMyPageOnboarding();
+  } else {
+    main.innerHTML = renderMyPageDashboard();
+    initMyPageBeatDrag();
+  }
+}
+
 function addMyPendingBeat(title) {
+  const entry = { title, submittedAt: Date.now() };
+  if (_myPendingBeatsCache !== null) {
+    _myPendingBeatsCache = [..._myPendingBeatsCache, entry];
+    return;
+  }
   const key = myPageStorageKey('pending_beats');
   if (!key) return;
-  const list = getMyPendingBeats();
-  list.push({ title, submittedAt: Date.now() });
+  const list = getMyPendingBeatsLocal();
+  list.push(entry);
   localStorage.setItem(key, JSON.stringify(list));
 }
 
@@ -8552,11 +8710,12 @@ async function renderMyPage() {
   if (!isMyPageOnboarded()) {
     if (_userProfile?.producer_name?.trim() && _myPageObStep === 0) _myPageObStep = 1;
     main.innerHTML = renderMyPageOnboarding();
-    return;
+  } else {
+    _myPageObStep = 0;
+    main.innerHTML = renderMyPageDashboard();
+    initMyPageBeatDrag();
   }
 
-  _myPageObStep = 0;
-  main.innerHTML = renderMyPageDashboard();
-  initMyPageBeatDrag();
+  void refreshMyPendingBeats().then(() => rerenderMyPageIfActive());
 }
 </script>

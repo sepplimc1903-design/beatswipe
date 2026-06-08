@@ -2,8 +2,7 @@ export default async function handler(req, res) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET');
-  // ← DAS ist der Fix: kein Caching
-  res.setHeader('Cache-Control', 'no-store, max-age=0');
+  res.setHeader('Cache-Control', 'public, s-maxage=45, stale-while-revalidate=60');
 
   const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
   const BASE_ID  = 'appB4LCctwYvuxK5S';
