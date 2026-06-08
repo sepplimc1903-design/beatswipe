@@ -39,6 +39,7 @@ NIEMALS „Tinder" verwenden (Marke). Stattdessen:
 - Kein Bottom-Nav, kein Marketing-Footer, kein Invite-Gate auf Portfolio-Links
 - Desktop ab 1100px: Kbd-Hints links (`← skip`, `→ save`, `Space play`) bei `top: 63%` + Skip/Save Side-Hints (Skip links rot, Save rechts lila; symmetrisch, v42)
 - **In-App Preview Back (v45–v46):** `.portfolio-back-btn` nur wenn Portfolio **von innerhalb der App** geöffnet (`!opts.fromRoute`) — My Page/Profile Preview, Discover „by Producer". **Nicht** bei direktem `/p/`-Bio-Link. Mobile: eigene Zeile über Header (`portfolio-has-back` + extra header padding); Desktop: links neben Card-Spalte. JS: `setPortfolioBackVisible`, `closePortfolioPreview`, `_portfolioShowBack`
+- **Preview read-only (v54):** My Page/Profile `previewMyPage()` → `openPortfolio(name, { preview: true })` — Swipe-UI normal, **kein** `crate.push` / `saveBeatToDB`; Session via `_portfolioPreview` + `_portfolioPreviewPassed`; Done: „Preview complete — Saves here are not stored". Echter `/p/`-Bio-Link + Discover „by Producer" speichern weiter normal
 - Done-State: Card vertikal wie Swipe-Position (`padding-bottom: 96px` auf Slot)
 - **Animationen (v35):** Page-Enter (Header + Card fade-up), Save-Burst 🔥 am Save-Button, Done-Confetti, Wobble bei unvollständigem Swipe (`.portfolio-surface.wobble`)
 - Autoplay nach erstem Tap (MP3 + Embeds) — **Luca: funktioniert für ihn**; Sofort-Autoplay beim Link-Öffnen bewusst geparkt (Browser-Limit)
@@ -148,16 +149,16 @@ NIEMALS „Tinder" verwenden (Marke). Stattdessen:
 - Desktop: `body.nav-switching` sperrt overflow während Tab-Wechsel (~360ms)
 - Mobile + Desktop; `prefers-reduced-motion` → instant
 
-## Discover — Mobile (v50+, v53-local swipe polish)
+## Discover — Mobile (v50+, v53 swipe polish)
 
 - Swipe-Geste auf ganz `#cardWrap` (nicht nur `#theCard`); Toolbar kompakter (Wordmark aus, `swipe-hint` hidden)
 - **SKIP/SAVE-Sticker** auf Card entfernt (`.swipe-label { display: none }`) — Mobile + Desktop
 - Glow auf Mobile Discover dezenter (`updateGlow` mobile branch)
-- **v53-local:** `overflow: visible` auf Swipe-Kette (Discover + `/p/`); **NICHT** `overflow-x: visible` + `overflow-y: hidden` (CSS berechnet zu `auto` → clippt!)
+- **v53:** `overflow: visible` auf Swipe-Kette (Discover + `/p/`); **NICHT** `overflow-x: visible` + `overflow-y: hidden` (CSS berechnet zu `auto` → clippt!)
 - Discover Mobile: `#cardWrap` padding `2px var(--px)`; `align-items/justify-content: center` (Card-Größe wie vorher)
 - Discover Mobile: `pinCardForMobileDrag` nur für `.beat-card` (globale Styles) — **nicht** Portfolio
 
-## Mobile App Ambient (v53-local — noch nicht gepusht)
+## Mobile App Ambient (v53, shipped)
 
 - **≤899px App-Pages** (Landing, Discover, Profile, My Page, Favorites): **linearer Purple-Wash** statt v52-Ellipsen/Orbs — weniger ablenkend, gleiche Helligkeit/Farbe
 - **`.shell { background: transparent }`** (Regel muss **nach** base `.shell` stehen!)
@@ -165,22 +166,29 @@ NIEMALS „Tinder" verwenden (Marke). Stattdessen:
 - **`body.portfolio-active` ausgenommen** — `/p/` behält Beat-Farbe `--pf-glow`; Shell transparent
 - **Offen:** Lesbarkeit Glass-UI auf Mobile ggf. weiter tweaken; `/p/` nie mit App-Lila vermischen
 
-## Mobile Swipe — Discover + Portfolio `/p/` (v53-local)
+## Mobile Swipe — Discover + Portfolio `/p/` (v53+)
 
 - **Overflow-Kette** `@media max-width 899px`: `shell` → `screen` → `page-inner` → `card-wrap` / `#portfolioCardWrap` → `card-slot` → `card-stage` — alles `overflow: visible`
 - **Discover:** `pinCardForMobileDrag` → `body` + `position:fixed` (`.beat-card` hat globale CSS)
 - **Portfolio `/p/`:** **NIEMALS pinnen** — `.portfolio-surface`-Styles sind `#portfolioCardWrap`-scoped; auf `body` verliert Karte Background → Ghost/transparent
 - **Cleanup:** `resetSwipeGestureState()` in `applyGoTo` + `exitPortfolioMode`; `purgeOrphanSwipeNodes()` in `renderPortfolioCard`, `flyOutPortfolioCard`, Cleanup
 - **Done-State Mobile:** `#portfolioPageInner.page-inner--swipe-done .portfolio-card-slot` → `justify-content: center`, `padding-top: 0`
-- **Button-Swipe 1. Beat (Portfolio Mobile):** `loadTrack` deferred 120ms; `pauseTrackForCardSwap` vor Fly; Mobile kein `cardWrap`-Enter + kein `card-enter-portfolio`; `showEmojiPop` → `body` + `.swipe-emoji--viewport` (fixed); Fly in `requestAnimationFrame`
+- **Button-Swipe 1. Beat (Portfolio Mobile):** `loadTrack` deferred 120ms; `pauseTrackForCardSwap` vor Fly; Mobile kein `cardWrap`-Enter + kein `card-enter-portfolio`; `showEmojiPop` → `body` + `.swipe-emoji--viewport` (fixed); Fly-Clone an `#portfolioCardWrap` mit `getBoundingClientRect` + doppeltes `rAF` (v53); Fly-Clone **nicht** `position:relative` auf Mobile (v53 — sonst Zoom/Jerk)
 - **Viewport:** `interactive-widget=overlays-content`, `viewport-fit=cover` (weniger iOS-Chrome-Sprung beim ersten Tap)
 - JS: `pinCardForMobileDrag`, `unpinCardForMobileDrag`, `forceCleanupSwipeDrag`, `resetSwipeGestureState`, `purgeOrphanSwipeNodes`
 
-## Stand Code (Juni 2026 — Session-Update v53-local)
+## Favorites / Crate Sync (Supabase `crates`)
 
-**Production (GitHub/Vercel):** `deploy: 2026-06-08-v52`
+- **Ziel:** Eingeloggt = Favorites auf Mobile + Laptop immer gleich (Supabase `crates` = Source of Truth)
+- **Guest:** Saves nur in-memory (`crate` Array) — Reload = weg; Hint `showMobileSyncHint`
+- **JS:** `syncCrateFromDB`, `saveBeatToDB`, `removeBeatFromCrate`, `flushPendingCrateSaves`, `_pendingGuestCrateMerge`, `_cratePendingSaves`, `_crateSyncInFlight`
+- **v55:** `syncCrateFromDB` ersetzt `crate` komplett aus DB (kein Merge-only)
+- **v56:** Guest-Merge nur bei explizitem Login (`handleAuth` setzt `_pendingGuestCrateMerge`) — **nicht** bei iOS `SIGNED_IN` Session-Restore; Crate-GET mit `cache: 'no-store'`
+- **v57:** Favorites über **`/api/crate`** (Service Role server-side); `await saveBeatToDB`, pending queue, Token-Refresh; Luca: Save hält nach Reload lokal ✅
 
-**Lokal uncommitted (Juni 2026 Session):** `deploy: 2026-06-09-v53-local` — **noch nicht gepusht** (Luca testet lokal)
+## Stand Code (Juni 2026 — Session-Update v57)
+
+**Production (GitHub/Vercel):** `deploy: 2026-06-09-v57`
 
 ### Shipped v34 (2026-06-08)
 
@@ -302,42 +310,63 @@ NIEMALS „Tinder" verwenden (Marke). Stattdessen:
 
 - App-Mobile lila Hintergrund-Wash (Ellipsen/Orbs); Portfolio `/p/` ausgenommen (Beat-`--pf-glow` + transparente Shell)
 
-### v53-local (2026-06-09 — lokal, nicht gepusht)
+### Shipped v53 (2026-06-09)
 
-**Mobile Linear Wash**
+**Mobile Linear Wash + Swipe Fixes**
 
-- v52-Orbs → weicher `linear-gradient` Purple-Wash auf App-Pages; `/p/` unverändert
+- v52-Orbs → linear Purple-Wash auf App-Pages; `/p/` Beat-Glow unverändert
+- `overflow: visible` Swipe-Kette Discover + `/p/`; Portfolio kein Body-Pin; `purgeOrphanSwipeNodes`
+- Portfolio 1. Beat Button-Swipe: deferred `loadTrack`, Fly-Clone-Position-Fix, kein Mobile Enter-Anim
+- Fly-Clone `position:absolute` auf Mobile (nicht `relative` auf `.fly-left/.fly-right`)
 
-**Mobile Swipe Clip + Ghost-Fix**
+### Shipped v54 (2026-06-09)
 
-- `overflow: visible` Swipe-Kette Discover + `/p/`
-- Portfolio: kein Body-Pin; `purgeOrphanSwipeNodes` + `resetSwipeGestureState` bei Tab-Wechsel
-- Discover: Body-Pin nur `.beat-card`
-- Card-Größe + Done-Zentrierung Mobile restored
+**Portfolio Preview read-only**
 
-**Portfolio Button-Swipe 1. Beat**
+- `openPortfolio(name, { preview: true })` aus `previewMyPage()` — keine Favorites/DB-Saves
+- `_portfolioPreview`, `_portfolioPreviewPassed`; Done-State „Preview complete"
 
-- Audio/Fly/Enter-Anim entkoppelt (deferred `loadTrack`, Mobile Enter-Anim aus, Emoji fixed)
+### Shipped v55–v56 (2026-06-09)
 
-### Früher shipped (v22–v49, weiterhin gültig)
+**Favorites Cross-Device Sync (Teilfix)**
+
+- v55: DB-authoritative `syncCrateFromDB`; Remove mit `res.ok`-Check
+- v56: Kein Re-Merge auf iOS Session-Restore; `_pendingGuestCrateMerge` nur bei `handleAuth`
+- **Luca-Feedback:** Phantom-Favorites auf Mobile nach Reload teils behoben; **neues Problem:** Discover-Save verschwindet nach Reload — v57-local angefangen, **im neuen Chat weiter**
+
+### Shipped v57 (2026-06-09)
+
+**Favorites Save-Persistenz**
+
+- **`api/crate.js`** — GET/POST/DELETE mit `SUPABASE_SERVICE_ROLE_KEY` (Vercel + `.env.local`)
+- Client: Save/Sync/Remove über `/api/crate`; Token-Refresh; pending queue
+- Luca: Save hält nach Reload lokal ✅; Production nach Deploy retesten (Laptop + Mobile)
+
+### Früher shipped (v22–v52, weiterhin gültig)
 
 - Autoplay Guard (v28), Portfolio Desktop Immersive (v28–v30), Profile Redesign (v33)
 - Portfolio/Discover Fly-Animation, My Page Dashboard + Onboarding (v26–v27)
 
 ### Bekannte offene Probleme
 
+**Favorites Sync — v57 shipped, Production retesten**
+
+| Symptom | Status |
+|---------|--------|
+| Discover-Save verschwindet nach Reload (eingeloggt) | ✅ v57 lokal; **Production nach Deploy retesten** |
+| Laptop ↔ Mobile immer gleich | ⚠️ retesten nach v57 Deploy |
+| Preview → keine Saves | ✅ v54 |
+
 **Autoplay — Luca: grundsätzlich ok; Edge Cases offen**
 
 | Kontext | Status |
 |---------|--------|
 | `/p/` nach 1 Tap | ✅ laut Luca |
-| Discover / Portfolio Swipe-Chain | v53-local gefixt — **auf echtem iPhone retesten** nach Push |
+| Discover / Portfolio Swipe-Chain | ✅ v53 shipped — Luca iPhone ok |
 | `/p/` Sofort beim Link-Öffnen | ❌ bewusst nicht verfolgt (Browser-Policy) |
 | YouTube | ❌ generell unzuverlässig |
 
-**v53-local — vor Push auf iPhone verifizieren:** Swipe-Clip weg? Ghost-Karten weg? 1. Beat Button-Swipe smooth? Linear-Wash Lesbarkeit ok?
-
-**Mobile App Ambient — Feinschliff offen:** Linear-Wash evtl. tweaken (Lesbarkeit Glass-UI); `/p/` Beat-Glow nicht mit App-Lila vermischen
+**Mobile App Ambient — Feinschliff offen:** Linear-Wash Lesbarkeit; `/p/` Beat-Glow nicht mit App-Lila vermischen
 
 **Sonst niedrige Prio:** OG-Image pro Producer, Desktop-BG weiter tweaken (nur auf explizites Go)
 
@@ -363,10 +392,14 @@ NIEMALS „Tinder" verwenden (Marke). Stattdessen:
 - **`pinCardForMobileDrag` für `.portfolio-surface`** → scoped CSS (`#portfolioCardWrap .portfolio-surface`) fällt weg auf `body` → transparenter Ghost + kleben bleiben
 - **`card-wrap` padding `2px 0`** (ohne `var(--px)`) → Cards zu breit
 - **`showEmojiPop` inline `container.style.position = 'relative'`** → Layout-Reflow beim ersten Swipe
+- **`SIGNED_IN` auf iOS bei jedem Reload** → lokaler `crate` wurde in DB zurückgeschrieben (v56: nur expliziter Login-Merge)
+- **Fly-Clone `position:relative` auf Mobile** → Flex-Slot doppelte Höhe → Zoom-out (v53: nur `.dragging` relative)
+- **`syncCrateFromDB` merge-only** → Deletes auf anderem Gerät kamen zurück (v55: replace)
+- **`saveBeatToDB` fire-and-forget ohne `res.ok`** → Save weg nach Reload (v57-local: await + pending queue — **noch verifizieren**)
 
 ### Nächste Arbeit (Reihenfolge für neuen Chat)
 
-1. **v53-local iPhone-Test** → wenn ok: **ein Commit + Push** (Linear-Wash + Swipe-Fixes)
+1. **Favorites Sync Production retesten (v57)** — beatswipe.app Save → Reload Laptop + Mobile; Remove cross-device
 2. **Mobile App Ambient Feinschliff** — Linear-Wash Lesbarkeit; **`/p/` unangetastet**
 3. **Profile polish** — Hero/Settings Mobile Feinschliff
 4. Optional: OG-Image pro Producer
@@ -383,8 +416,8 @@ NIEMALS „Tinder" verwenden (Marke). Stattdessen:
 - Ein Feature → ein Commit → deployen → testen → nächstes Feature
 - Vor jedem Schritt: `grep "accent:" index.html` → muss `#7C3AED` sein
 - Gezielte Edits, nie komplette Neuschreibung
-- Dateien: `index.html` (~8970 Zeilen), `vercel.json`, `og-image.png`, `api/beats.js`, `api/pending-beats.js`, `api/manage-beat.js`, `.gitignore`, `.cursor/rules/beatswipe.mdc`
-- **Aktuell:** `index.html` v53-local lokal geändert, `main` auf GitHub noch v52
+- Dateien: `index.html` (~9080 Zeilen), `vercel.json`, `og-image.png`, `api/beats.js`, `api/pending-beats.js`, `api/manage-beat.js`, `.gitignore`, `.cursor/rules/beatswipe.mdc`
+- **Aktuell:** Production v56 auf GitHub/Vercel; lokal v57-local uncommitted (Favorites Save-Persistenz)
 - Live testen: `beatswipe.app/p/clyriax` + Hard-Refresh (`Cmd+Shift+R`)
 - Lokal: `cd beatswipe && npx vercel dev` → `http://localhost:3000` (Port 3001 falls 3000 belegt); Hard-Refresh nach Edits
 - `.env.local` **nie** committen (in `.gitignore`)
@@ -414,11 +447,18 @@ NIEMALS „Tinder" verwenden (Marke). Stattdessen:
 - CSS Mobile: `@media (max-width: 599px)` Portfolio-Block
 - CSS Desktop: `@media (min-width: 600px)` + `900px` + `1100px` unter `body.portfolio-active`
 - HTML: `#portfolioScreen` → `#portfolioPageInner` → `#portfolioCardWrap` → `#portfolioCardSlot`
-- JS: `openPortfolio`, `showPortfolioLoadingState`, `closePortfolioPreview`, `setPortfolioBackVisible`, `renderPortfolioCard`, `renderPortfolioHeader`, `updatePortfolioProgress`, `portfolioInitials`, `loadPortfolioProfile`, `buildPortfolioSocialsHTML`, `flyOutPortfolioCard`, `setPortfolioDoneMode`, `playPortfolioEnterAnim`, `spawnPortfolioConfetti`, `sortBeatsByOrder`, `getBeatOrderForProducer`, `persistBeatOrder`, `purgeOrphanSwipeNodes`
+- JS: `openPortfolio`, `showPortfolioLoadingState`, `closePortfolioPreview`, `setPortfolioBackVisible`, `renderPortfolioCard`, `renderPortfolioHeader`, `updatePortfolioProgress`, `portfolioInitials`, `loadPortfolioProfile`, `buildPortfolioSocialsHTML`, `flyOutPortfolioCard`, `setPortfolioDoneMode`, `playPortfolioEnterAnim`, `spawnPortfolioConfetti`, `sortBeatsByOrder`, `getBeatOrderForProducer`, `persistBeatOrder`, `purgeOrphanSwipeNodes`, `_portfolioPreview`, `previewMyPage`
 - Boot: `<head>` `portfolio-route-boot`; Init: `_bootPortfolioSlug` → `showPortfolioLoadingState`
 - Back-Button: `#portfolioBackBtn`, `body.portfolio-has-back`
 - Swipe: Portfolio commit on **touchend**; Clone-Fly in `doSwipe`; Wobble: `.portfolio-surface.wobble`
-- **v53-local Swipe:** `initSwipeGesture` IIFE — `pinCardForMobileDrag` (Discover only), `resetSwipeGestureState`; `playPortfolioEnterAnim` Mobile nur Header
+- **v53 Swipe:** `initSwipeGesture` IIFE — `pinCardForMobileDrag` (Discover only), `resetSwipeGestureState`; `playPortfolioEnterAnim` Mobile nur Header; `flyOutPortfolioCard` Clone an `#portfolioCardWrap`
+
+## Favorites / Crate Sync — relevante Code-Stellen (index.html)
+
+- JS: `syncCrateFromDB`, `saveBeatToDB`, `flushPendingCrateSaves`, `removeBeatFromCrate`, `renderCrate`, `doSwipe` (Discover + Portfolio Save)
+- State: `crate`, `_cratePendingSaves`, `_pendingGuestCrateMerge`, `_crateSyncInFlight`
+- Auth: `onAuthStateChange` — Guest-Merge nur `SIGNED_IN && _pendingGuestCrateMerge`; `handleAuth` setzt Merge-Flag
+- Supabase: `crates` Tabelle (`user_id`, `beat_id`, `beat_data`)
 
 ## My Page — relevante Code-Stellen (index.html)
 
@@ -487,6 +527,7 @@ NIEMALS „Tinder" verwenden (Marke). Stattdessen:
 - Funktionen NIE außerhalb Haupt-script duplizieren
 - Onboard + Cookie-Banner: skippen wenn `_portfolioMode`
 - Vercel `env pull` kann `AIRTABLE_TOKEN=""` liefern — Token manuell in `.env.local`
+- **Favorites:** `syncCrateFromDB` = replace aus DB; nie lokalen `crate` bei jedem `SIGNED_IN` zurück in DB mergen (iOS Session-Restore); `saveBeatToDB` muss awaited + `res.ok` — sonst Reload verliert Save
 
 ## Invite Gate (Private Beta)
 

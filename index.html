@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-09-v56 — mobile favorites SIGNED_IN restore fix -->
+<!-- deploy: 2026-06-09-v57 — favorites persist via /api/crate -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -4840,6 +4840,7 @@ function renderDiscoverHint() {
 
 async function initApp() {
   initAuthFromStorage();
+  await Promise.race([_authInitReady, sleep(3000)]);
   const portfolioSlug = getPortfolioSlugFromURL();
   if (portfolioSlug && !_portfolioMode) showPortfolioLoadingState(portfolioSlug);
   await loadBeats();
@@ -4869,6 +4870,7 @@ async function initApp() {
 let cat = 'full', crate = [];
 let _pendingGuestCrateMerge = null;
 let _crateSyncInFlight = null;
+const _cratePendingSaves = new Map();
 let _lastSavedBeatId = null;
 // Per-category swipe index
 const catIdx = { full: 0, loops: 0, drums: 0, samples: 0 };
@@ -5719,7 +5721,7 @@ function playPortfolioEnterAnim() {
   if (!isMobileUI()) cardWrap?.classList.add('portfolio-enter-played');
 }
 
-function doSwipe(dir) {
+async function doSwipe(dir) {
   const card = document.getElementById('theCard');
   if (!card) return;
   if (_portfolioMode && _portfolioSwipeLock) return;
@@ -5740,8 +5742,12 @@ function doSwipe(dir) {
       if (!crate.find(i => i.id === item.id)) {
         crate.push(item);
         _lastSavedBeatId = item.id;
-        saveBeatToDB(item);
-        if (!currentUser) showMobileSyncHint(incrementGuestSaveCount());
+        if (currentUser) {
+          const saved = await saveBeatToDB(item);
+          if (!saved) showToast('Could not save to Favorites — try again.', 'error');
+        } else {
+          showMobileSyncHint(incrementGuestSaveCount());
+        }
       }
       _portfolioSkipped = _portfolioSkipped.filter(id => id !== item.id);
     } else {
@@ -5762,8 +5768,12 @@ function doSwipe(dir) {
     if (!crate.find(i => i.id === item.id)) {
       crate.push(item);
       _lastSavedBeatId = item.id;
-      saveBeatToDB(item);
-      if (!currentUser) showMobileSyncHint(incrementGuestSaveCount());
+      if (currentUser) {
+        const saved = await saveBeatToDB(item);
+        if (!saved) showToast('Could not save to Favorites — try again.', 'error');
+      } else {
+        showMobileSyncHint(incrementGuestSaveCount());
+      }
     }
     skippedIds[cat] = skippedIds[cat].filter(id => id !== item.id);
     saveSkippedState();
@@ -6019,6 +6029,7 @@ function renderDesktopCrate() {
 }
 
 async function removeBeatFromCrate(beatId) {
+  _cratePendingSaves.delete(beatId);
   crate = crate.filter(b => b.id !== beatId);
   if (_selectedCrateId === beatId) _selectedCrateId = crate[0]?.id || null;
   renderCrate();
@@ -6026,12 +6037,13 @@ async function removeBeatFromCrate(beatId) {
   const token = await getAccessToken();
   if (!token) return;
   try {
-    const res = await fetch(`${SUPA_URL}/rest/v1/crates?user_id=eq.${currentUser.id}&beat_id=eq.${beatId}`, {
+    const res = await fetch(`/api/crate?beat_id=${encodeURIComponent(beatId)}`, {
       method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}`, 'apikey': SUPA_KEY }
+      headers: { Authorization: `Bearer ${token}` }
     });
     if (!res.ok) {
-      console.warn('removeBeatFromCrate failed:', res.status);
+      const data = await res.json().catch(() => ({}));
+      console.warn('removeBeatFromCrate failed:', res.status, data.error || data);
       showToast('Could not sync removal — try again.', 'error');
     }
   } catch(e) {
@@ -6380,19 +6392,7 @@ function resetUploadUI() {
 }
 
 async function getSupabaseAccessToken() {
-  let accessToken = null;
-  try {
-    const storageKey = `sb-${SUPA_URL.split('//')[1].split('.')[0]}-auth-token`;
-    const stored = localStorage.getItem(storageKey);
-    if (stored) accessToken = JSON.parse(stored)?.access_token;
-  } catch (e) { /* ignore */ }
-  if (!accessToken) {
-    const { data } = await Promise.race([
-      supa.auth.getSession(),
-      new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 4000))
-    ]);
-    accessToken = data?.session?.access_token;
-  }
+  const accessToken = await getAccessToken();
   if (!accessToken) throw new Error('Session expired — please sign out and sign back in.');
   return accessToken;
 }
@@ -6703,12 +6703,16 @@ const supa = supabase.createClient(SUPA_URL, SUPA_KEY, {
   }
 });
 let currentUser = null;
+let _authInitResolve;
+const _authInitReady = new Promise(r => { _authInitResolve = r; });
 
 // Auth state listener
 supa.auth.onAuthStateChange(async (event, session) => {
+  if (event === 'INITIAL_SESSION') _authInitResolve?.();
   if (event === 'SIGNED_OUT') {
     currentUser = null;
     _userProfile = null;
+    _cratePendingSaves.clear();
     crate = [];
     resetGuestSwipeState();
     renderCrate();
@@ -7077,6 +7081,7 @@ async function signOut() {
   _myPendingBeatsCache = null;
   _myPendingBeatsCacheAt = 0;
   _pendingGuestCrateMerge = null;
+  _cratePendingSaves.clear();
   crate = [];
   resetGuestSwipeState();
   renderCrate();
@@ -7088,25 +7093,44 @@ async function signOut() {
 
 // ─── CRATE SYNC ───────────────────────────────────────────────────────────
 // ─── PROFILE SAVE / AVATAR ────────────────────────────────────────────────
-async function getAccessToken() {
-  // Read token directly from localStorage — fastest, no async hang
+function getStoredAuthSession() {
   try {
     const storageKey = `sb-${SUPA_URL.split('//')[1].split('.')[0]}-auth-token`;
     const stored = localStorage.getItem(storageKey);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      if (parsed?.access_token) return parsed.access_token;
-    }
-  } catch(e) {}
-  // Fallback: getSession
+    return stored ? JSON.parse(stored) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function isAccessTokenFresh(parsed) {
+  if (!parsed?.access_token || !parsed?.expires_at) return false;
+  return parsed.expires_at > Math.floor(Date.now() / 1000) + 60;
+}
+
+async function getAccessToken() {
+  const parsed = getStoredAuthSession();
+  if (isAccessTokenFresh(parsed)) return parsed.access_token;
+
   try {
     const { data } = await Promise.race([
       supa.auth.getSession(),
-      new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 3000))
+      new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 4000))
     ]);
     if (data?.session?.access_token) return data.session.access_token;
-  } catch(e) {}
-  return null;
+  } catch (e) {}
+
+  if (parsed?.refresh_token) {
+    try {
+      const { data, error } = await Promise.race([
+        supa.auth.refreshSession({ refresh_token: parsed.refresh_token }),
+        new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 4000))
+      ]);
+      if (!error && data?.session?.access_token) return data.session.access_token;
+    } catch (e) {}
+  }
+
+  return parsed?.access_token || null;
 }
 
 async function saveProfile() {
@@ -7343,31 +7367,26 @@ async function syncCrateFromDB() {
   if (_crateSyncInFlight) return _crateSyncInFlight;
   _crateSyncInFlight = (async () => {
     const token = await getAccessToken();
-    if (!token) return;
+    if (!token) {
+      console.warn('syncCrateFromDB: no access token');
+      return;
+    }
     try {
-      const res = await fetch(
-        `${SUPA_URL}/rest/v1/crates?user_id=eq.${currentUser.id}&select=*&_ts=${Date.now()}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'apikey': SUPA_KEY,
-            'Accept': 'application/json',
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
-          },
-          cache: 'no-store'
-        }
-      );
-      if (!res.ok) return;
-      const data = await res.json();
-      const fromDb = [];
-      (data || []).forEach(row => {
-        try {
-          const beat = JSON.parse(row.beat_data);
-          if (!fromDb.find(i => i.id === beat.id)) fromDb.push(beat);
-        } catch (e) {}
+      const res = await fetch(`/api/crate?_ts=${Date.now()}`, {
+        headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+        cache: 'no-store'
       });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        console.warn('syncCrateFromDB failed:', res.status, data.error || data);
+        return;
+      }
+      const fromDb = Array.isArray(data.beats) ? data.beats.filter(b => b?.id) : [];
       crate = fromDb;
+      _cratePendingSaves.forEach((beat, id) => {
+        if (!crate.find(b => b.id === id)) crate.push(beat);
+      });
+      await flushPendingCrateSaves();
       renderCrate();
       renderCard();
     } catch (e) { console.warn('syncCrateFromDB error:', e); }
@@ -7377,21 +7396,40 @@ async function syncCrateFromDB() {
 }
 
 async function saveBeatToDB(beat) {
-  if (!currentUser) return;
+  if (!currentUser || !beat?.id) return false;
+  _cratePendingSaves.set(beat.id, beat);
   const token = await getAccessToken();
-  if (!token) return;
+  if (!token) {
+    console.warn('saveBeatToDB: no access token');
+    return false;
+  }
   try {
-    await fetch(`${SUPA_URL}/rest/v1/crates`, {
+    const res = await fetch('/api/crate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        'apikey': SUPA_KEY,
-        'Prefer': 'resolution=merge-duplicates,return=minimal'
+        Authorization: `Bearer ${token}`
       },
-      body: JSON.stringify({ user_id: currentUser.id, beat_id: beat.id, beat_data: JSON.stringify(beat) })
+      body: JSON.stringify({ beat })
     });
-  } catch(e) { console.warn('saveBeatToDB error:', e); }
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.ok) {
+      _cratePendingSaves.delete(beat.id);
+      return true;
+    }
+    console.warn('saveBeatToDB failed:', res.status, data.error || data, data.hint || '');
+    if (res.status === 401) showToast('Session expired — sign in again.', 'error');
+    return false;
+  } catch (e) {
+    console.warn('saveBeatToDB error:', e);
+    return false;
+  }
+}
+
+async function flushPendingCrateSaves() {
+  for (const beat of [..._cratePendingSaves.values()]) {
+    await saveBeatToDB(beat);
+  }
 }
 
 // ─── DISCOVER SEARCH ──────────────────────────────────────────────────────
