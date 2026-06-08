@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-08-v50 — discover mobile swipe polish, add-beat focus fix -->
+<!-- deploy: 2026-06-08-v50 — discover mobile swipe polish, add-beat focus, no skip/save stickers -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -1496,7 +1496,7 @@
     .skel-pill { height: 26px; flex: 1; border-radius: 100px; background: var(--bg-3); }
     .skel-player { height: 178px; border-radius: 14px; background: var(--bg-3); }
     /* swipe overlays */
-    .swipe-label { position: absolute; top: 20px; padding: 6px 16px; border-radius: 8px; font-size: 18px; font-weight: 800; letter-spacing: 1px; opacity: 0; pointer-events: none; transition: opacity 0.08s; border: 3px solid; }
+    .swipe-label { display: none; }
     .swipe-label-skip  { left: 18px;  color: #f87171; border-color: #f87171; transform: rotate(-8deg); }
     .swipe-label-save  { right: 18px; color: var(--accent-mid); border-color: var(--accent-mid); transform: rotate(8deg); }
     .card-head { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 16px; position: relative; }
@@ -2723,13 +2723,19 @@
       .beat-card.fly-right {
         transition: transform 0.42s cubic-bezier(0.34, 1.2, 0.64, 1), opacity 0.35s ease;
       }
-      /* Discover mobile — larger swipe zone, no clip edges, less chrome */
+      /* Discover mobile — larger swipe zone, no side clip, less chrome */
       body.discover-active .shell,
       body.discover-active #discoverScreen,
-      body.discover-active .page-inner--swipe,
-      #discoverScreen .card-wrap,
-      #discoverScreen .card-stage {
+      body.discover-active .page-inner--swipe {
         overflow: visible;
+      }
+      #discoverScreen .card-wrap {
+        overflow-x: visible;
+        overflow-y: hidden;
+      }
+      #discoverScreen .card-stage {
+        overflow-x: visible;
+        overflow-y: hidden;
       }
       #discoverScreen .discover-toolbar-top .wordmark { display: none; }
       #discoverScreen .swipe-hint { display: none; }
@@ -2748,16 +2754,20 @@
       }
       #discoverScreen .card-stage { width: 100%; }
       #discoverScreen .card-glow {
-        opacity: 0.22;
-        filter: blur(44px);
-        height: 48%;
+        top: 36%;
+        opacity: 0.18;
+        filter: blur(40px);
+        height: 38%;
+        width: 68%;
       }
       body.discover-active .beat-card.dragging,
       body.discover-active .beat-card.fly-left,
       body.discover-active .beat-card.fly-right {
-        z-index: 12;
+        z-index: 4;
       }
       #discoverScreen .action-row {
+        position: relative;
+        z-index: 16;
         padding-top: 8px;
         padding-bottom: 14px;
       }
@@ -5243,8 +5253,9 @@ function renderCard() {
     if (skipLabel) skipLabel.style.opacity = dx < 0 ? pct : 0;
     if (saveLabel) saveLabel.style.opacity = dx > 0 ? pct : 0;
 
-    const btnSkip = document.querySelector('.btn-skip');
-    const btnSave = document.querySelector('.btn-save');
+    const btnScope = _portfolioMode ? '#portfolioScreen' : '#discoverScreen';
+    const btnSkip = document.querySelector(`${btnScope} .btn-skip`);
+    const btnSave = document.querySelector(`${btnScope} .btn-save`);
     if (btnSkip) btnSkip.style.opacity = dx < 0 ? 0.5 + pct * 0.5 : 0.5;
     if (btnSave) btnSave.style.opacity = dx > 0 ? 0.5 + pct * 0.5 : 0.5;
   }
