@@ -148,23 +148,39 @@ NIEMALS „Tinder" verwenden (Marke). Stattdessen:
 - Desktop: `body.nav-switching` sperrt overflow während Tab-Wechsel (~360ms)
 - Mobile + Desktop; `prefers-reduced-motion` → instant
 
-## Discover — Mobile (v50, shipped)
+## Discover — Mobile (v50+, v53-local swipe polish)
 
 - Swipe-Geste auf ganz `#cardWrap` (nicht nur `#theCard`); Toolbar kompakter (Wordmark aus, `swipe-hint` hidden)
-- `overflow-x: visible` + `overflow-y: hidden` auf card-wrap — keine schwarzen Clip-Kanten; `action-row` z-index 16 über Card
 - **SKIP/SAVE-Sticker** auf Card entfernt (`.swipe-label { display: none }`) — Mobile + Desktop
 - Glow auf Mobile Discover dezenter (`updateGlow` mobile branch)
+- **v53-local:** `overflow: visible` auf Swipe-Kette (Discover + `/p/`); **NICHT** `overflow-x: visible` + `overflow-y: hidden` (CSS berechnet zu `auto` → clippt!)
+- Discover Mobile: `#cardWrap` padding `2px var(--px)`; `align-items/justify-content: center` (Card-Größe wie vorher)
+- Discover Mobile: `pinCardForMobileDrag` nur für `.beat-card` (globale Styles) — **nicht** Portfolio
 
-## Mobile App Ambient (v52, shipped — Feinschliff offen)
+## Mobile App Ambient (v53-local — noch nicht gepusht)
 
-- **≤899px App-Pages** (Landing, Discover, Profile, My Page, Favorites): lila Purple-Wash via `.bg-desktop` — **`.shell { background: transparent }`** (Regel muss **nach** base `.shell` stehen!)
-- Ellipse-Gradients oben/unten + seitliche Orbs; Discover etwas stärker
-- **`body.portfolio-active` ausgenommen** — `/p/` behält Beat-Farbe `--pf-glow` (orange etc.); Mobile Shell **transparent** damit Glow sichtbar
-- **Luca-Feedback nächster Chat:** Form der Orbs lenkt teils ab; transparente UI-Elemente auf Mobile teils schwer lesbar — Linear-Wash vs. Ellipsen noch tweaken; **nur App-Pages, `/p/` nicht mit App-Lila vermischen**
+- **≤899px App-Pages** (Landing, Discover, Profile, My Page, Favorites): **linearer Purple-Wash** statt v52-Ellipsen/Orbs — weniger ablenkend, gleiche Helligkeit/Farbe
+- **`.shell { background: transparent }`** (Regel muss **nach** base `.shell` stehen!)
+- Discover etwas stärkerer Wash (`body.discover-active .bg-desktop`)
+- **`body.portfolio-active` ausgenommen** — `/p/` behält Beat-Farbe `--pf-glow`; Shell transparent
+- **Offen:** Lesbarkeit Glass-UI auf Mobile ggf. weiter tweaken; `/p/` nie mit App-Lila vermischen
 
-## Stand Code (Juni 2026 — Session-Update v50–v52)
+## Mobile Swipe — Discover + Portfolio `/p/` (v53-local)
 
-Letzter Deploy-Kommentar in `index.html`: `deploy: 2026-06-08-v52`
+- **Overflow-Kette** `@media max-width 899px`: `shell` → `screen` → `page-inner` → `card-wrap` / `#portfolioCardWrap` → `card-slot` → `card-stage` — alles `overflow: visible`
+- **Discover:** `pinCardForMobileDrag` → `body` + `position:fixed` (`.beat-card` hat globale CSS)
+- **Portfolio `/p/`:** **NIEMALS pinnen** — `.portfolio-surface`-Styles sind `#portfolioCardWrap`-scoped; auf `body` verliert Karte Background → Ghost/transparent
+- **Cleanup:** `resetSwipeGestureState()` in `applyGoTo` + `exitPortfolioMode`; `purgeOrphanSwipeNodes()` in `renderPortfolioCard`, `flyOutPortfolioCard`, Cleanup
+- **Done-State Mobile:** `#portfolioPageInner.page-inner--swipe-done .portfolio-card-slot` → `justify-content: center`, `padding-top: 0`
+- **Button-Swipe 1. Beat (Portfolio Mobile):** `loadTrack` deferred 120ms; `pauseTrackForCardSwap` vor Fly; Mobile kein `cardWrap`-Enter + kein `card-enter-portfolio`; `showEmojiPop` → `body` + `.swipe-emoji--viewport` (fixed); Fly in `requestAnimationFrame`
+- **Viewport:** `interactive-widget=overlays-content`, `viewport-fit=cover` (weniger iOS-Chrome-Sprung beim ersten Tap)
+- JS: `pinCardForMobileDrag`, `unpinCardForMobileDrag`, `forceCleanupSwipeDrag`, `resetSwipeGestureState`, `purgeOrphanSwipeNodes`
+
+## Stand Code (Juni 2026 — Session-Update v53-local)
+
+**Production (GitHub/Vercel):** `deploy: 2026-06-08-v52`
+
+**Lokal uncommitted (Juni 2026 Session):** `deploy: 2026-06-09-v53-local` — **noch nicht gepusht** (Luca testet lokal)
 
 ### Shipped v34 (2026-06-08)
 
@@ -284,7 +300,24 @@ Letzter Deploy-Kommentar in `index.html`: `deploy: 2026-06-08-v52`
 
 **Mobile Purple Ambient (App only)**
 
-- App-Mobile lila Hintergrund-Wash; Portfolio `/p/` ausgenommen (Beat-`--pf-glow` + transparente Shell)
+- App-Mobile lila Hintergrund-Wash (Ellipsen/Orbs); Portfolio `/p/` ausgenommen (Beat-`--pf-glow` + transparente Shell)
+
+### v53-local (2026-06-09 — lokal, nicht gepusht)
+
+**Mobile Linear Wash**
+
+- v52-Orbs → weicher `linear-gradient` Purple-Wash auf App-Pages; `/p/` unverändert
+
+**Mobile Swipe Clip + Ghost-Fix**
+
+- `overflow: visible` Swipe-Kette Discover + `/p/`
+- Portfolio: kein Body-Pin; `purgeOrphanSwipeNodes` + `resetSwipeGestureState` bei Tab-Wechsel
+- Discover: Body-Pin nur `.beat-card`
+- Card-Größe + Done-Zentrierung Mobile restored
+
+**Portfolio Button-Swipe 1. Beat**
+
+- Audio/Fly/Enter-Anim entkoppelt (deferred `loadTrack`, Mobile Enter-Anim aus, Emoji fixed)
 
 ### Früher shipped (v22–v49, weiterhin gültig)
 
@@ -298,11 +331,13 @@ Letzter Deploy-Kommentar in `index.html`: `deploy: 2026-06-08-v52`
 | Kontext | Status |
 |---------|--------|
 | `/p/` nach 1 Tap | ✅ laut Luca |
-| Discover / Portfolio Swipe-Chain | bei Bedarf auf echtem iPhone retesten |
+| Discover / Portfolio Swipe-Chain | v53-local gefixt — **auf echtem iPhone retesten** nach Push |
 | `/p/` Sofort beim Link-Öffnen | ❌ bewusst nicht verfolgt (Browser-Policy) |
 | YouTube | ❌ generell unzuverlässig |
 
-**Mobile App Ambient (v52) — Feinschliff offen:** Orbs-Form vs. Lesbarkeit bei Glass-UI; Luca will im nächsten Chat weiter tweaken. `/p/` Beat-Farbe-Glow (orange) muss erhalten bleiben — nicht mit App-Lila überlagern.
+**v53-local — vor Push auf iPhone verifizieren:** Swipe-Clip weg? Ghost-Karten weg? 1. Beat Button-Swipe smooth? Linear-Wash Lesbarkeit ok?
+
+**Mobile App Ambient — Feinschliff offen:** Linear-Wash evtl. tweaken (Lesbarkeit Glass-UI); `/p/` Beat-Glow nicht mit App-Lila vermischen
 
 **Sonst niedrige Prio:** OG-Image pro Producer, Desktop-BG weiter tweaken (nur auf explizites Go)
 
@@ -324,13 +359,18 @@ Letzter Deploy-Kommentar in `index.html`: `deploy: 2026-06-08-v52`
 - Autoplay ohne Screen-Guard + globaler `click` → Handler auf allen Screens
 - Fly + delayed render ohne Clone → bricht Autoplay-Gesture
 - Kbd-Hints + Skip-Side-Hint Overlap — v30 gefixt
+- **`overflow-x: visible` + `overflow-y: hidden`** auf Swipe-Containern → CSS setzt `visible` auf `auto` → clippt trotzdem
+- **`pinCardForMobileDrag` für `.portfolio-surface`** → scoped CSS (`#portfolioCardWrap .portfolio-surface`) fällt weg auf `body` → transparenter Ghost + kleben bleiben
+- **`card-wrap` padding `2px 0`** (ohne `var(--px)`) → Cards zu breit
+- **`showEmojiPop` inline `container.style.position = 'relative'`** → Layout-Reflow beim ersten Swipe
 
 ### Nächste Arbeit (Reihenfolge für neuen Chat)
 
-1. **Mobile App Ambient Feinschliff** — Form/Lesbarkeit (Linear vs. Ellipsen, evtl. Shell leicht undurchsichtig); **`/p/` unangetastet** (Beat-`--pf-glow` transparent Shell)
-2. **Profile polish** — Hero/Settings Mobile Feinschliff
-3. Optional: OG-Image pro Producer
-4. Optional: Upload — Title leer statt Dateiname
+1. **v53-local iPhone-Test** → wenn ok: **ein Commit + Push** (Linear-Wash + Swipe-Fixes)
+2. **Mobile App Ambient Feinschliff** — Linear-Wash Lesbarkeit; **`/p/` unangetastet**
+3. **Profile polish** — Hero/Settings Mobile Feinschliff
+4. Optional: OG-Image pro Producer
+5. Optional: Upload — Title leer statt Dateiname
 
 ## Arbeitsweise
 
@@ -343,7 +383,8 @@ Letzter Deploy-Kommentar in `index.html`: `deploy: 2026-06-08-v52`
 - Ein Feature → ein Commit → deployen → testen → nächstes Feature
 - Vor jedem Schritt: `grep "accent:" index.html` → muss `#7C3AED` sein
 - Gezielte Edits, nie komplette Neuschreibung
-- Dateien: `index.html` (~8770 Zeilen), `vercel.json`, `og-image.png`, `api/beats.js`, `api/pending-beats.js`, `api/manage-beat.js`, `.gitignore`, `.cursor/rules/beatswipe.mdc`
+- Dateien: `index.html` (~8970 Zeilen), `vercel.json`, `og-image.png`, `api/beats.js`, `api/pending-beats.js`, `api/manage-beat.js`, `.gitignore`, `.cursor/rules/beatswipe.mdc`
+- **Aktuell:** `index.html` v53-local lokal geändert, `main` auf GitHub noch v52
 - Live testen: `beatswipe.app/p/clyriax` + Hard-Refresh (`Cmd+Shift+R`)
 - Lokal: `cd beatswipe && npx vercel dev` → `http://localhost:3000` (Port 3001 falls 3000 belegt); Hard-Refresh nach Edits
 - `.env.local` **nie** committen (in `.gitignore`)
@@ -373,10 +414,11 @@ Letzter Deploy-Kommentar in `index.html`: `deploy: 2026-06-08-v52`
 - CSS Mobile: `@media (max-width: 599px)` Portfolio-Block
 - CSS Desktop: `@media (min-width: 600px)` + `900px` + `1100px` unter `body.portfolio-active`
 - HTML: `#portfolioScreen` → `#portfolioPageInner` → `#portfolioCardWrap` → `#portfolioCardSlot`
-- JS: `openPortfolio`, `showPortfolioLoadingState`, `closePortfolioPreview`, `setPortfolioBackVisible`, `renderPortfolioCard`, `renderPortfolioHeader`, `updatePortfolioProgress`, `portfolioInitials`, `loadPortfolioProfile`, `buildPortfolioSocialsHTML`, `flyOutPortfolioCard`, `setPortfolioDoneMode`, `playPortfolioEnterAnim`, `spawnPortfolioConfetti`, `sortBeatsByOrder`, `getBeatOrderForProducer`, `persistBeatOrder`
+- JS: `openPortfolio`, `showPortfolioLoadingState`, `closePortfolioPreview`, `setPortfolioBackVisible`, `renderPortfolioCard`, `renderPortfolioHeader`, `updatePortfolioProgress`, `portfolioInitials`, `loadPortfolioProfile`, `buildPortfolioSocialsHTML`, `flyOutPortfolioCard`, `setPortfolioDoneMode`, `playPortfolioEnterAnim`, `spawnPortfolioConfetti`, `sortBeatsByOrder`, `getBeatOrderForProducer`, `persistBeatOrder`, `purgeOrphanSwipeNodes`
 - Boot: `<head>` `portfolio-route-boot`; Init: `_bootPortfolioSlug` → `showPortfolioLoadingState`
 - Back-Button: `#portfolioBackBtn`, `body.portfolio-has-back`
 - Swipe: Portfolio commit on **touchend**; Clone-Fly in `doSwipe`; Wobble: `.portfolio-surface.wobble`
+- **v53-local Swipe:** `initSwipeGesture` IIFE — `pinCardForMobileDrag` (Discover only), `resetSwipeGestureState`; `playPortfolioEnterAnim` Mobile nur Header
 
 ## My Page — relevante Code-Stellen (index.html)
 
@@ -394,11 +436,13 @@ Letzter Deploy-Kommentar in `index.html`: `deploy: 2026-06-08-v52`
 
 ## Mobile Ambient + Discover Mobile — relevante Code-Stellen (index.html)
 
-- `@media (max-width: 899px)` nach `.shell`: Mobile Purple-Wash + `body.portfolio-active` Override
-- Discover Mobile: gleicher Block + `/* Discover mobile — larger swipe zone */` (~2750+)
-- JS: `loadBeats`, `retryLoadBeats`, `fetchBeatsFromApi`, `_beatsCache`; `isSwipeGestureTarget` → `#cardWrap`
+- `@media (max-width: 899px)` nach `.shell`: Mobile Linear Purple-Wash + `body.portfolio-active` Override (~Zeile 139+)
+- Discover/Swipe Mobile: `/* Mobile swipe — no side clip */` (~2795+); `/* Discover mobile — larger swipe zone */` (~2860+)
+- JS Swipe: `initSwipeGesture` IIFE (~5295+); `resetSwipeGestureState`, `purgeOrphanSwipeNodes` (~4870+)
+- JS: `loadBeats`, `retryLoadBeats`, `fetchBeatsFromApi`, `_beatsCache`; `isSwipeGestureTarget` → `#cardWrap` / `#portfolioPageInner`
 - Landing: `#beatsLoadBanner`, `#beatsLoadRetryBtn`
 - Portfolio Glow: `setPortfolioGlow`, `--pf-glow`, `body.portfolio-active .bg-desktop::before`
+- Viewport meta: `interactive-widget=overlays-content`, `viewport-fit=cover`
 
 ## Profile — relevante Code-Stellen (index.html)
 
@@ -436,6 +480,8 @@ Letzter Deploy-Kommentar in `index.html`: `deploy: 2026-06-08-v52`
 - Safari MP3: File Input per DOM-Replace zurücksetzen
 - Sign-out: 2s Timeout + sb-* localStorage clearen
 - Mobile: 100dvh + overflow hidden — **Scroll-Fixes:** Flex-Column + `min-height:0` + `overflow-y:auto` auf innerem Scroll-Container (Profile guest, My Page add-beat)
+- **CSS Overflow:** Wenn ein Axis `visible` und anderer `hidden/auto` → `visible` wird `auto` (clip!). Swipe-Container: beide Achsen `visible` oder Done-State separat mit höherer Spezifität
+- **Portfolio Swipe:** `.portfolio-surface` nie an `body` pinnen — Styles sind `#portfolioCardWrap`-descendant-only
 - `body.site-scroll` (Desktop 900px+): inner containers `overflow:visible; flex:none` damit Body scrollt
 - Airtable nur über /api/beats Proxy
 - Funktionen NIE außerhalb Haupt-script duplizieren

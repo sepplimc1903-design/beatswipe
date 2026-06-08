@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<!-- deploy: 2026-06-08-v52 — mobile purple ambient (app only), /p/ unchanged -->
+<!-- deploy: 2026-06-09-v53 — mobile linear wash, swipe clip fix, portfolio fly polish -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=overlays-content">
   <script>
     (function () {
       if (!/^\/p\/[^/]+\/?$/i.test(location.pathname)) return;
@@ -136,12 +136,18 @@
     /* ── SHELL ── */
     .shell { width: 100%; max-width: 440px; height: 100vh; height: 100dvh; background: var(--bg); display: flex; flex-direction: column; position: relative; z-index: 1; overflow: hidden; }
 
-    /* Mobile ambient — purple wash on app pages (/p/ excluded below) */
+    /* Mobile ambient — soft linear purple wash on app pages (/p/ excluded below) */
     @media (max-width: 899px) {
       .shell { background: transparent; }
       .bg-desktop {
         background:
-          radial-gradient(ellipse 120% 80% at 50% 0%, rgba(124,58,237,0.14) 0%, transparent 58%),
+          linear-gradient(180deg,
+            rgba(124,58,237,0.18) 0%,
+            rgba(124,58,237,0.1) 18%,
+            rgba(124,58,237,0.04) 42%,
+            transparent 58%,
+            rgba(124,58,237,0.03) 78%,
+            rgba(124,58,237,0.08) 100%),
           #050508;
       }
       .bg-grid, .bg-noise { display: none; }
@@ -152,31 +158,24 @@
         left: 0;
         border-radius: 0;
         animation: none;
-        background:
-          radial-gradient(ellipse 100% 62% at 50% 18%, rgba(124,58,237,0.28) 0%, transparent 62%),
-          radial-gradient(ellipse 85% 52% at 50% 82%, rgba(124,58,237,0.16) 0%, transparent 68%);
+        /* Wide ambient lift — no visible orb edge */
+        background: radial-gradient(ellipse 160% 120% at 50% 38%, rgba(167,139,250,0.07) 0%, transparent 72%);
       }
-      .bg-desktop::after {
-        display: block;
-        content: '';
-        position: absolute;
-        inset: 0;
-        animation: none;
+      .bg-desktop::after { display: none; }
+      body.discover-active .bg-desktop {
         background:
-          radial-gradient(ellipse 55% 48% at 8% 52%, rgba(167,139,250,0.18) 0%, transparent 68%),
-          radial-gradient(ellipse 55% 48% at 92% 52%, rgba(124,58,237,0.15) 0%, transparent 68%);
-        pointer-events: none;
+          linear-gradient(180deg,
+            rgba(124,58,237,0.22) 0%,
+            rgba(124,58,237,0.14) 20%,
+            rgba(124,58,237,0.08) 45%,
+            rgba(124,58,237,0.04) 62%,
+            transparent 78%),
+          #050508;
       }
       body.discover-active .bg-desktop::before {
-        background:
-          radial-gradient(ellipse 115% 72% at 50% 46%, rgba(124,58,237,0.32) 0%, transparent 62%),
-          radial-gradient(ellipse 88% 48% at 50% 4%, rgba(124,58,237,0.2) 0%, transparent 65%);
+        background: radial-gradient(ellipse 150% 100% at 50% 48%, rgba(124,58,237,0.1) 0%, transparent 68%);
       }
-      body.discover-active .bg-desktop::after {
-        background:
-          radial-gradient(ellipse 58% 44% at 4% 56%, rgba(248,113,113,0.1) 0%, transparent 68%),
-          radial-gradient(ellipse 58% 44% at 96% 56%, rgba(124,58,237,0.16) 0%, transparent 68%);
-      }
+      body.discover-active .bg-desktop::after { display: none; }
       /* Portfolio /p/ — transparent shell so beat-color glow shows through */
       body.portfolio-active .shell { background: transparent; }
       body.portfolio-active .bg-desktop { background: var(--navy); }
@@ -1962,6 +1961,7 @@
       height: 100%;
       min-height: 0;
       align-items: stretch;
+      position: relative;
     }
     .page-inner--portfolio,
     #portfolioScreen .page-inner--portfolio {
@@ -2090,11 +2090,10 @@
     #portfolioCardWrap .portfolio-surface.fly-right { transform: translateX(130%) rotate(12deg); opacity: 0; }
     #portfolioCardWrap .portfolio-surface.portfolio-fly-clone {
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 5;
+      z-index: 15;
       pointer-events: none;
+      margin: 0;
+      box-sizing: border-box;
     }
     #portfolioCardWrap .portfolio-surface.dragging { transition: none; cursor: grabbing; }
     #portfolioCardWrap .portfolio-surface.spring-snap { transition: none; }
@@ -2381,7 +2380,9 @@
         padding-top: 28px;
       }
       #portfolioPageInner.page-inner--swipe-done .portfolio-card-slot {
-        justify-content: flex-start;
+        justify-content: center;
+        align-items: center;
+        padding-top: 0;
       }
       #portfolioCardWrap .portfolio-surface,
       #portfolioCardWrap .empty-card {
@@ -2659,6 +2660,24 @@
       opacity: 0;
       animation: portfolioFadeUp 0.42s cubic-bezier(0.22,1,0.36,1) 0.1s forwards;
     }
+    @media (max-width: 899px) {
+      #portfolioCardWrap.portfolio-enter-played {
+        opacity: 1;
+        animation: none;
+      }
+      #portfolioCardWrap .portfolio-surface.card-enter-portfolio {
+        animation: none;
+        opacity: 1;
+        transform: none;
+      }
+      .swipe-emoji--viewport {
+        position: fixed;
+        top: 42%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 220;
+      }
+    }
     .portfolio-confetti {
       position: absolute;
       inset: 0;
@@ -2793,19 +2812,62 @@
       .beat-card.fly-right {
         transition: transform 0.42s cubic-bezier(0.34, 1.2, 0.64, 1), opacity 0.35s ease;
       }
-      /* Discover mobile — larger swipe zone, no side clip, less chrome */
+      /* Mobile swipe — no side clip (discover + portfolio /p/) */
+      body.discover-active .desktop-layout,
+      body.discover-active .desktop-right,
       body.discover-active .shell,
       body.discover-active #discoverScreen,
-      body.discover-active .page-inner--swipe {
+      body.discover-active .page-inner--swipe,
+      body.portfolio-active .desktop-layout,
+      body.portfolio-active .desktop-right,
+      body.portfolio-active .shell,
+      body.portfolio-active #portfolioScreen,
+      body.portfolio-active #portfolioPageInner,
+      body.portfolio-active .page-inner--portfolio,
+      body.portfolio-active #portfolioCardWrap,
+      body.portfolio-active .portfolio-card-wrap {
         overflow: visible;
       }
-      #discoverScreen .card-wrap {
-        overflow-x: visible;
-        overflow-y: hidden;
+      body.portfolio-active .shell {
+        background: transparent;
       }
-      #discoverScreen .card-stage {
-        overflow-x: visible;
-        overflow-y: hidden;
+      #cardWrap,
+      #discoverScreen .card-wrap,
+      #discoverScreen .card-stage,
+      #portfolioCardWrap,
+      #portfolioCardSlot,
+      body.portfolio-active #portfolioCardWrap .portfolio-card-slot,
+      body.portfolio-active #portfolioCardWrap .card-stage {
+        overflow: visible;
+      }
+      body.discover-active {
+        overflow: hidden;
+        height: 100dvh;
+      }
+      body.swipe-card-dragging .shell,
+      body.swipe-card-dragging .screen,
+      body.swipe-card-dragging .page-inner,
+      body.swipe-card-dragging #cardWrap,
+      body.swipe-card-dragging #discoverScreen,
+      body.swipe-card-dragging #portfolioScreen,
+      body.swipe-card-dragging #portfolioPageInner,
+      body.swipe-card-dragging #portfolioCardWrap,
+      body.swipe-card-dragging #portfolioCardSlot,
+      body.swipe-card-dragging .card-wrap,
+      body.swipe-card-dragging .card-stage,
+      body.swipe-card-dragging .portfolio-card-slot {
+        overflow: visible !important;
+      }
+      .beat-card.swipe-drag-pinned {
+        box-sizing: border-box;
+        z-index: 600;
+      }
+      body.portfolio-active #portfolioPageInner.page-inner--swipe-done .portfolio-card-slot {
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        justify-content: center;
+        align-items: center;
+        padding-top: 0;
       }
       #discoverScreen .discover-toolbar-top .wordmark { display: none; }
       #discoverScreen .swipe-hint { display: none; }
@@ -2817,10 +2879,9 @@
         padding: 0 var(--px) 4px;
       }
       #discoverScreen .card-wrap {
-        align-items: stretch;
-        justify-content: flex-start;
-        padding-top: 2px;
-        padding-bottom: 2px;
+        align-items: center;
+        justify-content: center;
+        padding: 2px var(--px);
       }
       #discoverScreen .card-stage { width: 100%; }
       #discoverScreen .card-glow {
@@ -2830,10 +2891,15 @@
         height: 38%;
         width: 68%;
       }
+      /* Only .dragging — fly clones must stay position:absolute or flex slot doubles height (zoom/jerk) */
       body.discover-active .beat-card.dragging,
-      body.discover-active .beat-card.fly-left,
-      body.discover-active .beat-card.fly-right {
-        z-index: 4;
+      body.portfolio-active #portfolioCardWrap .portfolio-surface.dragging {
+        position: relative;
+        z-index: 12;
+      }
+      #portfolioCardWrap .portfolio-surface.portfolio-fly-clone,
+      #cardWrap .beat-card.discover-fly-clone {
+        position: absolute !important;
       }
       #discoverScreen .action-row {
         position: relative;
@@ -4375,6 +4441,7 @@ function playScreenEnterAnim(screenEl) {
 }
 
 function applyGoTo(screenId, navId) {
+  resetSwipeGestureState();
   const next = document.getElementById(screenId);
   if (!next) return;
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active', 'screen-fade-out', 'screen-entering'));
@@ -4817,6 +4884,12 @@ let _audioPanel = 'discover'; // 'discover' | 'crate' | 'portfolio'
 let _audioUnlocked = false;
 let _swipeDragging = false;
 let _swipeCommitted = false;
+let resetSwipeGestureState = () => {};
+
+function purgeOrphanSwipeNodes() {
+  document.querySelectorAll('body > .portfolio-surface, body > .beat-card.swipe-drag-pinned').forEach(el => el.remove());
+  document.querySelectorAll('.swipe-drag-spacer').forEach(el => el.remove());
+}
 
 function unlockAudio() {
   if (!_audioUnlocked) _audioUnlocked = true;
@@ -5243,8 +5316,98 @@ function renderCard() {
   let startX = 0, startY = 0, curX = 0, isDragging = false, isLocked = false;
   let springRAF = null;
   let gestureIsTouch = false;
+  let _dragPin = null;
   const SWIPE_THRESHOLD = 60;
   const MAX_ROTATION   = 18;
+
+  function pinCardForMobileDrag(card) {
+    /* Portfolio: never pin — #portfolioCardWrap-scoped CSS (bg, radius) breaks on body */
+    if (!isMobileUI() || !card || _dragPin || _portfolioMode) return;
+    const rect = card.getBoundingClientRect();
+    const parent = card.parentNode;
+    if (!parent) return;
+    const next = card.nextSibling;
+    const ph = document.createElement('div');
+    ph.className = 'swipe-drag-spacer';
+    ph.setAttribute('aria-hidden', 'true');
+    ph.style.cssText = `height:${rect.height}px;width:100%;flex-shrink:0;visibility:hidden;pointer-events:none;`;
+    parent.insertBefore(ph, card);
+    document.body.appendChild(card);
+    card.style.position = 'fixed';
+    card.style.left = rect.left + 'px';
+    card.style.top = rect.top + 'px';
+    card.style.width = rect.width + 'px';
+    card.style.margin = '0';
+    card.classList.add('swipe-drag-pinned');
+    _dragPin = { card, parent, next, ph };
+    document.body.classList.add('swipe-card-dragging');
+  }
+
+  function clearPinnedCardStyles(card) {
+    if (!card) return;
+    card.style.position = '';
+    card.style.left = '';
+    card.style.top = '';
+    card.style.width = '';
+    card.style.margin = '';
+    card.style.transform = '';
+    card.classList.remove('dragging', 'spring-snap', 'swipe-drag-pinned', 'fly-left', 'fly-right');
+  }
+
+  function unpinCardForMobileDrag(card) {
+    if (!_dragPin || _dragPin.card !== card) return;
+    const { parent, next, ph } = _dragPin;
+    clearPinnedCardStyles(card);
+    if (parent && document.contains(parent)) {
+      if (next && next.parentNode === parent) parent.insertBefore(card, next);
+      else parent.appendChild(card);
+    } else if (card.parentNode === document.body) {
+      card.remove();
+    }
+    ph?.remove();
+    _dragPin = null;
+    document.body.classList.remove('swipe-card-dragging');
+  }
+
+  function forceCleanupSwipeDrag() {
+    cancelSpring();
+    isDragging = false;
+    isLocked = false;
+    _swipeDragging = false;
+    _swipeCommitted = false;
+    curX = 0;
+    gestureIsTouch = false;
+
+    if (_dragPin) {
+      const { card, ph } = _dragPin;
+      clearPinnedCardStyles(card);
+      if (card.parentNode === document.body) card.remove();
+      ph?.remove();
+      _dragPin = null;
+    }
+
+    purgeOrphanSwipeNodes();
+    document.querySelectorAll('.portfolio-fly-clone, .discover-fly-clone').forEach(el => el.remove());
+    document.querySelectorAll('.swipe-emoji').forEach(el => el.remove());
+
+    const liveSurface = document.querySelector('#portfolioCardSlot > .portfolio-surface:not(.portfolio-fly-clone)');
+    if (liveSurface) clearPinnedCardStyles(liveSurface);
+    const liveCard = document.getElementById('theCard');
+    if (liveCard) clearPinnedCardStyles(liveCard);
+
+    document.querySelectorAll('.act-btn').forEach(b => { b.style.opacity = ''; });
+    ['labelSkip', 'labelSave'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.opacity = 0;
+    });
+    document.body.classList.remove('swipe-card-dragging');
+    document.getElementById('portfolioScreen')?.style.removeProperty('position');
+    document.getElementById('discoverScreen')?.style.removeProperty('position');
+    resetGlow();
+    _portfolioSwipeLock = false;
+  }
+
+  resetSwipeGestureState = forceCleanupSwipeDrag;
 
   function getCard() {
     if (_portfolioMode) {
@@ -5322,6 +5485,7 @@ function renderCard() {
       } else {
         card.style.transform = '';
         card.classList.remove('spring-snap');
+        unpinCardForMobileDrag(card);
         resetGlow();
         springRAF = null;
       }
@@ -5356,6 +5520,7 @@ function renderCard() {
     isDragging = true;
     _swipeDragging = true;
     card.classList.add('dragging');
+    pinCardForMobileDrag(card);
   }
 
   function onMove(x, y) {
@@ -5370,6 +5535,7 @@ function renderCard() {
       isDragging = false;
       _swipeDragging = false;
       card.classList.remove('dragging');
+      unpinCardForMobileDrag(card);
       return;
     }
 
@@ -5412,17 +5578,20 @@ function renderCard() {
     if (saveLabel) saveLabel.style.opacity = 0;
 
     if (Math.abs(curX) >= SWIPE_THRESHOLD) {
+      unpinCardForMobileDrag(card);
       commitSwipe(curX > 0 ? 'right' : 'left');
     } else if (gestureIsTouch) {
       tryAutoplayFromGesture();
       if (isMobileUI()) springSnapBack(card, curX);
       else {
+        unpinCardForMobileDrag(card);
         card.style.transform = '';
         resetGlow();
         card.classList.add('wobble');
         setTimeout(() => { card.classList.remove('wobble'); }, 460);
       }
     } else {
+      unpinCardForMobileDrag(card);
       card.style.transform = '';
       resetGlow();
       card.classList.add('wobble');
@@ -5447,10 +5616,15 @@ function renderCard() {
     if (!isDragging) return;
     const card = getCard();
     isDragging = false;
+    _swipeDragging = false;
     if (card) {
       card.classList.remove('dragging');
       if (gestureIsTouch && isMobileUI() && Math.abs(curX) > 4) springSnapBack(card, curX);
-      else { card.style.transform = ''; resetGlow(); }
+      else {
+        unpinCardForMobileDrag(card);
+        card.style.transform = '';
+        resetGlow();
+      }
     }
     document.querySelectorAll('.act-btn').forEach(b => b.style.opacity = '');
   }, { passive: true });
@@ -5487,11 +5661,14 @@ function closeInfoIfBackdrop(e, id) { if (e.target === document.getElementById(i
 // ─── EMOJI POP ────────────────────────────────────────────────────────────
 function showEmojiPop(dir) {
   const el = document.createElement('div');
-  el.className = 'swipe-emoji';
+  el.className = 'swipe-emoji' + (isMobileUI() ? ' swipe-emoji--viewport' : '');
   el.textContent = dir === 'right' ? '🔥' : '👋';
-  const container = _portfolioMode ? (document.getElementById('portfolioScreen') || document.body) : (document.getElementById('discoverScreen') || document.body);
-  container.style.position = 'relative';
-  container.appendChild(el);
+  if (isMobileUI()) {
+    document.body.appendChild(el);
+  } else {
+    const container = _portfolioMode ? (document.getElementById('portfolioScreen') || document.body) : (document.getElementById('discoverScreen') || document.body);
+    container.appendChild(el);
+  }
   setTimeout(() => el.remove(), isDesktop() ? 460 : 700);
   if (dir === 'right') showSaveBurst();
 }
@@ -5537,7 +5714,7 @@ function playPortfolioEnterAnim() {
   [header, cardWrap].forEach(el => el?.classList.remove('portfolio-enter-played'));
   void header?.offsetWidth;
   header?.classList.add('portfolio-enter-played');
-  cardWrap?.classList.add('portfolio-enter-played');
+  if (!isMobileUI()) cardWrap?.classList.add('portfolio-enter-played');
 }
 
 function doSwipe(dir) {
@@ -5562,9 +5739,10 @@ function doSwipe(dir) {
       if (!_portfolioSkipped.includes(item.id)) _portfolioSkipped.push(item.id);
     }
     _portfolioSwipeLock = true;
+    pauseTrackForCardSwap();
     flyOutPortfolioCard(dir, () => {
       renderPortfolioCard();
-      tryAutoplayFromGesture();
+      if (!isMobileUI()) tryAutoplayFromGesture();
     });
     return;
   }
@@ -7473,31 +7651,55 @@ function afterPortfolioCardFly(cb) {
 
 function flyOutPortfolioCard(dir, onReplaced) {
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  purgeOrphanSwipeNodes();
+  document.getElementById('portfolioCardWrap')?.classList.remove('portfolio-enter-played');
   const flyEl = getPortfolioFlyEl();
-  const slot = document.getElementById('portfolioCardSlot');
-  if (reduced || !flyEl || !slot) {
+  const wrap = document.getElementById('portfolioCardWrap');
+  if (reduced || !flyEl || !wrap) {
+    purgeOrphanSwipeNodes();
     onReplaced();
     _portfolioSwipeLock = false;
     return;
   }
 
+  flyEl.classList.remove('swipe-drag-pinned', 'dragging', 'spring-snap', 'card-enter-portfolio');
+  flyEl.style.position = '';
+  flyEl.style.left = '';
+  flyEl.style.top = '';
+  flyEl.style.width = '';
+  flyEl.style.margin = '';
+
+  const wrapRect = wrap.getBoundingClientRect();
+  const flyRect = flyEl.getBoundingClientRect();
   const dragTransform = flyEl.style.transform;
   const clone = flyEl.cloneNode(true);
-  clone.classList.remove('dragging', 'spring-snap', 'card-enter-portfolio');
+  clone.classList.remove('dragging', 'spring-snap', 'card-enter-portfolio', 'swipe-drag-pinned');
   if (dragTransform) clone.style.transform = dragTransform;
   clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
-
-  onReplaced();
-
+  clone.style.willChange = 'transform, opacity';
   clone.classList.add('portfolio-fly-clone');
-  slot.appendChild(clone);
+  clone.style.top = (flyRect.top - wrapRect.top) + 'px';
+  clone.style.left = (flyRect.left - wrapRect.left) + 'px';
+  clone.style.width = flyRect.width + 'px';
+
+  wrap.appendChild(clone);
   void clone.offsetWidth;
-  clone.classList.add(dir === 'left' ? 'fly-left' : 'fly-right');
+  onReplaced();
+  void clone.offsetWidth;
+
+  const flyClass = dir === 'left' ? 'fly-left' : 'fly-right';
+  const startFly = () => clone.classList.add(flyClass);
+  if (isMobileUI()) {
+    requestAnimationFrame(() => requestAnimationFrame(startFly));
+  } else {
+    requestAnimationFrame(startFly);
+  }
 
   let done = false;
   const finish = () => {
     if (done) return;
     done = true;
+    clone.style.willChange = '';
     clone.remove();
     _portfolioSwipeLock = false;
   };
@@ -7505,7 +7707,7 @@ function flyOutPortfolioCard(dir, onReplaced) {
     if (e.target !== clone || e.propertyName !== 'transform') return;
     finish();
   });
-  setTimeout(finish, 450);
+  setTimeout(finish, 480);
 }
 
 function flyOutDiscoverCard(dir, onReplaced) {
@@ -7792,6 +7994,7 @@ function setPortfolioGlow(color) {
 }
 
 function renderPortfolioCard() {
+  purgeOrphanSwipeNodes();
   pauseTrackForCardSwap();
   _audioPanel = 'portfolio';
   const slot = document.getElementById('portfolioCardSlot');
@@ -7820,22 +8023,28 @@ function renderPortfolioCard() {
   if (slot) slot.innerHTML = buildBeatCardHTML(d, { hideProducer: true, portfolioWrap: true });
 
   if (!useYT && !useSC) {
-    vizTimer = setInterval(() => {
-      document.querySelectorAll('.wbar').forEach(b => {
-        b.style.height = Math.round(Math.random() * 14 + 3) + 'px';
-      });
-    }, 600);
-    loadTrack(d.mp3, 'portfolio');
+    const mp3 = d.mp3;
+    const startMp3 = () => {
+      vizTimer = setInterval(() => {
+        document.querySelectorAll('.wbar').forEach(b => {
+          b.style.height = Math.round(Math.random() * 14 + 3) + 'px';
+        });
+      }, 600);
+      loadTrack(mp3, 'portfolio');
+      maybeAutoplayPreview(false, false);
+    };
+    if (isMobileUI()) setTimeout(startMp3, 120);
+    else startMp3();
   }
 
-  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !isMobileUI()) {
     const card = getPortfolioFlyEl();
     if (card) {
       card.classList.add('card-enter-portfolio');
       card.addEventListener('animationend', () => card.classList.remove('card-enter-portfolio'), { once: true });
     }
   }
-  maybeAutoplayPreview(useYT, useSC);
+  if (!isMobileUI() || useYT || useSC) maybeAutoplayPreview(useYT, useSC);
 }
 
 document.addEventListener('touchend', e => {
@@ -7918,6 +8127,7 @@ function openProducerProfile(producerName) {
 }
 
 function exitPortfolioMode() {
+  resetSwipeGestureState();
   setPortfolioBackVisible(false);
   _portfolioMode = false;
   _portfolioProducer = null;
