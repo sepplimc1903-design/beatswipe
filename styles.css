@@ -315,6 +315,9 @@
     .cat-segment {
       position: relative;
       width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
       padding: 3px;
       border-radius: 12px;
       background: rgba(255,255,255,0.05);
@@ -339,10 +342,11 @@
     .cat-segment-indicator.visible { opacity: 1; }
     #discoverScreen .discover-toolbar .cat-row {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 0;
       width: 100%;
-      overflow: visible;
+      min-width: 0;
+      overflow: hidden;
       padding: 0;
       position: relative;
       z-index: 1;
@@ -353,6 +357,8 @@
       font-weight: 500;
       text-align: center;
       min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
       border: none;
       background: none;
       border-radius: 9px;
@@ -3274,10 +3280,18 @@
       #discoverScreen .swipe-hint { display: none; }
       #discoverScreen .discover-toolbar {
         gap: 8px;
-        padding-bottom: 6px;
+        padding: var(--py) var(--px) 6px;
+        box-sizing: border-box;
+      }
+      #discoverScreen .discover-toolbar-top {
+        padding: 0;
       }
       #discoverScreen .discover-toolbar .cat-segment {
-        margin: 0 var(--px) 4px;
+        margin: 0 0 4px;
+      }
+      #discoverScreen .cat-pill {
+        padding: 8px 2px;
+        font-size: 11px;
       }
       #discoverScreen .card-wrap {
         align-items: center;
