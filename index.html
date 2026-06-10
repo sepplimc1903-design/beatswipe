@@ -94,47 +94,102 @@
         <div class="reveal-on-scroll">
           <div class="hero-badge">Free swipe portfolio for producers</div>
           <div class="hero-title">Your swipe page for the <span>bio</span></div>
-          <div class="hero-sub">Share one link in your Instagram bio. Fans swipe left to skip, right to save — hear a beat, decide in seconds. Buy links go straight to your store.</div>
+          <div class="hero-sub">One link in your bio. Fans swipe your beats — skip, save, buy from your store.</div>
           <div class="hero-btns">
             <button class="btn-primary" onclick="goTo('submitScreen','navSubmit')"><i class="ti ti-upload"></i> Get your free page</button>
             <button class="btn-secondary" onclick="goTo('discoverScreen','navDiscover')"><i class="ti ti-headphones"></i> Discover beats</button>
           </div>
-          <div class="hero-live-cta">
-            <a class="hero-live-link" href="/p/clyriax"><i class="ti ti-external-link"></i> See a live page — beatswipe.app/p/clyriax</a>
-            <p class="hero-live-hint">What fans see when they tap your Instagram bio link.</p>
-          </div>
+          <a class="hero-live-card" href="/p/clyriax">
+            <div class="hero-live-card-icon"><i class="ti ti-external-link"></i></div>
+            <div class="hero-live-card-body">
+              <div class="hero-live-card-title">See a live page</div>
+              <div class="hero-live-card-url">beatswipe.app/p/clyriax</div>
+              <div class="hero-live-card-hint">What fans see from your bio link</div>
+            </div>
+            <i class="ti ti-chevron-right hero-live-card-arrow"></i>
+          </a>
         </div>
         <div class="hero-visual reveal-on-scroll reveal-delay-1">
-          <div class="hero-preview hero-preview--mockup">
-            <div class="hero-mockup-card">
-              <div class="hero-mockup-head">
-                <div class="hero-mockup-cover"><i class="ti ti-music"></i></div>
-                <div class="hero-mockup-info">
-                  <div class="hero-mockup-title">Midnight Drive</div>
-                  <div class="hero-mockup-producer">by clyriax</div>
+          <div class="hero-preview hero-preview--discover">
+            <div class="hero-card-demo">
+              <div class="card-stage">
+                <div class="card-glow hero-card-glow" id="heroCardGlow" style="--glow-color:#7C3AED"></div>
+                <div class="beat-card hero-beat-card" id="heroBeatCard">
+                  <div class="card-head">
+                    <div class="cover-box" style="background:#7C3AED20;border:0.5px solid #7C3AED50">
+                      <i class="ti ti-music" style="font-size:24px;color:#7C3AED"></i>
+                    </div>
+                    <div style="flex:1;min-width:0">
+                      <div class="track-name">Midnight Drive</div>
+                      <div class="track-by" style="color:var(--accent-mid)">by clyriax</div>
+                    </div>
+                    <div class="card-head-meta">
+                      <span class="type-pill type-pill--head">Beat</span>
+                    </div>
+                  </div>
+                  <div class="tag-row">
+                    <span class="tag">140 BPM</span>
+                    <span class="tag">F# Min</span>
+                    <span class="tag">Trap</span>
+                  </div>
+                  <div class="player-area">
+                    <div class="waveform-wrap">
+                      <div class="waveform" id="heroWaveform">
+                        <div class="wbar" style="height:12px;opacity:0.55"></div>
+                        <div class="wbar" style="height:17px;opacity:0.55"></div>
+                        <div class="wbar" style="height:8px;opacity:0.55"></div>
+                        <div class="wbar" style="height:15px;opacity:0.55"></div>
+                        <div class="wbar" style="height:11px;opacity:0.55"></div>
+                        <div class="wbar" style="height:16px;opacity:0.55"></div>
+                        <div class="wbar" style="height:9px;opacity:0.55"></div>
+                        <div class="wbar" style="height:14px;opacity:0.55"></div>
+                        <div class="wbar" style="height:10px;opacity:0.55"></div>
+                        <div class="wbar" style="height:17px;opacity:0.55"></div>
+                        <div class="wbar" style="height:13px;opacity:0.55"></div>
+                        <div class="wbar" style="height:7px;opacity:0.55"></div>
+                        <div class="wbar" style="height:15px;opacity:0.55"></div>
+                        <div class="wbar" style="height:11px;opacity:0.55"></div>
+                        <div class="wbar" style="height:16px;opacity:0.55"></div>
+                        <div class="wbar" style="height:9px;opacity:0.55"></div>
+                        <div class="wbar" style="height:14px;opacity:0.55"></div>
+                        <div class="wbar" style="height:12px;opacity:0.55"></div>
+                        <div class="wbar" style="height:17px;opacity:0.55"></div>
+                        <div class="wbar" style="height:8px;opacity:0.55"></div>
+                        <div class="wbar" style="height:15px;opacity:0.55"></div>
+                        <div class="wbar" style="height:10px;opacity:0.55"></div>
+                        <div class="wbar" style="height:16px;opacity:0.55"></div>
+                        <div class="wbar" style="height:13px;opacity:0.55"></div>
+                        <div class="wbar" style="height:7px;opacity:0.55"></div>
+                        <div class="wbar" style="height:14px;opacity:0.55"></div>
+                        <div class="wbar" style="height:11px;opacity:0.55"></div>
+                        <div class="wbar" style="height:17px;opacity:0.55"></div>
+                        <div class="wbar" style="height:9px;opacity:0.55"></div>
+                        <div class="wbar" style="height:15px;opacity:0.55"></div>
+                        <div class="wbar" style="height:12px;opacity:0.55"></div>
+                        <div class="wbar" style="height:16px;opacity:0.55"></div>
+                        <div class="wbar" style="height:10px;opacity:0.55"></div>
+                        <div class="wbar" style="height:14px;opacity:0.55"></div>
+                        <div class="wbar" style="height:8px;opacity:0.55"></div>
+                        <div class="wbar" style="height:17px;opacity:0.55"></div>
+                      </div>
+                    </div>
+                    <div class="player-controls">
+                      <button class="play-btn" type="button" tabindex="-1" aria-hidden="true">
+                        <i class="ti ti-player-play" style="margin-left:2px"></i>
+                      </button>
+                      <div class="progress-wrap">
+                        <div class="progress-bar">
+                          <div class="progress-fill" style="width:34%"></div>
+                        </div>
+                        <div class="time-row">
+                          <span class="time-lbl">0:42</span>
+                          <span class="time-lbl">2:04</span>
+                        </div>
+                      </div>
+                      <span class="buy-link"><i class="ti ti-shopping-cart" style="font-size:15px"></i>Buy</span>
+                    </div>
+                  </div>
                 </div>
-                <span class="hero-mockup-type">Beat</span>
-              </div>
-              <div class="hero-mockup-tags">
-                <span>140 BPM</span><span>F# Min</span><span>Trap</span>
-              </div>
-              <div class="hero-mockup-wave">
-                <div class="hero-mockup-bar" style="height:14px"></div>
-                <div class="hero-mockup-bar" style="height:22px"></div>
-                <div class="hero-mockup-bar" style="height:10px"></div>
-                <div class="hero-mockup-bar" style="height:26px"></div>
-                <div class="hero-mockup-bar" style="height:16px"></div>
-                <div class="hero-mockup-bar" style="height:20px"></div>
-                <div class="hero-mockup-bar" style="height:12px"></div>
-                <div class="hero-mockup-bar" style="height:24px"></div>
-                <div class="hero-mockup-bar" style="height:18px"></div>
-                <div class="hero-mockup-bar" style="height:8px"></div>
-                <div class="hero-mockup-bar" style="height:22px"></div>
-                <div class="hero-mockup-bar" style="height:14px"></div>
-              </div>
-              <div class="hero-mockup-actions">
-                <span class="hero-mockup-skip"><i class="ti ti-x"></i> skip</span>
-                <span class="hero-mockup-save"><i class="ti ti-flame"></i> save</span>
               </div>
             </div>
             <div class="hero-preview-caption">Discover Beats. Save What Hits.</div>
@@ -155,18 +210,27 @@
         <h2 class="land-section-title">How it works</h2>
         <p class="land-section-desc">One link for your bio — fans swipe, save, and buy from you directly.</p>
       </div>
-      <div class="features">
-        <div class="feature-card reveal-on-scroll">
-          <div class="feat-icon"><i class="ti ti-arrows-shuffle"></i></div>
-          <div><div class="feat-title">Swipe portfolio link</div><div class="feat-desc">beatswipe.app/p/yourname — a fullscreen swipe page fans open from your bio. No account needed.</div></div>
+      <div class="land-steps">
+        <div class="land-step reveal-on-scroll">
+          <div class="land-step-num">01</div>
+          <div class="land-step-body">
+            <div class="land-step-title">Upload your beats</div>
+            <div class="land-step-desc">Add tracks on My Page — preview via YouTube, SoundCloud, or MP3.</div>
+          </div>
         </div>
-        <div class="feature-card reveal-on-scroll reveal-delay-1">
-          <div class="feat-icon"><i class="ti ti-adjustments-horizontal"></i></div>
-          <div><div class="feat-title">Save &amp; buy in seconds</div><div class="feat-desc">Swipe left to skip, right to save. Each beat links to your BeatStars, Splice, or store — we take no cut.</div></div>
+        <div class="land-step reveal-on-scroll reveal-delay-1">
+          <div class="land-step-num">02</div>
+          <div class="land-step-body">
+            <div class="land-step-title">Share your link</div>
+            <div class="land-step-desc">beatswipe.app/p/yourname in your Instagram bio. One tap for fans.</div>
+          </div>
         </div>
-        <div class="feature-card reveal-on-scroll reveal-delay-2">
-          <div class="feat-icon"><i class="ti ti-link"></i></div>
-          <div><div class="feat-title">Showcase only</div><div class="feat-desc">BeatSwipe is free forever for producers. Preview on YouTube, SoundCloud, or MP3 — sales happen on your platform.</div></div>
+        <div class="land-step reveal-on-scroll reveal-delay-2">
+          <div class="land-step-num">03</div>
+          <div class="land-step-body">
+            <div class="land-step-title">Fans swipe &amp; buy</div>
+            <div class="land-step-desc">Skip left, save right. Buy links go to your store — we take no cut.</div>
+          </div>
         </div>
       </div>
       <div class="land-section-head land-section-head--faq reveal-on-scroll">

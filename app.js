@@ -191,7 +191,12 @@ function applyGoTo(screenId, navId) {
   if (screenId === 'crateScreen') renderCrate();
   if (screenId === 'profileScreen') renderProfile();
   if (screenId === 'submitScreen') void renderMyPage();
-  if (screenId === 'landScreen') initScrollReveal();
+  if (screenId === 'landScreen') {
+    initScrollReveal();
+    initHeroDemoCard();
+  } else {
+    stopHeroDemoCard();
+  }
 }
 
 function goTo(screenId, navId) {
@@ -227,7 +232,6 @@ function goTo(screenId, navId) {
 }
 
 function initScrollReveal() {
-  if (!isDesktop()) return;
   const els = document.querySelectorAll('#landScreen .reveal-on-scroll');
   if (!els.length) return;
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -266,6 +270,34 @@ function bootLandingReveal() {
   if (!document.getElementById('landScreen')?.classList.contains('active')) return;
   syncDesktopScrollMode();
   initScrollReveal();
+  initHeroDemoCard();
+}
+
+let _heroWaveTimer = null;
+function initHeroDemoCard() {
+  stopHeroDemoCard();
+  const wf = document.getElementById('heroWaveform');
+  const card = document.getElementById('heroBeatCard');
+  const glow = document.getElementById('heroCardGlow');
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (card) card.classList.add('hero-demo-live');
+  if (glow) glow.classList.add('hero-glow-live');
+  if (wf) {
+    _heroWaveTimer = setInterval(() => {
+      if (!document.getElementById('landScreen')?.classList.contains('active')) return;
+      wf.querySelectorAll('.wbar').forEach(b => {
+        b.style.height = Math.round(Math.random() * 14 + 3) + 'px';
+      });
+    }, 600);
+  }
+}
+function stopHeroDemoCard() {
+  if (_heroWaveTimer) {
+    clearInterval(_heroWaveTimer);
+    _heroWaveTimer = null;
+  }
+  document.getElementById('heroBeatCard')?.classList.remove('hero-demo-live');
+  document.getElementById('heroCardGlow')?.classList.remove('hero-glow-live');
 }
 
 function isDesktop() {

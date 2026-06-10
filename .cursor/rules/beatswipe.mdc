@@ -72,7 +72,7 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 
 ## Aktuell (2026-06-10)
 
-- **Production:** deploying — `/p/` mobile aurora + glass, YouTube stop on tab leave, app ambient polish
+- **Landing:** hero swipe demo, live-page card CTA, numbered how-it-works steps, shorter copy, mobile scroll reveal
 - **Portfolio:** mobile + laptop aurora bg, glass card; kbd hints desktop
 - **Fix:** Discover YouTube keeps playing after nav away → `stopEmbedPreview`
 
@@ -80,6 +80,7 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 
 1. Profile polish — hero/settings mobile
 2. Optional: OG per producer, live favorites sync (not MVP)
+3. Landing: stats count-up, sticky mobile CTA (optional)
 
 ## Rules pflegen (Agent)
 
