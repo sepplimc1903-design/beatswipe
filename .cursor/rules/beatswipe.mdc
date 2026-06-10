@@ -72,14 +72,14 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 
 ## Aktuell (2026-06-10)
 
-- **Production:** v59 code-split live + post-fixes (Discover layout race, category reset, landing audio guard)
-- **Commits:** `2e28fc8` v59 split · `4599405` Discover fixes
+- **Production:** deploying — `/p/` mobile aurora + glass, YouTube stop on tab leave, app ambient polish
+- **Portfolio:** mobile + laptop aurora bg, glass card; kbd hints desktop
+- **Fix:** Discover YouTube keeps playing after nav away → `stopEmbedPreview`
 
 ## Nächster Schritt
 
 1. Profile polish — hero/settings mobile
-2. Mobile app ambient readability (not `/p/`)
-3. Optional: OG per producer, live favorites sync (not MVP)
+2. Optional: OG per producer, live favorites sync (not MVP)
 
 ## Rules pflegen (Agent)
 

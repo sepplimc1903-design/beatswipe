@@ -60,8 +60,20 @@
       border-radius: 0;
       animation: none;
     }
+    html.portfolio-route-boot .portfolio-ambient { display: block; }
+    html.portfolio-route-boot .bg-desktop {
+      background:
+        linear-gradient(180deg,
+          rgba(124,58,237,0.16) 0%,
+          rgba(124,58,237,0.09) 28%,
+          rgba(124,58,237,0.03) 55%,
+          rgba(5,5,8,1) 100%),
+        #050508;
+    }
     html.portfolio-route-boot .bg-desktop::before {
-      background: radial-gradient(ellipse 130% 55% at 50% -8%, rgba(167,139,250,0.1) 0%, transparent 72%);
+      background:
+        radial-gradient(ellipse 130% 55% at 50% -8%, rgba(167,139,250,0.1) 0%, transparent 72%),
+        radial-gradient(ellipse 100% 40% at 50% 100%, rgba(124,58,237,0.06) 0%, transparent 70%);
     }
     html.portfolio-route-boot .bg-desktop::after { display: none; }
     body {
@@ -75,20 +87,27 @@
     /* ── DESKTOP BACKGROUND ── */
     .bg-desktop { position: fixed; inset: 0; z-index: 0; background: var(--navy); overflow: hidden; }
     .bg-desktop::before {
-      content: ''; position: absolute; width: 900px; height: 900px; border-radius: 50%;
-      background: radial-gradient(circle, rgba(124,58,237,0.07) 0%, transparent 58%);
-      top: -300px; left: -200px;
-      animation: orbFloat 8s ease-in-out infinite alternate;
+      content: '';
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      border-radius: 0;
+      animation: none;
+      background:
+        radial-gradient(ellipse 110% 22% at 50% 0%, rgba(124,58,237,0.05) 0%, transparent 78%);
     }
     .bg-desktop::after {
-      content: ''; position: absolute; width: 700px; height: 700px; border-radius: 50%;
-      background: radial-gradient(circle, rgba(255,255,255,0.025) 0%, transparent 65%);
-      bottom: -200px; right: -150px;
-      animation: orbFloat 10s ease-in-out infinite alternate-reverse;
-    }
-    @keyframes orbFloat {
-      from { transform: translate(0,0) scale(1); }
-      to   { transform: translate(30px,20px) scale(1.05); }
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 34% 72% at 4% 50%, rgba(167,139,250,0.06) 0%, transparent 72%),
+        radial-gradient(ellipse 34% 72% at 96% 50%, rgba(124,58,237,0.06) 0%, transparent 72%),
+        radial-gradient(ellipse 120% 16% at 50% 100%, rgba(124,58,237,0.04) 0%, transparent 75%);
+      pointer-events: none;
     }
     .bg-grid {
       position: absolute; inset: 0;
@@ -108,7 +127,7 @@
     /* Discover ambient — side atmosphere on wide desktop */
     .discover-ambient { display: none; pointer-events: none; }
 
-    /* Portfolio /p/ — drifting aurora (desktop/tablet only) */
+    /* Portfolio /p/ — drifting aurora */
     .portfolio-ambient {
       display: none;
       position: absolute;
@@ -188,10 +207,16 @@
         left: 0;
         border-radius: 0;
         animation: none;
-        /* Wide ambient lift — no visible orb edge */
-        background: radial-gradient(ellipse 160% 120% at 50% 38%, rgba(167,139,250,0.07) 0%, transparent 72%);
+        background:
+          radial-gradient(ellipse 110% 22% at 50% 0%, rgba(124,58,237,0.06) 0%, transparent 78%);
       }
-      .bg-desktop::after { display: none; }
+      .bg-desktop::after {
+        display: block;
+        background:
+          radial-gradient(ellipse 38% 78% at 6% 44%, rgba(167,139,250,0.07) 0%, transparent 72%),
+          radial-gradient(ellipse 38% 78% at 94% 44%, rgba(124,58,237,0.07) 0%, transparent 72%),
+          radial-gradient(ellipse 120% 16% at 50% 100%, rgba(124,58,237,0.05) 0%, transparent 75%);
+      }
       body.discover-active .bg-desktop {
         background:
           linear-gradient(180deg,
@@ -203,9 +228,16 @@
           #050508;
       }
       body.discover-active .bg-desktop::before {
-        background: radial-gradient(ellipse 150% 100% at 50% 48%, rgba(124,58,237,0.1) 0%, transparent 68%);
+        background:
+          radial-gradient(ellipse 110% 22% at 50% 0%, rgba(124,58,237,0.08) 0%, transparent 78%);
       }
-      body.discover-active .bg-desktop::after { display: none; }
+      body.discover-active .bg-desktop::after {
+        display: block;
+        background:
+          radial-gradient(ellipse 38% 78% at 6% 50%, rgba(248,113,113,0.05) 0%, transparent 72%),
+          radial-gradient(ellipse 38% 78% at 94% 50%, rgba(124,58,237,0.08) 0%, transparent 72%),
+          radial-gradient(ellipse 120% 16% at 50% 100%, rgba(124,58,237,0.05) 0%, transparent 75%);
+      }
       /* Portfolio /p/ — transparent shell so beat-color glow shows through */
       body.portfolio-active .shell { background: transparent; }
       body.portfolio-active .bg-desktop { background: var(--navy); }
@@ -454,7 +486,8 @@
       background: rgba(9, 9, 15, 0.72);
       backdrop-filter: blur(20px) saturate(1.4);
       -webkit-backdrop-filter: blur(20px) saturate(1.4);
-      border-bottom: 0.5px solid var(--border);
+      border: none;
+      box-shadow: none;
     }
     .dtb-logo {
       justify-self: start;
@@ -516,7 +549,11 @@
       font-size: 13px; font-weight: 700; color: var(--accent-mid);
     }
     @media (min-width: 900px) {
-      .desktop-topbar { display: grid; }
+      .desktop-topbar {
+        display: grid;
+        border: none;
+        box-shadow: none;
+      }
       .nav-bar { display: none !important; }
       .bg-label-left, .bg-label-right { display: none; }
       body {
@@ -592,24 +629,40 @@
         min-height: 0;
         overflow: hidden;
       }
-      /* Desktop app pages — richer purple wash (/p/ excluded via body.portfolio-active below) */
+      /* Desktop app pages — edge atmosphere, dark center (/p/ excluded via body.portfolio-active below) */
       .bg-desktop {
         background:
           linear-gradient(180deg,
-            rgba(124,58,237,0.14) 0%,
-            rgba(124,58,237,0.08) 22%,
-            rgba(124,58,237,0.03) 48%,
-            rgba(5,5,8,1) 100%),
+            rgba(124,58,237,0.12) 0%,
+            rgba(124,58,237,0.06) 20%,
+            transparent 42%,
+            rgba(124,58,237,0.03) 88%,
+            rgba(124,58,237,0.06) 100%),
           #050508;
       }
       .bg-desktop::before {
         animation: none;
         width: 100%; height: 100%; top: 0; left: 0; border-radius: 0;
         background:
-          radial-gradient(ellipse 80% 58% at 50% 42%, rgba(167,139,250,0.1) 0%, transparent 68%),
-          radial-gradient(ellipse 110% 24% at 50% 0%, rgba(124,58,237,0.05) 0%, transparent 80%);
+          linear-gradient(180deg,
+            #050508 0%,
+            rgba(5,5,8,0.94) 14px,
+            rgba(5,5,8,0.55) 34px,
+            rgba(5,5,8,0.2) 56px,
+            rgba(5,5,8,0.04) 72px,
+            rgba(5,5,8,0) 88px),
+          radial-gradient(ellipse 110% 22% at 50% 0%, rgba(124,58,237,0.06) 0%, transparent 78%);
       }
-      .bg-desktop::after { display: none; }
+      .bg-desktop::after {
+        display: block;
+        content: '';
+        position: absolute; inset: 0;
+        background:
+          radial-gradient(ellipse 36% 70% at 4% 50%, rgba(167,139,250,0.07) 0%, transparent 72%),
+          radial-gradient(ellipse 36% 70% at 96% 50%, rgba(124,58,237,0.07) 0%, transparent 72%),
+          radial-gradient(ellipse 120% 16% at 50% 100%, rgba(124,58,237,0.04) 0%, transparent 75%);
+        pointer-events: none;
+      }
       .bg-grid, .bg-noise { display: none; }
       /* Site-scroll — Landing, Profile, My Page, Favorites */
       body.site-scroll .bg-desktop {
@@ -623,43 +676,56 @@
       }
       body.site-scroll .bg-desktop::before {
         background:
-          radial-gradient(ellipse 58% 48% at 50% 48%, rgba(167,139,250,0.14) 0%, transparent 70%),
-          radial-gradient(ellipse 50% 42% at 50% 48%, rgba(124,58,237,0.12) 0%, transparent 68%),
-          radial-gradient(ellipse 110% 24% at 50% 0%, rgba(124,58,237,0.06) 0%, transparent 80%);
+          linear-gradient(180deg,
+            #050508 0%,
+            rgba(5,5,8,0.94) 14px,
+            rgba(5,5,8,0.55) 34px,
+            rgba(5,5,8,0.2) 56px,
+            rgba(5,5,8,0.04) 72px,
+            rgba(5,5,8,0) 88px),
+          radial-gradient(ellipse 110% 24% at 50% 0%, rgba(124,58,237,0.07) 0%, transparent 78%);
       }
       body.site-scroll .bg-desktop::after {
         display: block;
         content: '';
         position: absolute; inset: 0;
         background:
-          radial-gradient(ellipse 42% 60% at 6% 50%, rgba(167,139,250,0.1) 0%, transparent 72%),
-          radial-gradient(ellipse 42% 60% at 94% 50%, rgba(124,58,237,0.1) 0%, transparent 72%);
+          radial-gradient(ellipse 40% 65% at 5% 48%, rgba(167,139,250,0.09) 0%, transparent 72%),
+          radial-gradient(ellipse 40% 65% at 95% 48%, rgba(124,58,237,0.09) 0%, transparent 72%),
+          radial-gradient(ellipse 120% 16% at 50% 100%, rgba(124,58,237,0.05) 0%, transparent 75%);
         pointer-events: none;
       }
-      /* Discover — brighter center + side glow */
+      /* Discover — dark stage, edge glow; card-glow carries the center */
       body.discover-active .bg-desktop {
         background:
           linear-gradient(180deg,
-            rgba(124,58,237,0.16) 0%,
-            rgba(124,58,237,0.09) 24%,
-            rgba(124,58,237,0.04) 50%,
-            rgba(5,5,8,1) 100%),
+            rgba(124,58,237,0.14) 0%,
+            rgba(124,58,237,0.07) 22%,
+            transparent 46%,
+            rgba(124,58,237,0.03) 88%,
+            rgba(124,58,237,0.05) 100%),
           #050508;
       }
       body.discover-active .bg-desktop::before {
         background:
-          radial-gradient(ellipse 520px 76% at 50% 52%, rgba(167,139,250,0.12) 0%, transparent 70%),
-          radial-gradient(ellipse 480px 72% at 50% 52%, rgba(124,58,237,0.15) 0%, transparent 68%),
-          radial-gradient(ellipse 110% 24% at 50% 0%, rgba(124,58,237,0.05) 0%, transparent 80%);
+          linear-gradient(180deg,
+            #050508 0%,
+            rgba(5,5,8,0.94) 14px,
+            rgba(5,5,8,0.55) 34px,
+            rgba(5,5,8,0.2) 56px,
+            rgba(5,5,8,0.04) 72px,
+            rgba(5,5,8,0) 88px),
+          radial-gradient(ellipse 110% 22% at 50% 0%, rgba(124,58,237,0.06) 0%, transparent 78%);
       }
       body.discover-active .bg-desktop::after {
         display: block;
         content: '';
         position: absolute; inset: 0;
         background:
-          radial-gradient(ellipse 320px 58% at calc(50% - 300px) 54%, rgba(248,113,113,0.06) 0%, transparent 72%),
-          radial-gradient(ellipse 320px 58% at calc(50% + 300px) 54%, rgba(167,139,250,0.1) 0%, transparent 72%),
-          radial-gradient(ellipse 300px 55% at calc(50% + 300px) 54%, rgba(124,58,237,0.1) 0%, transparent 72%);
+          radial-gradient(ellipse 38% 72% at 5% 54%, rgba(248,113,113,0.05) 0%, transparent 72%),
+          radial-gradient(ellipse 38% 72% at 95% 54%, rgba(167,139,250,0.08) 0%, transparent 72%),
+          radial-gradient(ellipse 38% 72% at 95% 54%, rgba(124,58,237,0.07) 0%, transparent 72%),
+          radial-gradient(ellipse 120% 16% at 50% 100%, rgba(124,58,237,0.04) 0%, transparent 75%);
         pointer-events: none;
       }
       body.discover-active .discover-ambient {
@@ -668,16 +734,8 @@
         top: var(--topbar-h); left: 0; right: 0; bottom: 0;
         z-index: 0;
       }
-      .discover-ambient-glow {
-        position: absolute;
-        left: 50%; top: 46%;
-        transform: translate(-50%, -50%);
-        width: min(560px, 92vw);
-        height: 82%;
-        border-radius: 50%;
-        background:
-          radial-gradient(ellipse at center, rgba(167,139,250,0.1) 0%, transparent 62%),
-          radial-gradient(ellipse at center, rgba(124,58,237,0.12) 0%, transparent 70%);
+      body.discover-active .discover-ambient-glow {
+        display: none;
       }
       .discover-side-hint {
         position: absolute;
@@ -748,9 +806,17 @@
           right: auto;
         }
       }
-      .card-glow { opacity: 0.10 !important; filter: blur(44px) !important; }
-      .card-glow.glow-toward-save,
-      .card-glow.glow-toward-skip { opacity: 0.14 !important; filter: blur(48px) !important; }
+      body.discover-active #discoverScreen .card-glow {
+        top: 46%;
+        width: 82%;
+        height: 58%;
+        opacity: 0.32;
+        filter: blur(52px);
+      }
+      body.discover-active #discoverScreen .card-glow.glow-toward-save,
+      body.discover-active #discoverScreen .card-glow.glow-toward-skip {
+        filter: blur(58px);
+      }
       .play-btn { box-shadow: 0 2px 12px rgba(124,58,237,0.22); }
       .btn-save { box-shadow: 0 4px 16px rgba(124,58,237,0.26); }
       .btn-skip {
@@ -762,14 +828,11 @@
       }
       .yt-play-icon { box-shadow: 0 4px 16px rgba(124,58,237,0.26); }
       body:not(.portfolio-active) .desktop-topbar {
-        background: linear-gradient(180deg,
-          #050508 0%,
-          rgba(5,5,8,0.94) 18%,
-          rgba(5,5,8,0.55) 42%,
-          transparent 100%);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border-bottom: none;
+        background: transparent;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        border: none;
+        box-shadow: none;
       }
       .dtb-signin:hover { border-color: rgba(255,255,255,0.22); color: var(--text); }
       .discover-filter-btn:hover { border-color: rgba(255,255,255,0.18); color: var(--text); }
@@ -2035,7 +2098,7 @@
     }
     body.portfolio-active .bg-grid,
     body.portfolio-active .bg-noise { display: none !important; }
-    body.portfolio-active .portfolio-ambient { display: none; }
+    body.portfolio-active .portfolio-ambient { display: block; }
     body.portfolio-active .bg-desktop {
       background: var(--navy);
     }
@@ -2483,6 +2546,48 @@
       }
       #portfolioCardWrap .portfolio-surface {
         padding: 22px 16px 18px;
+        background: rgba(17,17,19,0.36);
+        backdrop-filter: blur(22px) saturate(1.22);
+        -webkit-backdrop-filter: blur(22px) saturate(1.22);
+        border: 0.5px solid rgba(255,255,255,0.1);
+        box-shadow: 0 12px 48px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.07);
+      }
+      #portfolioScreen .player-area {
+        background: rgba(255,255,255,0.05);
+        border-radius: 14px;
+      }
+      body.portfolio-active .bg-desktop {
+        background:
+          linear-gradient(180deg,
+            rgba(124,58,237,0.16) 0%,
+            rgba(124,58,237,0.09) 28%,
+            rgba(124,58,237,0.03) 55%,
+            rgba(5,5,8,1) 100%),
+          #050508;
+      }
+      body.portfolio-active .bg-desktop::before {
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        border-radius: 0;
+        animation: none;
+        background:
+          radial-gradient(ellipse 130% 55% at 50% -8%, rgba(167,139,250,0.1) 0%, transparent 72%),
+          radial-gradient(ellipse 100% 40% at 50% 100%, rgba(124,58,237,0.06) 0%, transparent 70%);
+      }
+      body.portfolio-active .bg-desktop::after { display: none; }
+      body.portfolio-active .pf-ambient-layer {
+        filter: blur(56px);
+        opacity: 0.62;
+      }
+      body.portfolio-active #portfolioCardWrap .portfolio-surface.dragging,
+      body.portfolio-active #portfolioCardWrap .portfolio-surface.fly-left,
+      body.portfolio-active #portfolioCardWrap .portfolio-surface.fly-right,
+      body.portfolio-active #portfolioCardWrap .portfolio-surface.portfolio-fly-clone {
+        background: rgba(17,17,19,0.82);
+        backdrop-filter: blur(20px) saturate(1.1);
+        -webkit-backdrop-filter: blur(20px) saturate(1.1);
       }
     }
     /* Portfolio desktop/tablet — full-viewport immersive (no phone frame) */
@@ -3069,11 +3174,11 @@
       }
       #discoverScreen .card-stage { width: 100%; }
       #discoverScreen .card-glow {
-        top: 36%;
-        opacity: 0.18;
-        filter: blur(40px);
-        height: 38%;
-        width: 68%;
+        top: 40%;
+        opacity: 0.28;
+        filter: blur(44px);
+        height: 44%;
+        width: 74%;
       }
       /* Only .dragging — fly clones must stay position:absolute or flex slot doubles height (zoom/jerk) */
       body.discover-active .beat-card.dragging,

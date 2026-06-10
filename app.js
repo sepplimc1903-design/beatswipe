@@ -786,6 +786,7 @@ function pauseTrackForCardSwap() {
     setPlayState(false);
   }
   clearInterval(vizTimer);
+  stopEmbedPreview(getPlayerScope());
 }
 
 function stripEmbedsForFly(el) {
@@ -884,6 +885,8 @@ function stopTrack() {
   }
   setPlayState(false);
   clearInterval(vizTimer);
+  stopEmbedPreview(document.getElementById('cardWrap'));
+  stopEmbedPreview(document.getElementById('portfolioCardSlot'));
 }
 
 function setPlayState(playing) {
@@ -971,6 +974,20 @@ function startVideo() {
   frame.src = base + '&autoplay=1';
   overlay.style.opacity = '0';
   overlay.style.pointerEvents = 'none';
+}
+
+function stopEmbedPreview(scope) {
+  if (!scope) return;
+  const frame = scope.querySelector('#ytFrame');
+  if (frame) frame.src = 'about:blank';
+  const overlay = scope.querySelector('#ytOverlay');
+  if (overlay) {
+    overlay.style.opacity = '';
+    overlay.style.pointerEvents = '';
+  }
+  scope.querySelectorAll('iframe').forEach(f => {
+    if (f.src && !f.src.includes('about:blank')) f.src = 'about:blank';
+  });
 }
 
 function toggleCratePlay() {
