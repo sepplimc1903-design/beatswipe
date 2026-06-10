@@ -5,6 +5,18 @@ const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
 const BASE_ID = 'appB4LCctwYvuxK5S';
 const TABLE_ID = 'tblkdiwaGP5e5xAot';
 
+function formatAirtableError(errText) {
+  try {
+    const j = JSON.parse(errText);
+    const type = j?.error?.type || '';
+    if (type === 'INVALID_PERMISSIONS_OR_MODEL_NOT_FOUND') {
+      return 'Airtable denied the update — your API token needs write access to the beats base (scope: data.records:write).';
+    }
+    if (j?.error?.message) return j.error.message;
+  } catch (_) {}
+  return errText || 'Airtable request failed';
+}
+
 async function getProducerFromToken(token) {
   if (!SUPA_KEY) return null;
   const userRes = await fetch(`${SUPA_URL}/auth/v1/user`, {
@@ -41,7 +53,7 @@ async function patchBeat(beatId, fields) {
   });
   if (!res.ok) {
     const errText = await res.text();
-    throw new Error(errText || 'Airtable update failed');
+    throw new Error(formatAirtableError(errText) || 'Airtable update failed');
   }
   return res.json();
 }
@@ -53,7 +65,7 @@ async function deleteBeatRecord(beatId) {
   });
   if (!res.ok) {
     const errText = await res.text();
-    throw new Error(errText || 'Airtable delete failed');
+    throw new Error(formatAirtableError(errText) || 'Airtable delete failed');
   }
 }
 
@@ -97,7 +109,6 @@ export default async function handler(req, res) {
       const f = fields || {};
       const airtableFields = {};
       if (f.title != null && String(f.title).trim()) {
-        airtableFields.TItle = String(f.title).trim();
         airtableFields.Title = String(f.title).trim();
       }
       if (f.genre != null) airtableFields.Genre = String(f.genre).trim();

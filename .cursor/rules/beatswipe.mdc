@@ -211,16 +211,16 @@ Monolith aufgeteilt für weniger Tokens / wartbarer — **Verhalten 1:1**, Schri
 | 1 CSS | ✅ lokal | `styles.css` (~3582 Zeilen) |
 | 2 Portfolio JS | ✅ lokal | `portfolio.js` (~806 Zeilen) |
 | 3 My Page JS | ✅ lokal | `mypage.js` (~1295 Zeilen) |
-| 4 App-Kern JS | ⏳ nächster Chat | `app.js` aus `index.html` |
+| 4 App-Kern JS | ✅ lokal | `app.js` (~2701 Zeilen) |
 
-**`index.html` (~3583 Zeilen):** HTML + App-Kern-JS in **3 Script-Blöcken:**
+**`index.html` (~882 Zeilen):** HTML + Init-Block; Scripts:
 
-1. `<script>` — Discover, Auth, Favorites, Profile, Nav, Swipe, …
+1. `<script src="/app.js">` — Discover, Auth, Favorites, Profile, Nav, Swipe, …
 2. `<script src="/mypage.js">` — Upload, Dashboard, Beat-Edit
 3. `<script src="/portfolio.js">` — `/p/` Portfolio
 4. `<script>` — Init (`initApp`, Keyboard, `popstate`)
 
-**Asset-Pfade:** immer **root-absolut** — `href="/styles.css"`, `src="/mypage.js"`, `src="/portfolio.js"`. Relativ `styles.css` bricht auf `/p/slug` (Vercel Rewrite liefert HTML statt CSS).
+**Asset-Pfade:** immer **root-absolut** — `href="/styles.css"`, `src="/app.js"`, `src="/mypage.js"`, `src="/portfolio.js"`. Relativ bricht auf `/p/slug` (Vercel Rewrite liefert HTML statt Asset).
 
 **Split-Regeln:** kein Verhalten ändern; ein Schritt pro Deploy; nach jedem Schritt testen (`/p/clyriax`, My Page Edit, Discover Save).
 
@@ -230,11 +230,13 @@ Monolith aufgeteilt für weniger Tokens / wartbarer — **Verhalten 1:1**, Schri
 
 ### Lokal v59-split (2026-06-10, Luca getestet)
 
-**Schritt 1–3: CSS + portfolio.js + mypage.js**
+**Schritt 1–4: CSS + app.js + portfolio.js + mypage.js**
 
 - CSS → `styles.css`; Fix `/styles.css` für Portfolio-Routes
+- App-Kern → `app.js` (Discover, Auth, Favorites, Profile, Nav, Swipe, Toast, …)
 - Portfolio → `portfolio.js` (State, `openPortfolio`, Swipe-Fly, Meta, `copyPortfolioLink`)
 - My Page → `mypage.js` (Upload-Queue, Submit, Dashboard, Beat-Edit, `persistBeatOrder`, `getBeatOrderForProducer`)
+- Init bleibt inline in `index.html` (~145 Zeilen — braucht `portfolio.js` + `mypage.js` geladen)
 
 **manage-beat Title-Fix**
 
@@ -245,7 +247,7 @@ Monolith aufgeteilt für weniger Tokens / wartbarer — **Verhalten 1:1**, Schri
 
 **Supabase:** `profiles` RLS **enabled** (Policies aktiv) — Luca bestätigt ok
 
-**Nächster Schritt:** Schritt 4 — Rest-JS → `app.js`; dann commit/deploy als v59
+**Nächster Schritt:** Lokal testen (`/p/clyriax`, Discover Save, My Page Edit); dann commit/deploy als v59
 
 ### Shipped v34 (2026-06-08)
 
@@ -511,7 +513,7 @@ Monolith aufgeteilt für weniger Tokens / wartbarer — **Verhalten 1:1**, Schri
 
 ### Nächste Arbeit (Reihenfolge für neuen Chat)
 
-1. **Code-Split Schritt 4** — App-Kern JS → `app.js` (Discover, Auth, Favorites, Profile, Nav, Swipe); testen; dann **commit + deploy v59**
+1. **v59 testen + commit/deploy** — Code-Split komplett (`app.js` + CSS + mypage + portfolio + manage-beat Title-Fix)
 2. **Profile polish** — Hero/Settings Mobile Feinschliff
 3. **Mobile App Ambient Feinschliff** — Linear-Wash Lesbarkeit; **`/p/` unangetastet**
 4. Optional: Desktop Ambient/Topbar Feintuning (v58 Basis shipped)
@@ -530,7 +532,7 @@ Monolith aufgeteilt für weniger Tokens / wartbarer — **Verhalten 1:1**, Schri
 - Ein Feature → ein Commit → deployen → testen → nächstes Feature
 - Vor jedem Schritt: `grep "accent:" styles.css` → muss `#7C3AED` sein
 - Gezielte Edits, nie komplette Neuschreibung
-- Dateien: `index.html` (~3583), `styles.css` (~3582), `portfolio.js` (~806), `mypage.js` (~1295), `vercel.json`, `og-image.png`, `api/beats.js`, `api/pending-beats.js`, `api/manage-beat.js`, `api/crate.js`, `.gitignore`, `.cursor/rules/beatswipe.mdc`; **nach Schritt 4:** `app.js`
+- Dateien: `index.html` (~882), `app.js` (~2701), `styles.css` (~3582), `portfolio.js` (~806), `mypage.js` (~1295), `vercel.json`, `og-image.png`, `api/beats.js`, `api/pending-beats.js`, `api/manage-beat.js`, `api/crate.js`, `.gitignore`, `.cursor/rules/beatswipe.mdc`
 - **Env (nie committen):** `.env.local` — `SUPABASE_SERVICE_ROLE_KEY`, `AIRTABLE_TOKEN` (read+write), optional `SUPABASE_URL` / `SUPABASE_ANON_KEY`
 - **Aktuell:** Production v58 auf GitHub/Vercel; **lokal v59-split** uncommitted
 - Live testen: `beatswipe.app/p/clyriax` + Hard-Refresh (`Cmd+Shift+R`)
@@ -549,7 +551,7 @@ Monolith aufgeteilt für weniger Tokens / wartbarer — **Verhalten 1:1**, Schri
 
 ## Tech-Stack
 
-- Frontend: `index.html` + `styles.css` + `portfolio.js` + `mypage.js` (+ `app.js` nach Schritt 4)
+- Frontend: `index.html` + `app.js` + `styles.css` + `mypage.js` + `portfolio.js`
 - Beats-DB: Airtable (Base appB4LCctwYvuxK5S, Table tblkdiwaGP5e5xAot); **Lesen** `TItle || Title`; **Schreiben (manage-beat)** nur `Title`; Status = Select, Filter Approved
 - API: `api/beats.js` (GET, `s-maxage=45`), `api/pending-beats.js` (GET, Auth), `api/manage-beat.js` (POST); `AIRTABLE_TOKEN` read+write
 - Auth/Storage: Supabase; Tabellen: crates, profiles (`beat_order` jsonb); **`profiles` RLS enabled**
@@ -562,11 +564,11 @@ Monolith aufgeteilt für weniger Tokens / wartbarer — **Verhalten 1:1**, Schri
 - **HTML:** `index.html` — `#portfolioScreen` → `#portfolioPageInner` → `#portfolioCardWrap` → `#portfolioCardSlot`
 - **JS:** `portfolio.js` — `openPortfolio`, `showPortfolioLoadingState`, `closePortfolioPreview`, `setPortfolioBackVisible`, `renderPortfolioCard`, `renderPortfolioHeader`, `updatePortfolioProgress`, `portfolioInitials`, `loadPortfolioProfile`, `buildPortfolioSocialsHTML`, `flyOutPortfolioCard`, `setPortfolioDoneMode`, `playPortfolioEnterAnim`, `spawnPortfolioConfetti`, `_portfolioPreview`
 - **Beat-Order (mypage.js):** `sortBeatsByOrder`, `getBeatOrderForProducer`, `persistBeatOrder` — von `openPortfolio` genutzt
-- **App-Kern (index.html):** `doSwipe` Portfolio-Branch, `isPortfolioScreenActive`, `purgeOrphanSwipeNodes`; Boot `<head>` `portfolio-route-boot`
+- **App-Kern (app.js):** `doSwipe` Portfolio-Branch, `isPortfolioScreenActive`, `purgeOrphanSwipeNodes`; Boot `<head>` inline `portfolio-route-boot` in `index.html`
 - Back-Button: `#portfolioBackBtn`, `body.portfolio-has-back`
 - Swipe: Portfolio commit on **touchend**; Clone-Fly in `doSwipe` / `flyOutPortfolioCard`; Wobble: `.portfolio-surface.wobble`
 - **v53:** `pinCardForMobileDrag` nur Discover; Portfolio **nie** body-pinnen
-- **v57d–f Fly (index.html):** `buildFlyCardShell`, `stripEmbedsForFly`, `flyOutDiscoverCard`
+- **v57d–f Fly (app.js):** `buildFlyCardShell`, `stripEmbedsForFly`, `flyOutDiscoverCard`
 
 ## Favorites / Crate Sync — relevante Code-Stellen
 
@@ -592,32 +594,32 @@ Monolith aufgeteilt für weniger Tokens / wartbarer — **Verhalten 1:1**, Schri
 ## Mobile Ambient + Discover Mobile — relevante Code-Stellen
 
 - **CSS `styles.css`:** Mobile Linear Purple-Wash `@media (max-width: 899px)`; Swipe overflow-Kette; Discover mobile swipe zone
-- **JS `index.html`:** `initSwipeGesture` IIFE, `doSwipe`, `flyOutDiscoverCard`, `buildFlyCardShell`, `loadBeats`, `_beatsCache`
+- **JS `app.js`:** `initSwipeGesture` IIFE, `doSwipe`, `flyOutDiscoverCard`, `buildFlyCardShell`, `loadBeats`, `_beatsCache`
 - **JS `portfolio.js`:** `flyOutPortfolioCard`, `purgeOrphanSwipeNodes` (Portfolio-Cleanup)
 - Viewport meta in `index.html`: `interactive-widget=overlays-content`, `viewport-fit=cover`
 
 ## Profile — relevante Code-Stellen
 
 - **CSS:** `styles.css` — `/* ── PROFILE SCREEN ── */`, `.profile-wrap--guest`
-- **JS:** `index.html` — `renderProfile`, `switchProfileTab`, `saveProfile`, `copyPortfolioLink`, `isProfileDirty`, `confirmDiscardProfileChanges`
+- **JS:** `app.js` — `renderProfile`, `switchProfileTab`, `saveProfile`, `copyPortfolioLink`, `isProfileDirty`, `confirmDiscardProfileChanges`
 
 ## Nav — relevante Code-Stellen
 
 - **CSS:** `styles.css` — `/* NAV */`, `.nav-indicator`, `.dtb-nav-indicator`, `.portfolio-progress`
-- **JS:** `index.html` — `setActiveNav`, `updateNavIndicator`, `goTo` / `applyGoTo`, `body.nav-switching`
+- **JS:** `app.js` — `setActiveNav`, `updateNavIndicator`, `goTo` / `applyGoTo`, `body.nav-switching`
 
 ## Toast — relevante Code-Stellen
 
 - **CSS:** `styles.css` — `/* ── TOAST ── */`
 - **HTML:** `#bsToastWrap` in `index.html`
-- **JS:** `showToast()` in `index.html` (nach `escHtml()`)
+- **JS:** `showToast()` in `app.js` (nach `escHtml()`)
 
 ## Landing — relevante Code-Stellen
 
 - **CSS:** `styles.css` — Hero, Mockup, FAQ, `@media` Mobile/Desktop
-- **JS:** `index.html` — `bootLandingReveal()`, `initScrollReveal`, `#beatsLoadBanner`
+- **JS:** `app.js` + Init inline — `bootLandingReveal()`, `initScrollReveal`, `#beatsLoadBanner`
 
-## Autoplay — relevante Code-Stellen (index.html)
+## Autoplay — relevante Code-Stellen (app.js)
 
 - Guards: `isDiscoverScreenActive()`, `isPortfolioScreenActive()`, `isAutoplayScreenActive()`
 - Unlock/Gesture: `handleAudioGesture()`, `tryAutoplayFromGesture()`, `maybeAutoplayPreview()`
