@@ -74,6 +74,7 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 
 - **Landing:** hero swipe demo, live-page card CTA, numbered how-it-works steps, shorter copy, mobile scroll reveal
 - **Portfolio:** mobile + laptop aurora bg, glass card; kbd hints desktop
+- **Onboarding tutorial:** glass redesign, pill/swipe demos; laptop = centered modal (520–580px), mobile = bottom sheet
 - **Fix:** Discover YouTube keeps playing after nav away → `stopEmbedPreview`
 
 ## Nächster Schritt

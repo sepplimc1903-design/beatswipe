@@ -340,6 +340,10 @@ function closeOnboard() {
   }
 }
 
+function closeOnboardIfBackdrop(e) {
+  if (e.target.id === 'onboardBackdrop') closeOnboard();
+}
+
 // ─── COOKIE BANNER ────────────────────────────────────────────────────────
 function initCookie() {
   if (localStorage.getItem('bs_cookie')) return;

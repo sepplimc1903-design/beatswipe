@@ -2883,42 +2883,36 @@
       body.portfolio-active .discover-side-hint--save {
         left: calc(50% + var(--w-portfolio) / 2 + 56px);
       }
-      /* Kbd hints — skip left / save right / play under card */
+      /* Kbd hints — bundled column, below-card height, left of card (matches Discover) */
       body.portfolio-active .discover-kbd-hints {
-        display: contents !important;
-      }
-      body.portfolio-active .discover-kbd-hints .discover-kbd-hint {
-        position: fixed;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 11px;
-        color: var(--text-3);
-        opacity: 0.52;
-        white-space: nowrap;
+        display: flex !important;
+        position: absolute;
+        left: max(20px, calc(50% - var(--w-portfolio) / 2 - 156px));
+        top: calc(50% + 212px);
+        bottom: auto;
+        transform: none;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 7px;
+        font-size: 12px;
+        color: var(--text-2);
+        opacity: 0.72;
         pointer-events: none;
-        user-select: none;
         transition: opacity 0.18s ease, visibility 0.18s ease;
       }
-      body.portfolio-active .discover-kbd-hints .discover-kbd-hint:nth-child(1) {
-        left: max(20px, calc(50% - var(--w-portfolio) / 2 - 112px));
-        top: calc(50% + 36px);
+      body.portfolio-active .discover-kbd-hints .discover-kbd-hint {
         flex-direction: row-reverse;
       }
-      body.portfolio-active .discover-kbd-hints .discover-kbd-hint:nth-child(2) {
-        left: calc(50% + var(--w-portfolio) / 2 + 64px);
-        top: calc(50% + 36px);
+      body.portfolio-active .discover-kbd-hints .discover-kbd-hint kbd {
+        background: rgba(255,255,255,0.09);
+        border-color: rgba(255,255,255,0.16);
+        color: var(--text);
       }
-      body.portfolio-active .discover-kbd-hints .discover-kbd-hint:nth-child(3) {
-        left: 50%;
-        top: calc(50% + 198px);
-        transform: translateX(-50%);
-      }
-      body.portfolio-active.swipe-card-dragging .discover-kbd-hints .discover-kbd-hint,
-      body.portfolio-active:has(#portfolioCardWrap .portfolio-surface.dragging) .discover-kbd-hints .discover-kbd-hint,
-      body.portfolio-active:has(#portfolioCardWrap .portfolio-surface.fly-left) .discover-kbd-hints .discover-kbd-hint,
-      body.portfolio-active:has(#portfolioCardWrap .portfolio-surface.fly-right) .discover-kbd-hints .discover-kbd-hint,
-      body.portfolio-active:has(#portfolioCardWrap .portfolio-surface.portfolio-fly-clone) .discover-kbd-hints .discover-kbd-hint {
+      body.portfolio-active.swipe-card-dragging .discover-kbd-hints,
+      body.portfolio-active:has(#portfolioCardWrap .portfolio-surface.dragging) .discover-kbd-hints,
+      body.portfolio-active:has(#portfolioCardWrap .portfolio-surface.fly-left) .discover-kbd-hints,
+      body.portfolio-active:has(#portfolioCardWrap .portfolio-surface.fly-right) .discover-kbd-hints,
+      body.portfolio-active:has(#portfolioCardWrap .portfolio-surface.portfolio-fly-clone) .discover-kbd-hints {
         opacity: 0 !important;
         visibility: hidden;
       }
@@ -2932,16 +2926,10 @@
         display: flex !important;
         left: calc(50% + var(--w-portfolio) / 2 + 40px);
       }
-      body.portfolio-active .discover-kbd-hints .discover-kbd-hint:nth-child(1) {
-        left: max(28px, calc(50% - var(--w-portfolio) / 2 - 124px));
-        top: calc(50% + 40px);
-      }
-      body.portfolio-active .discover-kbd-hints .discover-kbd-hint:nth-child(2) {
-        left: calc(50% + var(--w-portfolio) / 2 + 72px);
-        top: calc(50% + 40px);
-      }
-      body.portfolio-active .discover-kbd-hints .discover-kbd-hint:nth-child(3) {
-        top: calc(50% + 206px);
+      body.portfolio-active .discover-kbd-hints {
+        left: max(28px, calc(50% - var(--w-portfolio) / 2 - 168px));
+        top: calc(50% + 220px);
+        gap: 8px;
       }
     }
 
@@ -3614,28 +3602,221 @@
     .crate-sync-badge { font-size: 11px; color: var(--accent-mid); background: var(--accent-light); padding: 2px 8px; border-radius: 100px; margin-left: 6px; font-weight: 600; }
 
     /* ── ONBOARDING TUTORIAL ── */
-    .onboard-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.97); z-index: 400; display: none; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: env(safe-area-inset-bottom); pointer-events: none; }
-    .onboard-backdrop.open { pointer-events: all; }
-    .onboard-backdrop.open { display: flex; }
-    .onboard-sheet { width: 100%; max-width: 440px; background: var(--bg); border-radius: 32px 32px 0 0; border-top: 0.5px solid var(--border-2); overflow: hidden; }
+    .onboard-backdrop {
+      position: fixed; inset: 0; z-index: 400;
+      background: rgba(5,5,8,0.88);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      display: none; flex-direction: column; align-items: center;
+      justify-content: flex-end;
+      padding-bottom: env(safe-area-inset-bottom);
+      pointer-events: none;
+    }
+    .onboard-backdrop.open { pointer-events: all; display: flex; }
+    .onboard-sheet {
+      width: 100%; max-width: 440px;
+      background: var(--bg-2);
+      border-radius: 28px 28px 0 0;
+      border-top: 0.5px solid rgba(255,255,255,0.1);
+      box-shadow: 0 -12px 48px rgba(0,0,0,0.45);
+      overflow: hidden;
+      animation: slideUp 0.32s cubic-bezier(0.22,1,0.36,1);
+    }
+    .onboard-handle {
+      width: 36px; height: 4px; border-radius: 2px;
+      background: rgba(255,255,255,0.14);
+      margin: 12px auto 0; flex-shrink: 0;
+    }
     .onboard-slides { display: flex; transition: transform 0.4s cubic-bezier(0.22,1,0.36,1); }
-    .onboard-slide { min-width: 100%; padding: 40px 28px 28px; display: flex; flex-direction: column; align-items: center; text-align: center; }
-    .onboard-icon { width: 80px; height: 80px; border-radius: 24px; background: var(--accent-light); border: 0.5px solid rgba(124,58,237,0.3); display: flex; align-items: center; justify-content: center; margin-bottom: 24px; }
-    .onboard-icon i { font-size: 38px; color: var(--accent-mid); }
-    .onboard-title { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 12px; line-height: 1.2; }
+    .onboard-slide {
+      min-width: 100%; padding: 28px 24px 20px;
+      display: flex; flex-direction: column; align-items: center; text-align: center;
+    }
+    .onboard-icon {
+      width: 72px; height: 72px; border-radius: 22px;
+      background: rgba(124,58,237,0.15);
+      border: 0.5px solid rgba(167,139,250,0.28);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 28px rgba(124,58,237,0.18);
+    }
+    .onboard-icon i { font-size: 34px; color: var(--accent-mid); }
+    .onboard-title { font-size: 22px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 10px; line-height: 1.2; }
     .onboard-title span { color: var(--accent-mid); }
-    .onboard-desc { font-size: 15px; color: var(--text-2); line-height: 1.65; max-width: 300px; margin-bottom: 32px; }
-    .onboard-demo { width: 100%; background: var(--bg-2); border-radius: 18px; border: 0.5px solid var(--border); padding: 16px; margin-bottom: 28px; display: flex; align-items: center; gap: 14px; }
-    .onboard-dots { display: flex; gap: 6px; justify-content: center; margin-bottom: 20px; }
+    .onboard-desc { font-size: 14px; color: var(--text-2); line-height: 1.65; max-width: 300px; margin-bottom: 24px; }
+    .onboard-demo {
+      width: 100%;
+      background: rgba(255,255,255,0.03);
+      border-radius: 18px;
+      border: 0.5px solid rgba(255,255,255,0.08);
+      padding: 14px;
+      margin-bottom: 20px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .onboard-demo--pills { justify-content: space-between; gap: 8px; padding: 16px 12px; }
+    .onboard-pill { flex: 1; text-align: center; min-width: 0; }
+    .onboard-pill-icon {
+      width: 36px; height: 36px; border-radius: 11px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 8px;
+    }
+    .onboard-pill-icon i { font-size: 17px; }
+    .onboard-pill-icon--swipe { background: rgba(124,58,237,0.18); color: var(--accent-mid); }
+    .onboard-pill-icon--free { background: rgba(74,222,128,0.12); color: #4ade80; }
+    .onboard-pill-icon--link { background: rgba(96,165,250,0.12); color: #60a5fa; }
+    .onboard-pill-label { font-size: 12px; font-weight: 600; margin-bottom: 2px; }
+    .onboard-pill-sub { font-size: 10px; color: var(--text-3); line-height: 1.35; }
+    .onboard-demo--swipe {
+      flex-direction: column; gap: 10px; padding: 14px 12px 12px;
+      align-items: stretch;
+    }
+    .onboard-swipe-hint {
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+      font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
+    }
+    .onboard-swipe-hint i { font-size: 13px; }
+    .onboard-swipe-hint--left { color: #f87171; }
+    .onboard-swipe-hint--right { color: var(--accent-mid); }
+    .onboard-demo-card {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--bg);
+      border: 0.5px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      padding: 10px 12px;
+      width: 100%;
+    }
+    .onboard-demo-art {
+      width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+      background: var(--accent-light);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .onboard-demo-art i { font-size: 18px; color: var(--accent-mid); }
+    .onboard-demo-art--sm { width: 36px; height: 36px; border-radius: 9px; }
+    .onboard-demo-art--sm i { font-size: 16px; }
+    .onboard-demo-meta { flex: 1; min-width: 0; text-align: left; }
+    .onboard-demo-title { font-size: 13px; font-weight: 600; }
+    .onboard-demo-sub { font-size: 11px; color: var(--text-2); margin-top: 1px; }
+    .onboard-demo-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .onboard-demo-act {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .onboard-demo-act i { font-size: 14px; }
+    .onboard-demo-act--skip { background: #1a1a1a; border: 1px solid rgba(248,113,113,0.45); }
+    .onboard-demo-act--skip i { color: #f87171; }
+    .onboard-demo-act--save { background: var(--accent); }
+    .onboard-demo-act--save i { color: #fff; }
+    .onboard-demo--stack { flex-direction: column; align-items: stretch; gap: 10px; }
+    .onboard-fav-row {
+      display: flex; align-items: center; gap: 10px; width: 100%;
+    }
+    .onboard-fav-badge {
+      width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+      background: rgba(124,58,237,0.2);
+      border: 0.5px solid rgba(167,139,250,0.35);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .onboard-fav-badge i { font-size: 13px; color: var(--accent-mid); }
+    .onboard-store-btn {
+      width: 100%; padding: 10px 12px; border-radius: 10px;
+      background: var(--accent); border: none; color: #fff;
+      font-size: 12px; font-weight: 600; font-family: inherit;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      pointer-events: none;
+    }
+    .onboard-store-btn i { font-size: 14px; }
+    .onboard-demo--checks { align-items: stretch; gap: 8px; padding: 14px 16px; }
+    .onboard-check-item {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 12px; color: var(--text-2); text-align: left;
+    }
+    .onboard-check-item i {
+      font-size: 14px; color: #4ade80; flex-shrink: 0;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: rgba(74,222,128,0.1);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .onboard-dots { display: flex; gap: 6px; justify-content: center; margin-bottom: 18px; }
     .onboard-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border-2); transition: all 0.3s; }
     .onboard-dot.active { width: 20px; border-radius: 3px; background: var(--accent-mid); }
-    .onboard-btn { width: 100%; padding: 15px; border-radius: 14px; background: var(--accent); border: none; color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 0.2s; }
+    .onboard-btn {
+      width: 100%; padding: 15px; border-radius: 14px;
+      background: var(--accent); border: none; color: #fff;
+      font-size: 16px; font-weight: 700; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: opacity 0.2s;
+    }
     .onboard-btn:hover { opacity: 0.88; }
-    .onboard-skip { background: none; border: none; color: var(--text-3); font-size: 13px; cursor: pointer; margin-top: 12px; padding: 8px; }
-    .onboard-bottom { padding: 0 28px 32px; }
-    @keyframes swipeLeft { 0%,100%{transform:translateX(0) rotate(0)} 30%{transform:translateX(-60px) rotate(-8deg)} 60%{transform:translateX(0) rotate(0)} }
-    @keyframes swipeRight { 0%,100%{transform:translateX(0) rotate(0)} 30%{transform:translateX(60px) rotate(8deg)} 60%{transform:translateX(0) rotate(0)} }
-    .demo-card-anim { animation: swipeLeft 2.5s ease-in-out infinite; }
+    .onboard-skip {
+      background: none; border: none; color: var(--text-3);
+      font-size: 13px; cursor: pointer; margin-top: 10px; padding: 8px;
+      transition: color 0.2s;
+    }
+    .onboard-skip:hover { color: var(--text-2); }
+    .onboard-bottom { padding: 0 24px calc(24px + env(safe-area-inset-bottom)); }
+    @keyframes onboardSwipeLeft {
+      0%, 100% { transform: translateX(0) rotate(0); }
+      35% { transform: translateX(-48px) rotate(-6deg); }
+      55% { transform: translateX(48px) rotate(6deg); }
+      75% { transform: translateX(0) rotate(0); }
+    }
+    .demo-card-anim { animation: onboardSwipeLeft 3s cubic-bezier(0.22,1,0.36,1) infinite; }
+    @media (min-width: 900px) {
+      .onboard-backdrop {
+        justify-content: center;
+        align-items: center;
+        padding: 32px 24px;
+        background: rgba(5,5,8,0.82);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+      }
+      .onboard-backdrop.open { animation: backdropFadeIn 0.22s ease; }
+      .onboard-sheet {
+        max-width: 520px;
+        border-radius: 28px;
+        border: 0.5px solid rgba(255,255,255,0.1);
+        box-shadow: 0 24px 80px rgba(0,0,0,0.65);
+        animation: modalEnterDesktop 0.28s cubic-bezier(0.22,1,0.36,1);
+      }
+      .onboard-handle { display: none; }
+      .onboard-slide { padding: 44px 40px 28px; }
+      .onboard-icon { width: 88px; height: 88px; border-radius: 26px; margin-bottom: 24px; }
+      .onboard-icon i { font-size: 42px; }
+      .onboard-title { font-size: 28px; margin-bottom: 12px; }
+      .onboard-desc { font-size: 16px; max-width: 400px; margin-bottom: 28px; }
+      .onboard-demo { padding: 18px; margin-bottom: 24px; border-radius: 20px; }
+      .onboard-demo--pills { padding: 20px 16px; gap: 12px; }
+      .onboard-pill-icon { width: 44px; height: 44px; border-radius: 13px; margin-bottom: 10px; }
+      .onboard-pill-icon i { font-size: 20px; }
+      .onboard-pill-label { font-size: 14px; }
+      .onboard-pill-sub { font-size: 11px; }
+      .onboard-demo-card { padding: 14px 16px; border-radius: 16px; gap: 12px; }
+      .onboard-demo-art { width: 48px; height: 48px; border-radius: 12px; }
+      .onboard-demo-art i { font-size: 22px; }
+      .onboard-demo-title { font-size: 15px; }
+      .onboard-demo-sub { font-size: 12px; }
+      .onboard-demo-act { width: 36px; height: 36px; }
+      .onboard-demo-act i { font-size: 16px; }
+      .onboard-swipe-hint { font-size: 12px; }
+      .onboard-swipe-hint i { font-size: 15px; }
+      .onboard-store-btn { font-size: 14px; padding: 12px; border-radius: 12px; }
+      .onboard-check-item { font-size: 14px; }
+      .onboard-bottom { padding: 0 40px 36px; }
+      .onboard-btn { padding: 16px; font-size: 17px; }
+    }
+    @media (min-width: 1100px) {
+      .onboard-sheet { max-width: 580px; }
+      .onboard-slide { padding: 52px 48px 32px; }
+      .onboard-icon { width: 96px; height: 96px; }
+      .onboard-icon i { font-size: 46px; }
+      .onboard-title { font-size: 30px; }
+      .onboard-desc { font-size: 17px; max-width: 440px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .onboard-sheet,
+      .onboard-backdrop.open,
+      .demo-card-anim { animation: none; }
+    }
 
     /* ── INVITE GATE (private beta) ── */
     .invite-gate-backdrop {
