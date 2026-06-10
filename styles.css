@@ -51,6 +51,19 @@
       height: 100dvh;
       overflow: hidden;
     }
+    html.portfolio-route-boot .bg-desktop::before,
+    html.portfolio-route-boot .bg-desktop::after {
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      border-radius: 0;
+      animation: none;
+    }
+    html.portfolio-route-boot .bg-desktop::before {
+      background: radial-gradient(ellipse 130% 55% at 50% -8%, rgba(167,139,250,0.1) 0%, transparent 72%);
+    }
+    html.portfolio-route-boot .bg-desktop::after { display: none; }
     body {
       min-height: 100%;
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
@@ -94,6 +107,61 @@
 
     /* Discover ambient — side atmosphere on wide desktop */
     .discover-ambient { display: none; pointer-events: none; }
+
+    /* Portfolio /p/ — drifting aurora (desktop/tablet only) */
+    .portfolio-ambient {
+      display: none;
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .pf-ambient-layer {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(72px);
+      opacity: 0.7;
+      will-change: transform;
+    }
+    .pf-ambient-layer--a {
+      width: min(68vw, 820px);
+      height: min(52vh, 560px);
+      background: radial-gradient(ellipse at center, rgba(124,58,237,0.42) 0%, transparent 72%);
+      top: 8%;
+      left: 18%;
+      animation: pfAmbientDriftA 22s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+    }
+    .pf-ambient-layer--b {
+      width: min(58vw, 680px);
+      height: min(48vh, 480px);
+      background: radial-gradient(ellipse at center, rgba(167,139,250,0.34) 0%, transparent 74%);
+      top: 32%;
+      right: 10%;
+      animation: pfAmbientDriftB 28s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+    }
+    .pf-ambient-layer--c {
+      width: min(80vw, 960px);
+      height: min(36vh, 360px);
+      background: radial-gradient(ellipse at center, rgba(91,33,182,0.28) 0%, transparent 76%);
+      bottom: 4%;
+      left: 28%;
+      animation: pfAmbientDriftC 32s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+    }
+    @keyframes pfAmbientDriftA {
+      from { transform: translate(-6%, -4%) scale(1); }
+      to   { transform: translate(10%, 7%) scale(1.06); }
+    }
+    @keyframes pfAmbientDriftB {
+      from { transform: translate(8%, 5%) scale(1.04); }
+      to   { transform: translate(-12%, -6%) scale(0.96); }
+    }
+    @keyframes pfAmbientDriftC {
+      from { transform: translate(-4%, 6%) scale(0.98); }
+      to   { transform: translate(8%, -5%) scale(1.05); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .pf-ambient-layer { animation: none !important; }
+    }
 
     /* ── SHELL ── */
     .shell { width: 100%; max-width: 440px; height: 100vh; height: 100dvh; background: var(--bg); display: flex; flex-direction: column; position: relative; z-index: 1; overflow: hidden; }
@@ -1967,6 +2035,7 @@
     }
     body.portfolio-active .bg-grid,
     body.portfolio-active .bg-noise { display: none !important; }
+    body.portfolio-active .portfolio-ambient { display: none; }
     body.portfolio-active .bg-desktop {
       background: var(--navy);
     }
@@ -2502,15 +2571,17 @@
       }
       #portfolioCardWrap .portfolio-surface {
         padding: 26px 24px;
-        background: rgba(255,255,255,0.03);
-        border: 0.5px solid rgba(255,255,255,0.08);
+        background: rgba(17,17,19,0.36);
+        backdrop-filter: blur(22px) saturate(1.22);
+        -webkit-backdrop-filter: blur(22px) saturate(1.22);
+        border: 0.5px solid rgba(255,255,255,0.1);
         border-radius: 24px;
-        box-shadow: 0 12px 48px rgba(0,0,0,0.28);
+        box-shadow: 0 12px 48px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.07);
       }
       #portfolioCardWrap .portfolio-surface.fly-left  { transform: translateX(-200%) rotate(-14deg); }
       #portfolioCardWrap .portfolio-surface.fly-right { transform: translateX(200%) rotate(14deg); }
       #portfolioScreen .player-area {
-        background: rgba(255,255,255,0.04);
+        background: rgba(255,255,255,0.05);
         border-radius: 14px;
       }
       .portfolio-avatar,
@@ -2521,26 +2592,42 @@
       .portfolio-name { font-size: 20px; }
       .portfolio-done {
         padding: 28px 26px;
-        background: rgba(255,255,255,0.03);
-        border: 0.5px solid rgba(255,255,255,0.08);
+        background: rgba(17,17,19,0.36);
+        backdrop-filter: blur(22px) saturate(1.22);
+        -webkit-backdrop-filter: blur(22px) saturate(1.22);
+        border: 0.5px solid rgba(255,255,255,0.1);
         border-radius: 24px;
-        box-shadow: 0 12px 48px rgba(0,0,0,0.28);
+        box-shadow: 0 12px 48px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.07);
       }
-      body.portfolio-active .bg-desktop { background: #050508; }
+      body.portfolio-active .portfolio-ambient,
+      html.portfolio-route-boot .portfolio-ambient { display: block; }
+      body.portfolio-active .bg-desktop {
+        background:
+          linear-gradient(180deg,
+            rgba(124,58,237,0.16) 0%,
+            rgba(124,58,237,0.09) 28%,
+            rgba(124,58,237,0.03) 55%,
+            rgba(5,5,8,1) 100%),
+          #050508;
+      }
+      body.portfolio-active .bg-desktop::before,
+      body.portfolio-active .bg-desktop::after {
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        right: auto;
+        bottom: auto;
+        border-radius: 0;
+        animation: none;
+      }
       body.portfolio-active .bg-desktop::before {
         background:
-          radial-gradient(ellipse 520px 78% at 50% 46%, rgba(124,58,237,0.11) 0%, transparent 70%),
-          radial-gradient(ellipse 80% 55% at 50% 100%, rgba(124,58,237,0.04) 0%, transparent 65%);
+          radial-gradient(ellipse 130% 55% at 50% -8%, rgba(167,139,250,0.1) 0%, transparent 72%),
+          radial-gradient(ellipse 100% 40% at 50% 100%, rgba(124,58,237,0.06) 0%, transparent 70%);
       }
       body.portfolio-active .bg-desktop::after {
-        display: block;
-        content: '';
-        position: absolute;
-        inset: 0;
-        background:
-          radial-gradient(ellipse 300px 55% at calc(50% - 300px) 52%, rgba(248,113,113,0.045) 0%, transparent 72%),
-          radial-gradient(ellipse 300px 55% at calc(50% + 300px) 52%, rgba(124,58,237,0.055) 0%, transparent 72%);
-        pointer-events: none;
+        display: none;
       }
       body.portfolio-active .discover-ambient {
         display: block;
@@ -2549,14 +2636,30 @@
         z-index: 0;
       }
       body.portfolio-active .discover-ambient-glow {
-        width: var(--w-portfolio);
-        height: 72%;
+        display: none;
       }
       body.portfolio-active .discover-side-hint {
         font-size: 11px;
         letter-spacing: 2px;
         opacity: 0.42;
         gap: 12px;
+        transition: opacity 0.18s ease, visibility 0.18s ease;
+      }
+      body.portfolio-active.swipe-card-dragging .discover-side-hint,
+      body.portfolio-active:has(#portfolioCardWrap .portfolio-surface.dragging) .discover-side-hint,
+      body.portfolio-active:has(#portfolioCardWrap .portfolio-surface.fly-left) .discover-side-hint,
+      body.portfolio-active:has(#portfolioCardWrap .portfolio-surface.fly-right) .discover-side-hint,
+      body.portfolio-active:has(#portfolioCardWrap .portfolio-surface.portfolio-fly-clone) .discover-side-hint {
+        opacity: 0 !important;
+        visibility: hidden;
+      }
+      body.portfolio-active #portfolioCardWrap .portfolio-surface.dragging,
+      body.portfolio-active #portfolioCardWrap .portfolio-surface.fly-left,
+      body.portfolio-active #portfolioCardWrap .portfolio-surface.fly-right,
+      body.portfolio-active #portfolioCardWrap .portfolio-surface.portfolio-fly-clone {
+        background: rgba(17,17,19,0.82);
+        backdrop-filter: blur(20px) saturate(1.1);
+        -webkit-backdrop-filter: blur(20px) saturate(1.1);
       }
       body.portfolio-active .discover-side-hint i { font-size: 26px; }
       body.portfolio-active .discover-side-hint--skip {
@@ -2578,6 +2681,24 @@
       body.portfolio-active {
         --w-portfolio: 460px;
       }
+      /* Laptop — aurora layers carry the motion; static wash only here */
+      body.portfolio-active .bg-desktop {
+        background:
+          linear-gradient(180deg,
+            rgba(124,58,237,0.2) 0%,
+            rgba(124,58,237,0.11) 30%,
+            rgba(124,58,237,0.04) 58%,
+            rgba(5,5,8,1) 100%),
+          #050508;
+      }
+      body.portfolio-active .bg-desktop::before {
+        background:
+          radial-gradient(ellipse 140% 58% at 50% -6%, rgba(167,139,250,0.12) 0%, transparent 74%),
+          radial-gradient(ellipse 110% 42% at 50% 102%, rgba(124,58,237,0.07) 0%, transparent 72%);
+      }
+      body.portfolio-active .discover-ambient-glow {
+        display: none;
+      }
       body.portfolio-active .portfolio-header {
         padding-top: calc(env(safe-area-inset-top, 0px) + 32px);
       }
@@ -2598,16 +2719,47 @@
       body.portfolio-active .discover-side-hint--save {
         left: calc(50% + var(--w-portfolio) / 2 + 56px);
       }
+      /* Kbd hints — skip left / save right / play under card */
+      body.portfolio-active .discover-kbd-hints {
+        display: contents !important;
+      }
+      body.portfolio-active .discover-kbd-hints .discover-kbd-hint {
+        position: fixed;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 11px;
+        color: var(--text-3);
+        opacity: 0.52;
+        white-space: nowrap;
+        pointer-events: none;
+        user-select: none;
+        transition: opacity 0.18s ease, visibility 0.18s ease;
+      }
+      body.portfolio-active .discover-kbd-hints .discover-kbd-hint:nth-child(1) {
+        left: max(20px, calc(50% - var(--w-portfolio) / 2 - 112px));
+        top: calc(50% + 36px);
+        flex-direction: row-reverse;
+      }
+      body.portfolio-active .discover-kbd-hints .discover-kbd-hint:nth-child(2) {
+        left: calc(50% + var(--w-portfolio) / 2 + 64px);
+        top: calc(50% + 36px);
+      }
+      body.portfolio-active .discover-kbd-hints .discover-kbd-hint:nth-child(3) {
+        left: 50%;
+        top: calc(50% + 198px);
+        transform: translateX(-50%);
+      }
+      body.portfolio-active.swipe-card-dragging .discover-kbd-hints .discover-kbd-hint,
+      body.portfolio-active:has(#portfolioCardWrap .portfolio-surface.dragging) .discover-kbd-hints .discover-kbd-hint,
+      body.portfolio-active:has(#portfolioCardWrap .portfolio-surface.fly-left) .discover-kbd-hints .discover-kbd-hint,
+      body.portfolio-active:has(#portfolioCardWrap .portfolio-surface.fly-right) .discover-kbd-hints .discover-kbd-hint,
+      body.portfolio-active:has(#portfolioCardWrap .portfolio-surface.portfolio-fly-clone) .discover-kbd-hints .discover-kbd-hint {
+        opacity: 0 !important;
+        visibility: hidden;
+      }
     }
     @media (min-width: 1100px) {
-      body.portfolio-active .discover-kbd-hints {
-        display: flex !important;
-        top: 63%;
-      }
-      body.portfolio-active .discover-kbd-hints--left {
-        left: max(16px, calc(50% - var(--w-portfolio) / 2 - 236px));
-        align-items: flex-end;
-      }
       body.portfolio-active .discover-side-hint--skip {
         display: flex !important;
         left: max(32px, calc(50% - var(--w-portfolio) / 2 - 72px));
@@ -2615,6 +2767,17 @@
       body.portfolio-active .discover-side-hint--save {
         display: flex !important;
         left: calc(50% + var(--w-portfolio) / 2 + 40px);
+      }
+      body.portfolio-active .discover-kbd-hints .discover-kbd-hint:nth-child(1) {
+        left: max(28px, calc(50% - var(--w-portfolio) / 2 - 124px));
+        top: calc(50% + 40px);
+      }
+      body.portfolio-active .discover-kbd-hints .discover-kbd-hint:nth-child(2) {
+        left: calc(50% + var(--w-portfolio) / 2 + 72px);
+        top: calc(50% + 40px);
+      }
+      body.portfolio-active .discover-kbd-hints .discover-kbd-hint:nth-child(3) {
+        top: calc(50% + 206px);
       }
     }
 
