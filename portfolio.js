@@ -231,7 +231,7 @@ function setPortfolioDoneMode(on) {
 }
 
 function getPortfolioFlyEl() {
-  return document.querySelector('#portfolioCardSlot > .portfolio-surface');
+  return document.querySelector('#portfolioCardSlot .portfolio-surface:not(.portfolio-fly-clone)');
 }
 
 function afterPortfolioCardFly(cb) {
@@ -439,7 +439,7 @@ function buildBeatCardHTML(d, opts) {
         <span class="tag">${d.genre}</span>
       </div>
       ${playerHTML}`;
-  if (portfolioWrap) return `<div class="portfolio-surface"><div class="portfolio-beat" id="theCard">${cardInner}</div></div>`;
+  if (portfolioWrap) return `<div class="card-stage portfolio-card-stage"><div class="card-glow" id="cardGlow" aria-hidden="true"></div><div class="portfolio-surface"><div class="portfolio-beat" id="theCard">${cardInner}</div></div></div>`;
   return `
     <div class="card-stage">
     <div class="card-glow" id="cardGlow" style="--glow-color:${d.color}"></div>

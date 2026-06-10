@@ -1360,7 +1360,7 @@ function renderCard(opts) {
     document.querySelectorAll('.portfolio-fly-clone, .discover-fly-clone').forEach(el => el.remove());
     document.querySelectorAll('.swipe-emoji').forEach(el => el.remove());
 
-    const liveSurface = document.querySelector('#portfolioCardSlot > .portfolio-surface:not(.portfolio-fly-clone)');
+    const liveSurface = document.querySelector('#portfolioCardSlot .portfolio-surface:not(.portfolio-fly-clone)');
     if (liveSurface) clearPinnedCardStyles(liveSurface);
     const liveCard = document.getElementById('theCard');
     if (liveCard) clearPinnedCardStyles(liveCard);
@@ -1383,7 +1383,7 @@ function renderCard(opts) {
 
   function getCard() {
     if (_portfolioMode) {
-      return document.querySelector('#portfolioCardSlot > .portfolio-surface') || document.getElementById('theCard');
+      return document.querySelector('#portfolioCardSlot .portfolio-surface') || document.getElementById('theCard');
     }
     return document.getElementById('theCard');
   }
@@ -1447,13 +1447,18 @@ function renderCard(opts) {
     const glow = getGlow();
     if (!glow) return;
     glow.style.transition = 'none';
+    glow.classList.remove('glow-toward-save', 'glow-toward-skip');
+    if (_portfolioMode && Math.abs(dx) <= 12) {
+      glow.style.transform = 'translate(-50%, -50%) scale(1)';
+      glow.style.opacity = '0';
+      return;
+    }
     const pct = Math.min(Math.abs(dx) / 110, 1);
-    const mobile = isMobileUI() && !_portfolioMode;
+    const mobile = isMobileUI();
     const scale = 1 + pct * (mobile ? 0.1 : 0.22);
     const tx = dx * (mobile ? 0.08 : 0.14);
     glow.style.transform = `translate(calc(-50% + ${tx}px), -50%) scale(${scale})`;
     glow.style.opacity = String((mobile ? 0.2 : 0.28) + pct * (mobile ? 0.18 : 0.42));
-    glow.classList.remove('glow-toward-save', 'glow-toward-skip');
     if (dx > 12) glow.classList.add('glow-toward-save');
     else if (dx < -12) glow.classList.add('glow-toward-skip');
   }
@@ -1463,7 +1468,7 @@ function renderCard(opts) {
     if (!glow) return;
     glow.style.transition = '';
     glow.style.transform = 'translate(-50%, -50%) scale(1)';
-    glow.style.opacity = '0.32';
+    glow.style.opacity = _portfolioMode ? '0' : '0.32';
     glow.classList.remove('glow-toward-save', 'glow-toward-skip');
   }
 
@@ -2488,6 +2493,8 @@ function renderProfile() {
           <i class="ti ti-chevron-right profile-stat-chevron"></i>
         </button>
 
+        <div class="profile-settings-scroll-hint"><i class="ti ti-chevron-down"></i> Scroll for account &amp; sign out</div>
+
         <div class="profile-settings-card profile-glass">
           <div class="profile-settings-title"><i class="ti ti-mail"></i> New beats by email</div>
           <div class="profile-settings-desc">Be the first to know when new beats drop.</div>
@@ -3206,6 +3213,7 @@ function initSheetDragDismiss({ backdrop, sheet, onClose, dismissThreshold = 96,
     if (!backdrop.classList.contains('open') || !isBottomSheetBackdrop(backdrop) || dismissing) return;
     if (e.button !== undefined && e.button !== 0) return;
     if (e.target.closest(BLOCK_SEL)) return;
+    if (e.target.closest('.info-modal-body')) return;
 
     scrollEl = getScrollableFrom(e.target);
     if (scrollEl && scrollEl.scrollTop > 2) return;
