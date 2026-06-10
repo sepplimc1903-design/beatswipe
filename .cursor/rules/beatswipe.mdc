@@ -75,13 +75,17 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 - **Landing:** hero swipe demo, live-page card CTA, numbered how-it-works steps, shorter copy, mobile scroll reveal
 - **Portfolio:** mobile + laptop aurora bg, glass card; kbd hints desktop
 - **Onboarding tutorial:** glass redesign, pill/swipe demos; laptop = centered modal (520–580px), mobile = bottom sheet
+- **Profile:** mobile hero (centered avatar, live badge, copy-primary actions), glass guest auth, sticky save, clickable Favorites card
+- **Auth:** password reset — URL capture before Supabase init; PKCE `?code=` + hash `setSession` fallback; modal z-index 400 (above invite gate)
+- **Legal:** Austrian ECG Impressum + GDPR/DSG Privacy Policy; newsletter opt-in checkbox
 - **Fix:** Discover YouTube keeps playing after nav away → `stopEmbedPreview`
 
 ## Nächster Schritt
 
-1. Profile polish — hero/settings mobile
-2. Optional: OG per producer, live favorites sync (not MVP)
-3. Landing: stats count-up, sticky mobile CTA (optional)
+1. **Deploy + Supabase:** push → Vercel; Redirect URLs `https://beatswipe.app/` + `http://localhost:3000/`
+2. **Legal:** `[Your full legal name]` + Adresse; AV-Verträge (Supabase, Vercel, Airtable, Make)
+3. **Account:** Delete account in-app (DSGVO Art. 17)
+4. Optional: OG per producer, live favorites sync, landing stats count-up
 
 ## Rules pflegen (Agent)
 

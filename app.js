@@ -184,6 +184,15 @@ function submitInviteCode() {
   else if (pending) goTo(pending.screenId, pending.navId);
 }
 
+let _listEnterNext = false;
+
+function takeListEnter() {
+  if (!_listEnterNext) return false;
+  _listEnterNext = false;
+  return true;
+}
+window.takeListEnter = takeListEnter;
+
 function playScreenEnterAnim(screenEl) {
   if (!screenEl || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   screenEl.classList.add('screen-entering');
@@ -214,6 +223,7 @@ function applyGoTo(screenId, navId) {
     maybeShowSyncOnDiscoverReturn();
     positionCatIndicator();
   }
+  if (screenId === 'crateScreen' || screenId === 'submitScreen') _listEnterNext = true;
   if (screenId === 'crateScreen') renderCrate();
   if (screenId === 'profileScreen') renderProfile();
   if (screenId === 'submitScreen') void renderMyPage();
@@ -390,8 +400,14 @@ async function subscribeNewsletter() {
   const email = emailEl?.value.trim();
   const btn = document.getElementById('nlBtn');
   const msg = document.getElementById('nlMsg');
+  const nlDsgvo = document.getElementById('nlDsgvo');
   if (!email || !email.includes('@')) {
-    msg.style.color = '#f87171'; msg.textContent = 'Please enter a valid email address.'; return;
+    if (msg) { msg.style.color = '#f87171'; msg.textContent = 'Please enter a valid email address.'; }
+    return;
+  }
+  if (!nlDsgvo?.checked) {
+    if (msg) { msg.style.color = '#f87171'; msg.textContent = 'Please accept the Privacy Policy to subscribe.'; }
+    return;
   }
   btn.disabled = true; btn.textContent = '...';
   try {
@@ -654,6 +670,9 @@ function renderDiscoverHint() {
 async function initApp() {
   initAuthFromStorage();
   await Promise.race([_authInitReady, sleep(3000)]);
+  if (_authRecoveryFromUrl || _authCodeInUrl || _authHashTokenInUrl) {
+    await resolveAuthCallbackFromUrl();
+  }
   const portfolioSlug = getPortfolioSlugFromURL();
   if (portfolioSlug && !_portfolioMode) showPortfolioLoadingState(portfolioSlug);
   await loadBeats();
@@ -1975,6 +1994,7 @@ function updateCrateCountUI() {
 
 function renderCrate() {
   const body = document.getElementById('crateBody');
+  const stagger = takeListEnter();
   updateCrateCountUI();
   const onCrate = document.getElementById('crateScreen')?.classList.contains('active');
   if (!onCrate && isMobileUI()) return;
@@ -1983,7 +2003,7 @@ function renderCrate() {
     _previewLoadedId = null;
     if (body) body.innerHTML = `<div class="crate-empty"><i class="ti ti-music-off"></i>Nothing here yet.<br>Go swipe some beats!</div>`;
     renderCratePreview(null);
-    renderDesktopCrate();
+    renderDesktopCrate(stagger);
     return;
   }
   if (_lastSavedBeatId && crate.find(b => b.id === _lastSavedBeatId)) {
@@ -1992,7 +2012,7 @@ function renderCrate() {
     _selectedCrateId = crate[0].id;
   }
   const selectedBeat = crate.find(b => b.id === _selectedCrateId);
-  body.innerHTML = crate.map(d => {
+  body.innerHTML = crate.map((d, idx) => {
     const hasBuy = d.buy && d.buy.startsWith('http') && d.buy !== d.mp3;
     const isYT = isYouTube(d.mp3);
     const isSC = isSoundCloud(d.mp3);
@@ -2017,14 +2037,15 @@ function renderCrate() {
       btnLabel = null;
       btnLink = null;
     }
-    const enterCls = d.id === _lastSavedBeatId ? ' crate-enter' : '';
+    const enterCls = stagger ? ' list-enter' : (d.id === _lastSavedBeatId ? ' crate-enter' : '');
+    const staggerStyle = stagger ? ` style="--i:${Math.min(idx, 7)}"` : '';
     const selCls = d.id === _selectedCrateId ? ' crate-card--selected' : '';
     const prodEsc = d.producer.replace(/'/g,"\\'");
     const actionHTML = btnLink
       ? `<button class="crate-action-btn" onclick="event.stopPropagation();window.open('${btnLink}','_blank')">${btnLabel}</button>`
       : `<button class="crate-action-btn crate-action-btn--ghost" onclick="event.stopPropagation();openProducerProfile('${prodEsc}')" title="Contact ${d.producer} for licensing"><i class="ti ti-user"></i> Contact</button>`;
     return `
-    <div class="crate-card${enterCls}${selCls}" id="crate-card-${d.id}" onclick="selectCrateBeat('${d.id}')">
+    <div class="crate-card${enterCls}${selCls}" id="crate-card-${d.id}"${staggerStyle} onclick="selectCrateBeat('${d.id}')">
       <div class="mini-cover" style="background:${d.color}20;border:0.5px solid ${d.color}50">
         <i class="ti ti-music" style="color:${d.color}"></i>
       </div>
@@ -2039,10 +2060,10 @@ function renderCrate() {
     </div>`;
   }).join('');
   renderCratePreview(selectedBeat);
-  renderDesktopCrate();
+  renderDesktopCrate(stagger);
 }
 
-function renderDesktopCrate() {
+function renderDesktopCrate(stagger) {
   const body = document.getElementById('dcBody');
   const sub = document.getElementById('dcSub');
   if (!body) return;
@@ -2051,7 +2072,7 @@ function renderDesktopCrate() {
     body.innerHTML = `<div class="dc-empty"><i class="ti ti-shopping-cart"></i>Swipe right on beats<br>to save them here</div>`;
     return;
   }
-  body.innerHTML = crate.map(d => {
+  body.innerHTML = crate.map((d, idx) => {
     const hasBuy = d.buy && d.buy.startsWith('http');
     const isYT = isYouTube(d.mp3);
     const isSC = isSoundCloud(d.mp3);
@@ -2063,8 +2084,9 @@ function renderDesktopCrate() {
     else if (buyUrl.includes('splice')) btnLabel = 'Get on Splice';
     else if (buyUrl.includes('instagram')) { btnLabel = 'DM on Instagram'; btnIcon = 'ti-brand-instagram'; }
     const buyBtn = btnLink ? '<button class="dc-buy" onclick="window.open(\'' + btnLink + '\',\'_blank\'"><i class="ti ' + btnIcon + '"></i> ' + btnLabel + '</button>' : '';
-    const enterCls = d.id === _lastSavedBeatId ? ' dc-enter' : '';
-    return '<div class="dc-card' + enterCls + '">'
+    const enterCls = stagger ? ' list-enter' : (d.id === _lastSavedBeatId ? ' dc-enter' : '');
+    const staggerStyle = stagger ? ' style="--i:' + Math.min(idx, 7) + '"' : '';
+    return '<div class="dc-card' + enterCls + '"' + staggerStyle + '>'
       + '<div class="dc-card-top">'
       + '<div class="dc-cover" style="background:' + d.color + '20;border:0.5px solid ' + d.color + '50">'
       + '<i class="ti ti-music" style="font-size:16px;color:' + d.color + '"></i></div>'
@@ -2121,20 +2143,109 @@ requestAnimationFrame(() => positionCatIndicator());
 // ─── SUPABASE ──────────────────────────────────────────────────────────────
 const SUPA_URL = 'https://yprwklxolgrlyswqwkzr.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlwcndrbHhvbGdybHlzd3F3a3pyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NDE5MjUsImV4cCI6MjA5NjIxNzkyNX0.Or_pWAg1QuJ3TSVLdC8LKzp1PsYwTxcAfy_YcSAU2ZA';
+
+function parseAuthUrlParams() {
+  try {
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    const query = new URLSearchParams(window.location.search);
+    return { hash, query };
+  } catch (e) {
+    return { hash: new URLSearchParams(), query: new URLSearchParams() };
+  }
+}
+
+// Capture before Supabase strips the URL on init
+const _bootAuthParams = parseAuthUrlParams();
+const _authRecoveryFromUrl = _bootAuthParams.hash.get('type') === 'recovery'
+  || _bootAuthParams.query.get('type') === 'recovery';
+const _authCodeInUrl = !!_bootAuthParams.query.get('code');
+const _authHashTokenInUrl = !!_bootAuthParams.hash.get('access_token');
+
 const supa = supabase.createClient(SUPA_URL, SUPA_KEY, {
   auth: {
-    autoRefreshToken: true,      // Supabase refreshes token automatically
+    autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: false
+    detectSessionInUrl: true
   }
 });
+
+function getAuthRedirectUrl() {
+  return `${window.location.origin}/`;
+}
 let currentUser = null;
+let _passwordRecoveryActive = false;
 let _authInitResolve;
 const _authInitReady = new Promise(r => { _authInitResolve = r; });
+
+function clearAuthCallbackFromUrl() {
+  try {
+    history.replaceState(history.state, '', window.location.pathname);
+  } catch (e) {}
+}
+
+function beginPasswordRecovery(session) {
+  if (_passwordRecoveryActive) return;
+  _passwordRecoveryActive = true;
+  currentUser = session?.user || currentUser;
+  clearAuthCallbackFromUrl();
+  document.getElementById('inviteGate')?.classList.remove('open');
+  const show = () => {
+    openResetPasswordModal();
+    updateDesktopTopbarAuth();
+    if (document.getElementById('profileScreen')?.classList.contains('active')) renderProfile();
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', show, { once: true });
+  } else {
+    requestAnimationFrame(show);
+  }
+}
+
+async function resolveAuthCallbackFromUrl() {
+  if (!_authRecoveryFromUrl && !_authCodeInUrl && !_authHashTokenInUrl) return;
+
+  const { hash, query } = parseAuthUrlParams();
+  let session = null;
+
+  if (query.get('code')) {
+    const { data, error } = await supa.auth.exchangeCodeForSession(query.get('code'));
+    if (error) {
+      showToast('Reset link expired or invalid — request a new one.', 'error');
+      clearAuthCallbackFromUrl();
+      return;
+    }
+    session = data?.session || null;
+  } else if (hash.get('access_token') && hash.get('refresh_token')) {
+    const { data, error } = await supa.auth.setSession({
+      access_token: hash.get('access_token'),
+      refresh_token: hash.get('refresh_token')
+    });
+    if (error) {
+      showToast('Reset link expired or invalid — request a new one.', 'error');
+      clearAuthCallbackFromUrl();
+      return;
+    }
+    session = data?.session || null;
+  } else {
+    const { data } = await supa.auth.getSession();
+    session = data?.session || null;
+  }
+
+  if (_authRecoveryFromUrl && session) {
+    beginPasswordRecovery(session);
+  } else if (_authRecoveryFromUrl) {
+    showToast('Reset link expired — request a new one.', 'error');
+    clearAuthCallbackFromUrl();
+  }
+}
 
 // Auth state listener
 supa.auth.onAuthStateChange(async (event, session) => {
   if (event === 'INITIAL_SESSION') _authInitResolve?.();
+  if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && _authRecoveryFromUrl && !_passwordRecoveryActive)) {
+    beginPasswordRecovery(session);
+    return;
+  }
   if (event === 'SIGNED_OUT') {
     currentUser = null;
     _userProfile = null;
@@ -2175,7 +2286,25 @@ supa.auth.onAuthStateChange(async (event, session) => {
 });
 
 // ─── PROFILE RENDER ───────────────────────────────────────────────────────
-let authMode = 'login'; // 'login' | 'signup'
+let authMode = 'login'; // 'login' | 'signup' | 'forgot'
+
+function openResetPasswordModal() {
+  const msg = document.getElementById('resetPassMsg');
+  if (msg) { msg.className = 'auth-msg'; msg.textContent = ''; }
+  const newEl = document.getElementById('resetPassNew');
+  const confirmEl = document.getElementById('resetPassConfirm');
+  if (newEl) newEl.value = '';
+  if (confirmEl) confirmEl.value = '';
+  document.getElementById('resetPasswordModal')?.classList.add('open');
+}
+
+function closeResetPasswordModal() {
+  document.getElementById('resetPasswordModal')?.classList.remove('open');
+}
+
+function closeResetIfBackdrop(e) {
+  if (e.target === document.getElementById('resetPasswordModal')) closeResetPasswordModal();
+}
 
 let _userProfile = null; // cached profile data
 let _profileFormSnapshot = null;
@@ -2266,13 +2395,18 @@ function renderProfile() {
     const slug = p.producer_name ? portfolioSlugFromName(p.producer_name) : '';
     const heroLink = slug ? `beatswipe.app/p/${escHtml(slug)}` : '';
     const heroActions = p.producer_name ? `
-          <div class="profile-hero-link">${heroLink}</div>
+          <div class="profile-hero-link-row">
+            <span class="profile-live-badge"><i class="ti ti-circle-filled"></i> Live</span>
+            <span class="profile-hero-link">${heroLink}</span>
+          </div>
           <div class="profile-hero-actions">
-            <button type="button" class="btn-primary" onclick="copyPortfolioLink(event)"><i class="ti ti-link"></i> Copy link</button>
-            <button type="button" class="btn-secondary" onclick="goTo('submitScreen','navSubmit')"><i class="ti ti-link"></i> My Page</button>
-            <button type="button" class="btn-secondary" onclick="previewMyPage()"><i class="ti ti-eye"></i> Preview</button>
+            <button type="button" class="btn-primary profile-hero-btn-main" onclick="copyPortfolioLink(event)"><i class="ti ti-link"></i> Copy bio link</button>
+            <div class="profile-hero-actions-row">
+              <button type="button" class="btn-secondary" onclick="goTo('submitScreen','navSubmit')"><i class="ti ti-layout-grid"></i> My Page</button>
+              <button type="button" class="btn-secondary" onclick="previewMyPage()"><i class="ti ti-eye"></i> Preview</button>
+            </div>
           </div>` : `
-          <div class="profile-hero-hint">Set your producer name below to get your bio link.</div>`;
+          <div class="profile-hero-hint"><i class="ti ti-info-circle"></i> Set your producer name below to unlock your bio link.</div>`;
     wrap.innerHTML = `
       <div class="profile-hero profile-glass">
         <div class="profile-hero-avatar-wrap" onclick="document.getElementById('avatarFileInput').click()">
@@ -2298,7 +2432,7 @@ function renderProfile() {
 
       <div class="profile-tab-content ${activeTab==='profile'?'active':''}" id="ptProfile">
         <div class="profile-section-wrap">
-          <div class="profile-section-title">Identity</div>
+          <div class="profile-section-title">Identity <span class="profile-section-hint">shown on your swipe page</span></div>
           <div class="profile-section profile-glass">
             <div class="field-group">
               <label class="field-label">Producer name</label>
@@ -2343,25 +2477,37 @@ function renderProfile() {
       </div>
 
       <div class="profile-tab-content ${activeTab==='settings'?'active':''}" id="ptSettings">
-        <div class="profile-settings-card profile-stat-card">
-          <div>
-            <div class="profile-stat-label">Favorites</div>
-            <div class="profile-stat-value">${crate.length} beat${crate.length===1?'':'s'} <span class="crate-sync-badge">synced</span></div>
+        <button type="button" class="profile-settings-card profile-stat-card profile-stat-card--clickable" onclick="goTo('crateScreen','navCrate')">
+          <div class="profile-stat-body">
+            <div class="profile-stat-top">
+              <span class="profile-stat-label">Favorites</span>
+              <span class="crate-sync-badge">synced</span>
+            </div>
+            <div class="profile-stat-value">${crate.length} beat${crate.length===1?'':'s'}</div>
           </div>
-          <i class="ti ti-shopping-cart profile-stat-icon"></i>
-        </div>
+          <i class="ti ti-chevron-right profile-stat-chevron"></i>
+        </button>
 
-        <div class="profile-settings-card">
+        <div class="profile-settings-card profile-glass">
           <div class="profile-settings-title"><i class="ti ti-mail"></i> New beats by email</div>
           <div class="profile-settings-desc">Be the first to know when new beats drop.</div>
           <div class="profile-newsletter-row">
             <input type="email" id="nlEmail" value="${escHtml(currentUser.email)}" placeholder="your@email.com">
             <button type="button" onclick="subscribeNewsletter()" id="nlBtn">Subscribe</button>
           </div>
+          <div class="auth-dsgvo-row">
+            <div class="auth-dsgvo-box" onclick="toggleNlDsgvo()" id="nlDsgvoBox">
+              <i class="ti ti-check"></i>
+              <input type="checkbox" id="nlDsgvo" style="display:none">
+            </div>
+            <label class="auth-dsgvo-label" onclick="toggleNlDsgvo()">
+              I agree to receive beat updates by email per the <a onclick="event.stopPropagation();openInfoModal('privacyModal')">Privacy Policy</a>. Unsubscribe anytime via email.
+            </label>
+          </div>
           <div class="profile-nl-msg" id="nlMsg"></div>
         </div>
 
-        <div class="profile-settings-card profile-account-section">
+        <div class="profile-settings-card profile-glass profile-account-section">
           <div class="profile-account-label">Account</div>
           <button type="button" class="profile-action-btn" onclick="clearLocalData()">
             <i class="ti ti-trash"></i> Clear local data
@@ -2384,12 +2530,27 @@ function renderProfile() {
     _profileFormSnapshot = null;
     wrap.innerHTML = `
       <div class="profile-guest-scroll">
-        <div class="auth-box">
-          <div class="auth-title">Join BeatSwipe</div>
-          <div class="auth-sub">Sync your Favorites across devices and never lose a beat.</div>
-          <div class="auth-tabs">
-            <button class="auth-tab ${authMode==='login'?'active':''}" onclick="setAuthMode('login')">Sign in</button>
-            <button class="auth-tab ${authMode==='signup'?'active':''}" onclick="setAuthMode('signup')">Sign up</button>
+        <div class="profile-guest-header profile-glass">
+          <div class="profile-guest-icon"><i class="ti ti-user-circle"></i></div>
+          <div class="profile-guest-title">Join BeatSwipe</div>
+          <div class="profile-guest-sub">Sync Favorites across devices and build your swipe page.</div>
+        </div>
+        <div class="auth-box profile-glass">
+          ${authMode === 'forgot' ? `
+          <div class="auth-title">Reset password</div>
+          <div class="auth-sub">Enter your account email. We'll send you a link to choose a new password.</div>
+          <div class="auth-field">
+            <input type="email" id="authEmail" placeholder="your@email.com" style="width:100%">
+          </div>
+          <button class="auth-btn" onclick="handleForgotPassword()" id="authBtn">
+            <i class="ti ti-mail"></i> Send reset link
+          </button>
+          <button type="button" class="auth-back-link" onclick="setAuthMode('login')">← Back to sign in</button>
+          <div class="auth-msg" id="authMsg"></div>
+          ` : `
+          <div class="profile-tabs profile-tabs--auth">
+            <button class="profile-tab ${authMode==='login'?'active':''}" onclick="setAuthMode('login')">Sign in</button>
+            <button class="profile-tab ${authMode==='signup'?'active':''}" onclick="setAuthMode('signup')">Sign up</button>
           </div>
           <div class="auth-field">
             <input type="email" id="authEmail" placeholder="your@email.com" style="width:100%">
@@ -2397,26 +2558,37 @@ function renderProfile() {
           <div class="auth-field">
             <input type="password" id="authPass" placeholder="Password" style="width:100%">
           </div>
+          ${authMode === 'login' ? `<button type="button" class="auth-forgot-link" onclick="setAuthMode('forgot')">Forgot password?</button>` : ''}
           ${authMode === 'signup' ? `
-          <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:4px">
-            <div onclick="toggleDsgvo()" style="width:20px;height:20px;border-radius:6px;border:1.5px solid var(--border-2);background:var(--bg-3);flex-shrink:0;margin-top:1px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s" id="dsgvoBox">
-              <i class="ti ti-check" id="dsgvoCheck" style="font-size:13px;color:#fff;display:none"></i>
+          <div class="auth-dsgvo-row">
+            <div class="auth-dsgvo-box" onclick="toggleDsgvo()" id="dsgvoBox">
+              <i class="ti ti-check" id="dsgvoCheck"></i>
               <input type="checkbox" id="authDsgvo" style="display:none">
             </div>
-            <label style="font-size:12px;color:var(--text-2);line-height:1.5;cursor:pointer" onclick="toggleDsgvo()">
-              I accept the <a onclick="event.stopPropagation();openInfoModal('privacyModal')" style="color:var(--accent-mid);cursor:pointer">Privacy Policy</a> and agree that my email address will be stored.
+            <label class="auth-dsgvo-label" onclick="toggleDsgvo()">
+              I accept the <a onclick="event.stopPropagation();openInfoModal('privacyModal')">Privacy Policy</a> and agree that my email address will be stored.
             </label>
           </div>` : ''}
           <button class="auth-btn" onclick="handleAuth()" id="authBtn">
             <i class="ti ti-arrow-right"></i> ${authMode === 'login' ? 'Sign in' : 'Create account'}
           </button>
           <div class="auth-msg" id="authMsg"></div>
+          `}
         </div>
-        <div class="auth-box profile-guest-newsletter">
+        <div class="auth-box profile-glass profile-guest-newsletter">
           <div class="auth-title"><i class="ti ti-mail"></i> New beats by email</div>
           <div class="auth-sub">Be the first to know when new beats drop.</div>
           <div class="auth-field">
             <input type="email" id="nlEmail" placeholder="your@email.com" style="width:100%">
+          </div>
+          <div class="auth-dsgvo-row">
+            <div class="auth-dsgvo-box" onclick="toggleNlDsgvo()" id="nlDsgvoBox">
+              <i class="ti ti-check"></i>
+              <input type="checkbox" id="nlDsgvo" style="display:none">
+            </div>
+            <label class="auth-dsgvo-label" onclick="toggleNlDsgvo()">
+              I agree to receive beat updates by email per the <a onclick="event.stopPropagation();openInfoModal('privacyModal')">Privacy Policy</a>. Unsubscribe anytime via email.
+            </label>
           </div>
           <button type="button" class="auth-btn" onclick="subscribeNewsletter()" id="nlBtn">Subscribe</button>
           <div class="profile-nl-msg" id="nlMsg"></div>
@@ -2477,6 +2649,56 @@ async function handleAuth() {
   } else if (authMode === 'signup') {
     if (msg) { msg.className = 'auth-msg success'; msg.textContent = 'Check your email to confirm your account!'; }
     if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-arrow-right"></i> Create account'; }
+  }
+}
+
+async function handleForgotPassword() {
+  const email = document.getElementById('authEmail')?.value.trim();
+  const btn = document.getElementById('authBtn');
+  const msg = document.getElementById('authMsg');
+  if (!email || !email.includes('@')) {
+    if (msg) { msg.className = 'auth-msg error'; msg.textContent = 'Please enter a valid email address.'; }
+    return;
+  }
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Sending...'; }
+  const { error } = await supa.auth.resetPasswordForEmail(email, { redirectTo: getAuthRedirectUrl() });
+  if (error) {
+    if (msg) { msg.className = 'auth-msg error'; msg.textContent = error.message; }
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-mail"></i> Send reset link'; }
+    return;
+  }
+  if (msg) { msg.className = 'auth-msg success'; msg.textContent = 'Check your email for the reset link.'; }
+  if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-mail"></i> Send reset link'; }
+}
+
+async function handleResetPassword() {
+  const pass = document.getElementById('resetPassNew')?.value;
+  const confirm = document.getElementById('resetPassConfirm')?.value;
+  const btn = document.getElementById('resetPassBtn');
+  const msg = document.getElementById('resetPassMsg');
+  if (!pass || pass.length < 6) {
+    if (msg) { msg.className = 'auth-msg error'; msg.textContent = 'Password must be at least 6 characters.'; }
+    return;
+  }
+  if (pass !== confirm) {
+    if (msg) { msg.className = 'auth-msg error'; msg.textContent = 'Passwords do not match.'; }
+    return;
+  }
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Updating...'; }
+  const { error } = await supa.auth.updateUser({ password: pass });
+  if (error) {
+    if (msg) { msg.className = 'auth-msg error'; msg.textContent = error.message; }
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-check"></i> Update password'; }
+    return;
+  }
+  _passwordRecoveryActive = false;
+  closeResetPasswordModal();
+  showToast('Password updated!', 'success');
+  if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-check"></i> Update password'; }
+  if (currentUser) {
+    await syncCrateFromDB();
+    await loadUserProfile();
+    renderProfile();
   }
 }
 
@@ -3055,6 +3277,7 @@ function initSheetDragDismiss({ backdrop, sheet, onClose, dismissThreshold = 96,
     { backdropId: 'filterModal', sheetSel: '.modal-sheet', onClose: closeFilterModal },
     { backdropId: 'impressumModal', sheetSel: '.info-modal-sheet', onClose: () => closeInfoModal('impressumModal') },
     { backdropId: 'privacyModal', sheetSel: '.info-modal-sheet', onClose: () => closeInfoModal('privacyModal') },
+    { backdropId: 'resetPasswordModal', sheetSel: '.info-modal-sheet', onClose: closeResetPasswordModal },
     { backdropId: 'onboardBackdrop', sheetSel: '.onboard-sheet', onClose: closeOnboard },
   ];
   sheets.forEach(({ backdropId, sheetSel, onClose }) => {

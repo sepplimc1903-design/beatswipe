@@ -6,10 +6,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=overlays-content">
   <script>
     (function () {
-      if (!/^\/p\/[^/]+\/?$/i.test(location.pathname)) return;
-      document.documentElement.classList.add('portfolio-route-boot');
+      var isPortfolio = /^\/p\/[^/]+\/?$/i.test(location.pathname);
+      var meta = document.createElement('meta');
+      meta.name = 'theme-color';
+      meta.content = isPortfolio ? '#050508' : '#09090b';
+      document.head.appendChild(meta);
+      if (isPortfolio) document.documentElement.classList.add('portfolio-route-boot');
     })();
   </script>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>BeatSwipe – Free Swipe Portfolio for Producers</title>
   <meta name="description" content="Your swipe page for the bio. Fans swipe through your beats, save favorites, and buy directly from you — free for producers.">
   <meta name="robots" content="index, follow">
@@ -503,7 +509,7 @@
     <div class="page-inner page-inner--wide">
     <div class="site-page-head">
       <h1 class="site-page-title">Profile</h1>
-      <p class="site-page-desc">Your producer identity — name, bio, and bio link.</p>
+      <p class="site-page-desc">What fans see on your <strong>/p/</strong> bio link — avatar, name, bio, and socials.</p>
     </div>
     <div class="profile-wrap" id="profileWrap">
       <!-- filled by JS -->
@@ -530,14 +536,24 @@
         <button class="modal-close" onclick="closeInfoModal('impressumModal')"><i class="ti ti-x" style="font-size:14px"></i></button>
       </div>
       <div class="info-modal-body">
-        <h3>Information pursuant to § 5 TMG</h3>
-        <p>BeatSwipe<br>Owner: [Your Name]<br>[Street Address]<br>[ZIP City], Austria</p>
+        <p class="legal-updated">Last updated: June 2026</p>
+        <h3>Information pursuant to § 5 ECG (Austria)</h3>
+        <p>
+          <strong>BeatSwipe</strong><br>
+          Operator: [Your full legal name]<br>
+          [Street and number]<br>
+          [Postal code] [City], Austria
+        </p>
         <h3>Contact</h3>
-        <p>Email: <a href="mailto:hellobeatswipe@gmail.com">hellobeatswipe@gmail.com</a></p>
+        <p>Email: <a href="mailto:hellobeatswipe@gmail.com">hellobeatswipe@gmail.com</a><br>Instagram: <a href="https://instagram.com/beatswipe.app" target="_blank" rel="noopener">@beatswipe.app</a></p>
+        <h3>Business purpose</h3>
+        <p>BeatSwipe is a free web platform for music producers to share swipeable beat portfolios via bio links. Fans can discover beats, save favorites, and purchase directly from producers' external stores.</p>
         <h3>Disclaimer</h3>
-        <p>BeatSwipe is a discovery platform. We are not party to any license agreements between buyers and producers. All transactions take place directly via the linked third-party platforms.</p>
-        <h3>Copyright</h3>
-        <p>Content created by BeatSwipe is subject to copyright. Beats and samples are the property of their respective producers.</p>
+        <p>BeatSwipe is a discovery and showcase platform only. We are not a party to license or purchase agreements between buyers and producers. All transactions take place directly on linked third-party platforms (e.g. BeatStars, Splice). We do not guarantee the availability, quality, or legality of user-uploaded content.</p>
+        <h3>Copyright &amp; content</h3>
+        <p>BeatSwipe branding, design, and code are protected by copyright. Beats, samples, and preview audio remain the property of their respective producers. Producers are responsible for ensuring they have the rights to upload and distribute their content.</p>
+        <h3>Dispute resolution</h3>
+        <p>The European Commission provides a platform for online dispute resolution (ODR): <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener">ec.europa.eu/consumers/odr</a>. We are not obliged to participate in dispute resolution proceedings before a consumer arbitration board.</p>
       </div>
     </div>
   </div>
@@ -551,16 +567,113 @@
         <button class="modal-close" onclick="closeInfoModal('privacyModal')"><i class="ti ti-x" style="font-size:14px"></i></button>
       </div>
       <div class="info-modal-body">
-        <h3>Controller</h3>
-        <p>BeatSwipe — <a href="mailto:hellobeatswipe@gmail.com">hellobeatswipe@gmail.com</a></p>
-        <h3>Data we store</h3>
-        <p>Only if you create an account: your email address and saved beats. This data is stored encrypted in Supabase and never shared with third parties.</p>
-        <h3>Cookies & Tracking</h3>
-        <p>BeatSwipe uses no tracking cookies and no ad networks. We do not analyze personal usage data.</p>
-        <h3>Third parties</h3>
-        <p>When clicking external links (BeatStars, Splice, etc.), their respective privacy policies apply. We have no influence over these platforms.</p>
-        <h3>Your rights</h3>
-        <p>You can request deletion of your account and all stored data at any time by email: <a href="mailto:hellobeatswipe@gmail.com">hellobeatswipe@gmail.com</a></p>
+        <p class="legal-updated">Last updated: June 2026 · GDPR / Austrian DSG</p>
+
+        <h3>1. Controller</h3>
+        <p>
+          BeatSwipe<br>
+          [Your full legal name]<br>
+          [Street and number], [Postal code] [City], Austria<br>
+          Email: <a href="mailto:hellobeatswipe@gmail.com">hellobeatswipe@gmail.com</a>
+        </p>
+
+        <h3>2. Overview</h3>
+        <p>We process personal data only as needed to operate BeatSwipe — account login, producer profiles, saved favorites, beat uploads, and optional newsletter emails. We do not sell your data and do not use advertising or analytics trackers.</p>
+
+        <h3>3. Data we collect</h3>
+        <ul>
+          <li><strong>Account:</strong> email address, password (stored hashed by our auth provider — we never see your plain password)</li>
+          <li><strong>Profile (producers):</strong> producer name, bio, avatar image, social links (Instagram, BeatStars, SoundCloud, YouTube)</li>
+          <li><strong>Favorites:</strong> beats you save to your account</li>
+          <li><strong>Beat uploads:</strong> metadata (title, genre, BPM, buy links) and MP3 preview files you submit</li>
+          <li><strong>Newsletter:</strong> email address, if you opt in separately</li>
+          <li><strong>Technical:</strong> IP address and server logs from our hosting provider (for security and operation)</li>
+          <li><strong>Local storage:</strong> login session, swipe progress, cookie preference, invite flag (stored in your browser)</li>
+        </ul>
+
+        <h3>4. Purposes &amp; legal bases (Art. 6 GDPR)</h3>
+        <ul>
+          <li><strong>Account &amp; favorites:</strong> performance of our service (Art. 6(1)(b))</li>
+          <li><strong>Producer profile &amp; uploads:</strong> performance of our service (Art. 6(1)(b))</li>
+          <li><strong>Newsletter:</strong> your consent (Art. 6(1)(a)) — withdraw anytime</li>
+          <li><strong>Sign-up:</strong> your consent to store your email (Art. 6(1)(a))</li>
+          <li><strong>Security &amp; hosting logs:</strong> legitimate interest in operating a secure service (Art. 6(1)(f))</li>
+        </ul>
+
+        <h3>5. Processors (sub-processors)</h3>
+        <p>We use trusted providers to run BeatSwipe. Each processes data only on our instructions:</p>
+        <ul>
+          <li><strong>Supabase</strong> — authentication, database, file storage (<a href="https://supabase.com/privacy" target="_blank" rel="noopener">Privacy Policy</a>)</li>
+          <li><strong>Vercel</strong> — website hosting (<a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener">Privacy Policy</a>)</li>
+          <li><strong>Airtable</strong> — beat catalogue data (<a href="https://www.airtable.com/privacy" target="_blank" rel="noopener">Privacy Policy</a>)</li>
+          <li><strong>Make.com</strong> — upload &amp; newsletter automation (<a href="https://www.make.com/en/privacy-notice" target="_blank" rel="noopener">Privacy Policy</a>)</li>
+        </ul>
+
+        <h3>6. Third-country transfers</h3>
+        <p>Some processors may store data outside the EU/EEA (e.g. USA). Where this applies, transfers are safeguarded by EU Standard Contractual Clauses or equivalent mechanisms offered by the provider.</p>
+
+        <h3>7. Cookies &amp; local storage</h3>
+        <p>We use <strong>no tracking or advertising cookies</strong>. Essential storage includes:</p>
+        <ul>
+          <li>Supabase login session (localStorage) — required for signed-in features</li>
+          <li>Swipe progress &amp; favorites (localStorage) — improves your experience</li>
+          <li>Cookie banner preference (localStorage)</li>
+        </ul>
+        <p>You can clear local data in your browser or via Profile → Clear local data. Signing out removes your login session.</p>
+
+        <h3>8. Embedded content &amp; external links</h3>
+        <p>Beat previews may load from YouTube or SoundCloud embeds. Clicking buy links (BeatStars, Splice, etc.) takes you to third-party sites with their own privacy policies. We have no control over data collected there.</p>
+
+        <h3>9. Retention</h3>
+        <ul>
+          <li>Account data: until you delete your account</li>
+          <li>Newsletter: until you unsubscribe</li>
+          <li>Server logs: typically up to 30 days (hosting provider default)</li>
+          <li>Pending beat submissions: until approved, rejected, or deleted</li>
+        </ul>
+
+        <h3>10. Your rights</h3>
+        <p>Under GDPR and Austrian DSG you have the right to:</p>
+        <ul>
+          <li>Access your personal data</li>
+          <li>Rectify inaccurate data</li>
+          <li>Delete your data (“right to be forgotten”)</li>
+          <li>Restrict or object to processing</li>
+          <li>Data portability</li>
+          <li>Withdraw consent at any time (without affecting prior processing)</li>
+          <li>Lodge a complaint with the Austrian Data Protection Authority (<a href="https://www.dsb.gv.at" target="_blank" rel="noopener">dsb.gv.at</a>)</li>
+        </ul>
+        <p>Contact us at <a href="mailto:hellobeatswipe@gmail.com">hellobeatswipe@gmail.com</a> for any request. We respond within 30 days.</p>
+
+        <h3>11. Children</h3>
+        <p>BeatSwipe is not directed at children under 16. We do not knowingly collect data from minors.</p>
+
+        <h3>12. Changes</h3>
+        <p>We may update this policy. The “Last updated” date above reflects the current version. Material changes will be communicated on the site.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESET PASSWORD MODAL -->
+  <div class="info-modal-backdrop" id="resetPasswordModal" onclick="closeResetIfBackdrop(event)">
+    <div class="info-modal-sheet" onclick="event.stopPropagation()">
+      <div class="modal-handle"></div>
+      <div class="modal-head">
+        <div class="modal-title">Choose new password</div>
+        <button class="modal-close" onclick="closeResetPasswordModal()"><i class="ti ti-x" style="font-size:14px"></i></button>
+      </div>
+      <div class="info-modal-body info-modal-body--auth">
+        <p>Enter a new password for your account.</p>
+        <div class="auth-field">
+          <input type="password" id="resetPassNew" placeholder="New password" style="width:100%" autocomplete="new-password">
+        </div>
+        <div class="auth-field">
+          <input type="password" id="resetPassConfirm" placeholder="Confirm password" style="width:100%" autocomplete="new-password">
+        </div>
+        <button type="button" class="auth-btn" id="resetPassBtn" onclick="handleResetPassword()">
+          <i class="ti ti-check"></i> Update password
+        </button>
+        <div class="auth-msg" id="resetPassMsg"></div>
       </div>
     </div>
   </div>
@@ -806,6 +919,7 @@
         <button type="button" class="btn-secondary" onclick="closeBeatEditModal()">Cancel</button>
         <button type="button" class="submit-btn" id="beatEditSaveBtn" onclick="saveBeatEdit()"><i class="ti ti-check"></i> Save</button>
       </div>
+      <button type="button" class="beat-edit-delete" onclick="deleteMyBeatFromModal()"><i class="ti ti-trash"></i> Remove from portfolio</button>
     </div>
   </div>
 
@@ -920,6 +1034,7 @@ if (document.readyState === 'loading') {
 }
 
 initApp().then(() => {
+  if (_authRecoveryFromUrl && !_passwordRecoveryActive) resolveAuthCallbackFromUrl();
   initOnboard();
   initCookie();
   if (isDesktop() && !_portfolioMode) {
@@ -939,17 +1054,16 @@ initApp().then(() => {
 function toggleDsgvo() {
   const cb = document.getElementById('authDsgvo');
   const box = document.getElementById('dsgvoBox');
-  const check = document.getElementById('dsgvoCheck');
-  if (!cb || !box || !check) return;
+  if (!cb || !box) return;
   cb.checked = !cb.checked;
-  if (cb.checked) {
-    box.style.background = 'var(--accent)';
-    box.style.borderColor = 'var(--accent)';
-    check.style.display = 'block';
-  } else {
-    box.style.background = 'var(--bg-3)';
-    box.style.borderColor = 'var(--border-2)';
-    check.style.display = 'none';
-  }
+  box.classList.toggle('checked', cb.checked);
+}
+
+function toggleNlDsgvo() {
+  const cb = document.getElementById('nlDsgvo');
+  const box = document.getElementById('nlDsgvoBox');
+  if (!cb || !box) return;
+  cb.checked = !cb.checked;
+  box.classList.toggle('checked', cb.checked);
 }
 </script>

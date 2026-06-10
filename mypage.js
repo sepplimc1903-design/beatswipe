@@ -733,6 +733,7 @@ async function refreshMyPendingBeats(opts) {
 }
 
 function rerenderMyPageIfActive() {
+  if (_myPageDrag || _myPagePointer) return;
   const add = document.getElementById('myPageAddBeat');
   if (add && add.style.display !== 'none') return;
   if (!document.getElementById('submitScreen')?.classList.contains('active')) return;
@@ -742,7 +743,6 @@ function rerenderMyPageIfActive() {
     main.innerHTML = renderMyPageOnboarding();
   } else {
     main.innerHTML = renderMyPageDashboard();
-    initMyPageBeatDrag();
   }
 }
 
@@ -844,7 +844,17 @@ function parseKeyValue(keyStr) {
   return keyStr;
 }
 
+function formatMyBeatMeta(beat) {
+  const parts = [];
+  const bpm = parseBpmValue(beat.bpm);
+  if (bpm) parts.push(bpm + ' BPM');
+  if (beat.genre) parts.push(beat.genre);
+  if (beat.type) parts.push(beat.type);
+  return parts.join(' · ');
+}
+
 let _editingBeatId = null;
+let _myPageBeatDragging = false;
 
 function openBeatEditModal(beatId) {
   const beat = findMyBeatById(beatId);
@@ -930,12 +940,18 @@ async function deleteMyBeat(beatId) {
     await manageBeatRequest('delete', beatId);
     const nextOrder = getStoredBeatOrderIds().filter(id => id !== beatId);
     await persistBeatOrder(nextOrder);
+    closeBeatEditModal();
     showToast('Beat removed.', 'success');
     await loadBeats();
     renderMyPage();
   } catch (e) {
     showToast(e.message || 'Could not remove beat.', 'error', 3600);
   }
+}
+
+function deleteMyBeatFromModal() {
+  if (!_editingBeatId) return;
+  void deleteMyBeat(_editingBeatId);
 }
 
 async function applyMyBeatOrder(ids) {
@@ -954,43 +970,189 @@ function moveMyBeat(beatId, direction) {
   void applyMyBeatOrder(ids);
 }
 
-function initMyPageBeatDrag() {
-  const list = document.querySelector('.my-page-beat-list--sortable');
-  if (!list || list._dragInit) return;
-  list._dragInit = true;
-  let dragId = null;
+const MY_PAGE_DRAG_THRESHOLD = 8;
+let _myPagePointer = null;
+let _myPageDrag = null;
+let _myPageTouchGesture = false;
 
-  list.querySelectorAll('.my-page-beat-row--live').forEach(row => {
-    row.addEventListener('dragstart', e => {
-      dragId = row.dataset.beatId;
-      row.classList.add('my-page-beat-row--dragging');
-      e.dataTransfer.effectAllowed = 'move';
-    });
-    row.addEventListener('dragend', () => {
-      dragId = null;
-      row.classList.remove('my-page-beat-row--dragging');
-      list.querySelectorAll('.my-page-beat-row--drag-over').forEach(el => el.classList.remove('my-page-beat-row--drag-over'));
-    });
-    row.addEventListener('dragover', e => {
-      e.preventDefault();
-      if (!dragId || row.dataset.beatId === dragId) return;
-      row.classList.add('my-page-beat-row--drag-over');
-    });
-    row.addEventListener('dragleave', () => row.classList.remove('my-page-beat-row--drag-over'));
-    row.addEventListener('drop', e => {
-      e.preventDefault();
-      row.classList.remove('my-page-beat-row--drag-over');
-      const targetId = row.dataset.beatId;
-      if (!dragId || !targetId || dragId === targetId) return;
-      const live = getMyLiveBeats();
-      const ids = live.map(b => b.id);
-      const from = ids.indexOf(dragId);
-      const to = ids.indexOf(targetId);
-      if (from < 0 || to < 0) return;
-      ids.splice(from, 1);
-      ids.splice(to, 0, dragId);
-      void applyMyBeatOrder(ids);
-    });
+function myPageSortableFromTarget(target) {
+  const row = target?.closest?.('.my-page-beat-row--sortable');
+  if (!row) return null;
+  const list = row.closest('.my-page-beat-list--sortable');
+  if (!list) return null;
+  return { row, list };
+}
+
+function myPageRowAtY(list, clientY) {
+  for (const row of list.querySelectorAll('.my-page-beat-row--live')) {
+    const r = row.getBoundingClientRect();
+    if (clientY >= r.top && clientY <= r.bottom) return row;
+  }
+  return null;
+}
+
+function myPageSwapRows(list, dragRow, overRow) {
+  if (!dragRow || !overRow || dragRow === overRow) return;
+  const rows = [...list.querySelectorAll('.my-page-beat-row--live')];
+  const dragIdx = rows.indexOf(dragRow);
+  const overIdx = rows.indexOf(overRow);
+  if (dragIdx < 0 || overIdx < 0 || dragIdx === overIdx) return;
+  if (dragIdx < overIdx) overRow.after(dragRow);
+  else overRow.before(dragRow);
+}
+
+function myPageBeatOrderFromList(list) {
+  return [...list.querySelectorAll('.my-page-beat-row--live')].map(r => r.dataset.beatId).filter(Boolean);
+}
+
+function startMyPageBeatDrag(state) {
+  const { list, row, gid } = state;
+  _myPageDrag = {
+    list,
+    dragId: row.dataset.beatId,
+    row,
+    gid,
+    lastOverId: null
+  };
+  _myPagePointer = null;
+  _myPageBeatDragging = true;
+  row.classList.add('my-page-beat-row--dragging');
+  list.classList.add('my-page-beat-list--dragging');
+  const scroll = list.closest('.submit-scroll');
+  if (scroll) scroll.style.overflow = 'hidden';
+}
+
+function myPageDragAtY(clientY) {
+  if (!_myPageDrag) return;
+  const { list, dragId, row } = _myPageDrag;
+  const over = myPageRowAtY(list, clientY);
+  list.querySelectorAll('.my-page-beat-row--drag-over').forEach(el => el.classList.remove('my-page-beat-row--drag-over'));
+  const overId = over?.dataset?.beatId;
+  if (over && overId && overId !== dragId) {
+    over.classList.add('my-page-beat-row--drag-over');
+    if (_myPageDrag.lastOverId !== overId) {
+      myPageSwapRows(list, row, over);
+      _myPageDrag.lastOverId = overId;
+    }
+  } else {
+    _myPageDrag.lastOverId = null;
+  }
+}
+
+function endMyPageBeatDrag(gid) {
+  if (!_myPageDrag || _myPageDrag.gid !== gid) return;
+  const { list, row } = _myPageDrag;
+  row.classList.remove('my-page-beat-row--dragging');
+  list.classList.remove('my-page-beat-list--dragging');
+  list.querySelectorAll('.my-page-beat-row--drag-over').forEach(el => el.classList.remove('my-page-beat-row--drag-over'));
+  const scroll = list.closest('.submit-scroll');
+  if (scroll) scroll.style.overflow = '';
+  const ids = myPageBeatOrderFromList(list);
+  _myPageDrag = null;
+  setTimeout(() => { _myPageBeatDragging = false; }, 150);
+  if (ids.length) void persistBeatOrder(ids);
+}
+
+function myPageBeatGestureDown(row, list, gid, x, y, e) {
+  if (_myPageDrag) return;
+  if (e?.cancelable) e.preventDefault();
+  _myPagePointer = { row, list, gid, startX: x, startY: y };
+}
+
+function myPageBeatGestureMove(gid, x, y, e) {
+  if (_myPageDrag) {
+    if (_myPageDrag.gid !== gid) return;
+    if (e?.cancelable) e.preventDefault();
+    myPageDragAtY(y);
+    return;
+  }
+  if (!_myPagePointer || _myPagePointer.gid !== gid) return;
+  const moved = Math.hypot(x - _myPagePointer.startX, y - _myPagePointer.startY);
+  if (moved < MY_PAGE_DRAG_THRESHOLD) return;
+  if (e?.cancelable) e.preventDefault();
+  startMyPageBeatDrag(_myPagePointer);
+  myPageDragAtY(y);
+}
+
+function myPageBeatGestureUp(gid, x, y) {
+  if (_myPageDrag && _myPageDrag.gid === gid) {
+    endMyPageBeatDrag(gid);
+    return;
+  }
+  if (!_myPagePointer || _myPagePointer.gid !== gid) return;
+  const { row, startX, startY } = _myPagePointer;
+  const beatId = row.dataset.beatId;
+  const moved = Math.hypot(x - startX, y - startY);
+  _myPagePointer = null;
+  if (moved < MY_PAGE_DRAG_THRESHOLD && beatId) openBeatEditModal(beatId);
+}
+
+function myPageBeatGestureCancel(gid) {
+  if (_myPageDrag && _myPageDrag.gid === gid) endMyPageBeatDrag(gid);
+  if (_myPagePointer && _myPagePointer.gid === gid) _myPagePointer = null;
+}
+
+function ensureMyPageBeatDrag() {
+  if (window._myPageBeatDragReady) return;
+  window._myPageBeatDragReady = true;
+
+  document.addEventListener('touchstart', e => {
+    if (e.touches.length !== 1) return;
+    const hit = myPageSortableFromTarget(e.target);
+    if (!hit) return;
+    _myPageTouchGesture = true;
+    const t = e.touches[0];
+    myPageBeatGestureDown(hit.row, hit.list, 'touch-' + t.identifier, t.clientX, t.clientY, e);
+  }, { capture: true, passive: false });
+
+  document.addEventListener('touchmove', e => {
+    if (!_myPagePointer && !_myPageDrag) return;
+    const activeGid = _myPageDrag?.gid || _myPagePointer?.gid;
+    if (!activeGid || !activeGid.startsWith('touch-')) return;
+    const touchId = Number(activeGid.slice(6));
+    const t = [...e.touches].find(touch => touch.identifier === touchId);
+    if (!t) return;
+    myPageBeatGestureMove(activeGid, t.clientX, t.clientY, e);
+  }, { passive: false });
+
+  document.addEventListener('touchend', e => {
+    for (const t of e.changedTouches) {
+      const gid = 'touch-' + t.identifier;
+      if ((_myPagePointer && _myPagePointer.gid === gid) || (_myPageDrag && _myPageDrag.gid === gid)) {
+        myPageBeatGestureUp(gid, t.clientX, t.clientY);
+      }
+    }
+    _myPageTouchGesture = false;
+  });
+
+  document.addEventListener('touchcancel', e => {
+    const t = e.changedTouches[0];
+    if (t) myPageBeatGestureCancel('touch-' + t.identifier);
+    _myPageTouchGesture = false;
+  });
+
+  document.addEventListener('pointerdown', e => {
+    if (_myPageTouchGesture || e.pointerType === 'touch') return;
+    if (_myPageDrag) return;
+    const hit = myPageSortableFromTarget(e.target);
+    if (!hit) return;
+    if (e.button !== 0) return;
+    myPageBeatGestureDown(hit.row, hit.list, 'ptr-' + e.pointerId, e.clientX, e.clientY, null);
+  }, true);
+
+  document.addEventListener('pointermove', e => {
+    if (_myPageTouchGesture || e.pointerType === 'touch') return;
+    myPageBeatGestureMove('ptr-' + e.pointerId, e.clientX, e.clientY, e);
+  }, { passive: false });
+
+  document.addEventListener('pointerup', e => {
+    if (_myPageTouchGesture || e.pointerType === 'touch') return;
+    myPageBeatGestureUp('ptr-' + e.pointerId, e.clientX, e.clientY);
+  });
+
+  document.addEventListener('pointercancel', e => {
+    if (_myPageTouchGesture || e.pointerType === 'touch') return;
+    myPageBeatGestureCancel('ptr-' + e.pointerId);
   });
 }
 
@@ -1116,6 +1278,7 @@ function completeMyPageOnboarding() {
 
 function renderMyPageBeatRows(opts) {
   const sortable = !opts || opts.sortable !== false;
+  const stagger = !!(opts && opts.stagger);
   const live = getMyLiveBeats();
   if (sortable && live.length) syncBeatOrderWithLive(live);
   const pending = getMyPendingBeats();
@@ -1123,47 +1286,73 @@ function renderMyPageBeatRows(opts) {
   if (!live.length && !pendingFiltered.length) {
     return `<div class="my-page-empty"><i class="ti ti-music-off" style="font-size:28px;display:block;margin-bottom:8px;opacity:0.5"></i>No beats yet.<br>Tap below to add your first one.</div>`;
   }
-  const listClass = sortable && live.length ? 'my-page-beat-list my-page-beat-list--sortable' : 'my-page-beat-list';
-  let html = `<div class="${listClass}">`;
-  live.forEach((b, i) => {
-    const idEsc = escHtml(b.id);
-    html += `<div class="my-page-beat-row my-page-beat-row--live" data-beat-id="${idEsc}"${sortable ? ' draggable="true"' : ''}>
-      ${sortable ? `<button type="button" class="my-page-beat-grip" aria-label="Drag to reorder" tabindex="-1"><i class="ti ti-grip-vertical"></i></button>` : ''}
-      <div class="my-page-beat-icon"><i class="ti ti-music"></i></div>
-      <div class="my-page-beat-title">${escHtml(b.title)}</div>
-      ${sortable ? `<div class="my-page-beat-actions">
-        <button type="button" class="my-page-beat-act" onclick="moveMyBeat('${idEsc}', -1)" aria-label="Move up"${i === 0 ? ' disabled' : ''}><i class="ti ti-chevron-up"></i></button>
-        <button type="button" class="my-page-beat-act" onclick="moveMyBeat('${idEsc}', 1)" aria-label="Move down"${i === live.length - 1 ? ' disabled' : ''}><i class="ti ti-chevron-down"></i></button>
-        <button type="button" class="my-page-beat-act" onclick="openBeatEditModal('${idEsc}')" aria-label="Edit beat"><i class="ti ti-pencil"></i></button>
-        <button type="button" class="my-page-beat-act my-page-beat-act--danger" onclick="deleteMyBeat('${idEsc}')" aria-label="Remove beat"><i class="ti ti-trash"></i></button>
-      </div>` : '<span class="my-page-status my-page-status--live">Live</span>'}
-    </div>`;
-  });
-  pendingFiltered.forEach(p => {
-    html += `<div class="my-page-beat-row">
-      <div class="my-page-beat-icon"><i class="ti ti-clock"></i></div>
-      <div class="my-page-beat-title">${escHtml(p.title)}</div>
-      <span class="my-page-status my-page-status--pending">Pending</span>
-    </div>`;
-  });
+
+  let html = '<div class="my-page-beat-groups">';
+
+  if (live.length) {
+    html += `<div class="my-page-beat-group">
+      <div class="my-page-beat-group-head">
+        <span class="my-page-beat-group-label">Live <span class="my-page-beat-group-count">${live.length}</span></span>
+        ${sortable ? '<span class="my-page-beat-group-hint">Press & drag to reorder</span>' : ''}
+      </div>
+      <div class="my-page-beat-group-card${sortable ? ' my-page-beat-list--sortable' : ''}">`;
+    live.forEach((b, idx) => {
+      const idEsc = escHtml(b.id);
+      const meta = formatMyBeatMeta(b);
+      const sortCls = sortable ? ' my-page-beat-row--sortable' : '';
+      const enterCls = stagger ? ' list-enter' : '';
+      const staggerStyle = stagger ? ` style="--i:${Math.min(idx, 7)}"` : '';
+      const keyAttrs = sortable
+        ? ` tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openBeatEditModal('${idEsc}')}"`
+        : '';
+      html += `<div class="my-page-beat-row my-page-beat-row--live${sortCls}${enterCls}" data-beat-id="${idEsc}"${staggerStyle}${keyAttrs}>
+        ${sortable ? '' : '<span class="my-page-beat-dot my-page-beat-dot--live" aria-hidden="true"></span>'}
+        <div class="my-page-beat-body">
+          <div class="my-page-beat-title">${escHtml(b.title)}</div>
+          <div class="my-page-beat-meta">${meta ? escHtml(meta) : (sortable ? 'Tap to edit · drag to reorder' : 'Live on your page')}</div>
+        </div>
+        ${sortable
+          ? '<i class="ti ti-chevron-right my-page-beat-chev" aria-hidden="true"></i>'
+          : '<span class="my-page-status my-page-status--live">Live</span>'}
+      </div>`;
+    });
+    html += '</div></div>';
+  }
+
+  if (pendingFiltered.length) {
+    html += `<div class="my-page-beat-group">
+      <div class="my-page-beat-group-head">
+        <span class="my-page-beat-group-label">Pending <span class="my-page-beat-group-count">${pendingFiltered.length}</span></span>
+        <span class="my-page-beat-group-hint">Under review</span>
+      </div>
+      <div class="my-page-beat-group-card">`;
+    pendingFiltered.forEach((p, idx) => {
+      const enterCls = stagger ? ' list-enter' : '';
+      const staggerStyle = stagger ? ` style="--i:${Math.min(live.length + idx, 7)}"` : '';
+      html += `<div class="my-page-beat-row my-page-beat-row--pending${enterCls}"${staggerStyle}>
+        <span class="my-page-beat-dot my-page-beat-dot--pending" aria-hidden="true"></span>
+        <div class="my-page-beat-body">
+          <div class="my-page-beat-title">${escHtml(p.title)}</div>
+          <div class="my-page-beat-meta">Usually under 48h</div>
+        </div>
+        <span class="my-page-status my-page-status--pending">Pending</span>
+      </div>`;
+    });
+    html += '</div></div>';
+  }
+
   html += '</div>';
   return html;
 }
 
-function renderMyPageDashboard() {
-  const name = _userProfile?.producer_name?.trim() || 'Producer';
+function renderMyPageDashboard(stagger) {
   const url = getMyPageUrl();
   const liveCount = getMyLiveBeats().length;
-  const pendingCount = getMyPendingBeats().filter(p => !getMyLiveBeats().find(b => b.title === p.title)).length;
 
   return `
     <div class="site-page-head">
       <h1 class="site-page-title">My Page</h1>
       <p class="site-page-desc">Manage your swipe portfolio and bio link.</p>
-    </div>
-    <div class="submit-header" style="padding-top:0">
-      <div class="submit-title">${escHtml(name)}</div>
-      <div class="submit-sub">${liveCount} live${pendingCount ? ` · ${pendingCount} pending review` : ''}</div>
     </div>
     <div class="submit-scroll">
       ${url ? `
@@ -1176,14 +1365,13 @@ function renderMyPageDashboard() {
         </div>
       </div>` : ''}
       ${liveCount < 3 ? `<div class="my-page-hint"><strong>Tip:</strong> Add at least 3 beats before sharing your link in your bio.</div>` : ''}
-      <div style="font-size:12px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.4px;font-weight:600;margin-bottom:8px">Your beats${liveCount ? ' · drag or use arrows to reorder' : ''}</div>
-      ${renderMyPageBeatRows()}
+      ${renderMyPageBeatRows({ stagger })}
       <button type="button" class="submit-btn" onclick="showMyPageAddBeat()"><i class="ti ti-plus"></i> Add new beat</button>
       <div style="font-size:12px;color:var(--text-3);text-align:center;margin-top:14px;line-height:1.5">Edit avatar & bio in <a onclick="goTo('profileScreen','navProfile')" style="color:var(--accent-mid);cursor:pointer">Profile</a></div>
     </div>`;
 }
 
-function renderMyPageOnboarding() {
+function renderMyPageOnboarding(stagger) {
   const name = _userProfile?.producer_name?.trim() || '';
   const bio = _userProfile?.bio?.trim() || '';
   const slug = name ? portfolioSlugFromName(name) : 'yourname';
@@ -1228,7 +1416,7 @@ function renderMyPageOnboarding() {
         <div class="submit-title" style="margin-bottom:6px">Add your beats</div>
         <div class="my-page-hint"><strong>Min. 3 beats</strong> recommended before you share your link in your bio. Upload short previews only (~30–60s for MP3) — not full masters. Each beat is reviewed within 48h.</div>
         <div style="font-size:13px;color:var(--text-2);margin-bottom:12px">${total} beat${total === 1 ? '' : 's'} added${live ? ` (${live} live)` : ''}</div>
-        ${renderMyPageBeatRows({ sortable: false })}
+        ${renderMyPageBeatRows({ sortable: false, stagger })}
         <button type="button" class="submit-btn" onclick="showMyPageAddBeat()" style="margin-bottom:10px"><i class="ti ti-plus"></i> Add beat</button>
         <button type="button" class="btn-secondary" onclick="finishMyPageOnboarding()" style="width:100%;justify-content:center;padding:13px;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;border:0.5px solid var(--border-2);background:none;color:var(--text)">Finish setup</button>
       </div>`;
@@ -1285,14 +1473,16 @@ async function renderMyPage() {
     return;
   }
 
+  const stagger = typeof window.takeListEnter === 'function' && window.takeListEnter();
+
   if (!isMyPageOnboarded()) {
     if (_userProfile?.producer_name?.trim() && _myPageObStep === 0) _myPageObStep = 1;
-    main.innerHTML = renderMyPageOnboarding();
+    main.innerHTML = renderMyPageOnboarding(stagger);
   } else {
     _myPageObStep = 0;
-    main.innerHTML = renderMyPageDashboard();
-    initMyPageBeatDrag();
+    main.innerHTML = renderMyPageDashboard(stagger);
   }
 
+  ensureMyPageBeatDrag();
   void refreshMyPendingBeats().then(() => rerenderMyPageIfActive());
 }
