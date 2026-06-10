@@ -10,6 +10,7 @@ let _mp3QueueId = 0;
 
 const MAX_FILE_MB = 15;
 const MAX_MP3_QUEUE = 10;
+const MP3_PREVIEW_HINT = 'Preview only — short clip (~30–60s), not the full beat.';
 const ALLOWED_MIME = 'audio/mpeg';
 const SUPA_BUCKET  = 'beats';
 
@@ -64,17 +65,19 @@ function updatePreviewLabel() {
     if (titleGroup) titleGroup.style.display = 'block';
     label.textContent = 'YouTube Link *';
     input.placeholder = 'https://youtube.com/watch?v=...';
-    hint.textContent = 'Preview link — YouTube or SoundCloud URL fans can hear';
+    hint.textContent = 'Preview link only — fans hear a snippet, not the full beat';
     clearMp3Queue();
   } else if (type === 'SoundCloud') {
     urlGroup.style.display = 'block';
     if (titleGroup) titleGroup.style.display = 'block';
     label.textContent = 'SoundCloud Link *';
     input.placeholder = 'https://soundcloud.com/...';
-    hint.textContent = 'Preview link — direct SoundCloud track URL';
+    hint.textContent = 'Preview link only — fans hear a snippet, not the full beat';
     clearMp3Queue();
   } else if (type === 'MP3') {
     mp3Group.style.display = 'block';
+    const mp3Hint = document.getElementById('preview-mp3-hint');
+    if (mp3Hint) mp3Hint.textContent = MP3_PREVIEW_HINT;
     const loginHint  = document.getElementById('uploadLoginHint');
     const loggedInEl = document.getElementById('uploadLoggedIn');
     if (currentUser) {
@@ -185,7 +188,7 @@ function renderUploadQueue() {
             <label class="field-label">Buy link <span style="color:var(--text-3);font-weight:400">(optional)</span></label>
             <input type="url" value="${escHtml(item.buyLink || '')}" placeholder="https://beatstars.com/beat/..."
               oninput="updateQueueField('${item.id}', 'buyLink', this.value)">
-            <div style="font-size:11px;color:var(--text-3);margin-top:4px">Direct link to this beat on BeatStars, Splice, etc.</div>
+            <div style="font-size:11px;color:var(--text-3);margin-top:4px">Where fans buy the full beat — BeatStars, Splice, etc.</div>
           </div>
           <button type="button" class="upload-queue-remove" onclick="removeQueueItem('${item.id}')"><i class="ti ti-trash"></i> Remove</button>
         </div>
@@ -1218,12 +1221,12 @@ function renderMyPageOnboarding() {
     return `
       <div class="site-page-head">
         <h1 class="site-page-title">Get your free page</h1>
-        <p class="site-page-desc">Add beats to your portfolio.</p>
+        <p class="site-page-desc">Add preview clips to your portfolio — not full masters.</p>
       </div>
       <div class="submit-scroll">
         <span class="my-page-step-pill">Step 2 of 3</span>
         <div class="submit-title" style="margin-bottom:6px">Add your beats</div>
-        <div class="my-page-hint"><strong>Min. 3 beats</strong> recommended before you share your link in your bio. Each beat is reviewed within 48h.</div>
+        <div class="my-page-hint"><strong>Min. 3 beats</strong> recommended before you share your link in your bio. Upload short previews only (~30–60s for MP3) — not full masters. Each beat is reviewed within 48h.</div>
         <div style="font-size:13px;color:var(--text-2);margin-bottom:12px">${total} beat${total === 1 ? '' : 's'} added${live ? ` (${live} live)` : ''}</div>
         ${renderMyPageBeatRows({ sortable: false })}
         <button type="button" class="submit-btn" onclick="showMyPageAddBeat()" style="margin-bottom:10px"><i class="ti ti-plus"></i> Add beat</button>
@@ -1274,7 +1277,7 @@ async function renderMyPage() {
       <div class="my-page-login">
         <i class="ti ti-link" style="font-size:48px;color:var(--accent-mid)"></i>
         <div style="font-size:18px;font-weight:700">Sign in to get your page</div>
-        <div style="font-size:14px;color:var(--text-2);line-height:1.6;max-width:300px">Create a free account, add your beats, and share one link in your Instagram bio.</div>
+        <div style="font-size:14px;color:var(--text-2);line-height:1.6;max-width:300px">Create a free account, add preview clips (~30–60s), and share one link in your Instagram bio.</div>
         <button onclick="goTo('profileScreen','navProfile')" style="padding:13px 28px;border-radius:14px;background:var(--accent);border:none;color:#fff;font-size:15px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px">
           <i class="ti ti-user"></i> Sign in / Create account
         </button>

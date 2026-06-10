@@ -296,7 +296,7 @@
       display: flex; align-items: center; justify-content: space-between;
       padding: var(--py) var(--px) 0; order: -1;
     }
-    .discover-toolbar .cat-row { order: 0; }
+    .discover-toolbar .cat-segment { order: 0; }
     .discover-tools { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
     .discover-filter-btn {
       width: 34px; height: 34px; border-radius: var(--radius-btn);
@@ -306,26 +306,66 @@
     }
     .discover-filter-btn:hover { border-color: var(--accent-mid); color: var(--accent-mid); }
     .discover-filter-btn i { font-size: 16px; }
-    /* Discover tabs — 4 equal columns so nothing gets clipped */
+    /* Discover — iOS-style segmented control */
     #discoverScreen .discover-toolbar {
       flex-direction: column;
       align-items: stretch;
       gap: 10px;
     }
+    .cat-segment {
+      position: relative;
+      width: 100%;
+      padding: 3px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.05);
+      border: 0.5px solid var(--border-2);
+      backdrop-filter: blur(14px) saturate(1.25);
+      -webkit-backdrop-filter: blur(14px) saturate(1.25);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+    .cat-segment-indicator {
+      position: absolute;
+      top: 0;
+      left: 0;
+      border-radius: 9px;
+      background: var(--accent);
+      box-shadow: 0 2px 10px rgba(124,58,237,0.38), inset 0 1px 0 rgba(255,255,255,0.14);
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0;
+      transition: transform 0.34s cubic-bezier(0.22,1,0.36,1), width 0.34s cubic-bezier(0.22,1,0.36,1), opacity 0.18s ease;
+      will-change: transform, width;
+    }
+    .cat-segment-indicator.visible { opacity: 1; }
     #discoverScreen .discover-toolbar .cat-row {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 5px;
+      gap: 0;
       width: 100%;
       overflow: visible;
       padding: 0;
+      position: relative;
+      z-index: 1;
     }
     #discoverScreen .cat-pill {
-      padding: 7px 4px;
+      padding: 8px 4px;
       font-size: 12px;
+      font-weight: 500;
       text-align: center;
       min-width: 0;
+      border: none;
+      background: none;
+      border-radius: 9px;
+      color: var(--text-2);
+      transition: color 0.28s cubic-bezier(0.22,1,0.36,1), transform 0.2s ease;
     }
+    #discoverScreen .cat-pill.active {
+      background: none;
+      border: none;
+      color: #fff;
+      font-weight: 600;
+    }
+    #discoverScreen .cat-pill:hover:not(.active) { color: var(--text); }
     #discoverScreen .discover-tools { align-self: flex-end; }
     .discover-search-wrap { position: relative; width: 100%; }
     .discover-search-input {
@@ -403,10 +443,9 @@
         width: 100%;
         align-items: center;
       }
-      #discoverScreen .discover-toolbar .cat-row {
+      #discoverScreen .discover-toolbar .cat-segment {
         grid-column: 1; grid-row: 1;
-        width: 100%; padding: 0;
-        justify-content: stretch;
+        width: 100%;
       }
       #discoverScreen .discover-search-wrap {
         grid-column: 1 / -1; grid-row: 2;
@@ -922,12 +961,21 @@
       .track-name { font-weight: 600; letter-spacing: -0.03em; }
       .card-head { margin-bottom: 18px; }
       .tag-row { margin-bottom: 18px; gap: 5px; }
-      .cat-pill.active {
-        background: rgba(124,58,237,0.18);
-        border-color: rgba(167,139,250,0.35);
+      .cat-segment {
+        background: rgba(255,255,255,0.04);
+        border-color: rgba(255,255,255,0.08);
+      }
+      .cat-segment-indicator {
+        background: rgba(124,58,237,0.24);
+        border: 0.5px solid rgba(167,139,250,0.32);
+        box-shadow: 0 1px 12px rgba(124,58,237,0.14), inset 0 1px 0 rgba(255,255,255,0.08);
+      }
+      #discoverScreen .cat-pill.active {
+        background: none;
+        border: none;
         color: var(--accent-mid);
       }
-      .cat-pill:hover:not(.active) { background: rgba(255,255,255,0.05); color: var(--text); }
+      #discoverScreen .cat-pill:hover:not(.active) { color: var(--text); background: none; }
       .discover-toolbar { padding-bottom: 16px; gap: 14px; }
       .page-inner--swipe .action-row { padding: 16px 0 28px; gap: 28px; }
       body.discover-active .desktop-crate { background: rgba(255,255,255,0.02); }
@@ -1179,9 +1227,8 @@
         padding-top: var(--py);
         padding-bottom: 8px;
       }
-      #discoverScreen .discover-toolbar .cat-row {
-        justify-content: stretch;
-        padding-inline: 0;
+      #discoverScreen .discover-toolbar .cat-segment {
+        width: 100%;
       }
       /* Let cards fly into side margins — no hard clip edge on swipe */
       body.discover-active .shell,
@@ -1561,7 +1608,7 @@
     .nav-tab.active i { color: var(--accent-mid); }
     .nav-dot { display: none; }
     @media (prefers-reduced-motion: reduce) {
-      .nav-indicator, .dtb-nav-indicator { transition: none !important; }
+      .nav-indicator, .dtb-nav-indicator, .cat-segment-indicator { transition: none !important; }
       .shell > .screen { transition: none !important; }
       .shell > .screen.screen-entering,
       .shell > .screen.screen-fade-out { opacity: 1; }
@@ -1704,10 +1751,8 @@
     .cta-label { font-size: 12px; color: var(--text-3); text-align: center; }
 
     /* DISCOVER */
-    .cat-row { display: flex; gap: 6px; padding: 0 var(--px) 12px; overflow-x: auto; flex-shrink: 0; scrollbar-width: none; }
-    .cat-row::-webkit-scrollbar { display: none; }
-    .cat-pill { padding: 7px 16px; border-radius: 100px; font-size: 13px; font-weight: 500; border: 0.5px solid var(--border-2); background: none; color: var(--text-2); cursor: pointer; white-space: nowrap; transition: all 0.2s; flex-shrink: 0; }
-    .cat-pill.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .cat-row { display: flex; gap: 0; padding: 0; overflow: visible; flex-shrink: 0; }
+    .cat-pill { padding: 7px 16px; border-radius: 9px; font-size: 13px; font-weight: 500; border: none; background: none; color: var(--text-2); cursor: pointer; white-space: nowrap; flex-shrink: 0; }
     .card-wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 var(--px) 8px; overflow: hidden; min-height: 0; }
     .card-stage { position: relative; width: 100%; display: flex; align-items: center; justify-content: center; }
     .card-glow {
@@ -1734,7 +1779,7 @@
       touch-action: pan-y;
     }
     .beat-card.dragging { transition: none; cursor: grabbing; }
-    .beat-card.spring-snap { transition: none; }
+    .beat-card.spring-snap { transition: none; will-change: transform, opacity; }
     .beat-card.fly-left { transform: translateX(-150%) rotate(-14deg); opacity: 0; pointer-events: none; }
     .beat-card.fly-right { transform: translateX(150%) rotate(14deg); opacity: 0; pointer-events: none; }
     #cardWrap .beat-card.discover-fly-clone {
@@ -1805,8 +1850,53 @@
     .play-btn i { font-size: 18px; color: #fff; margin-left: 2px; }
     .play-btn.playing i { margin-left: 0; }
     .progress-wrap { flex: 1; display: flex; flex-direction: column; gap: 5px; }
-    .progress-bar { height: 3px; background: var(--border-2); border-radius: 100px; cursor: pointer; position: relative; }
-    .progress-fill { height: 100%; background: var(--accent-mid); border-radius: 100px; width: 0%; transition: width 0.25s linear; pointer-events: none; }
+    .progress-bar {
+      position: relative;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      touch-action: none;
+    }
+    .progress-bar::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--border-2);
+      border-radius: 100px;
+    }
+    .progress-fill {
+      position: absolute;
+      left: 0;
+      height: 4px;
+      background: var(--accent-mid);
+      border-radius: 100px;
+      width: 0%;
+      transition: width 0.25s linear;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .progress-bar.scrubbing .progress-fill { transition: none; }
+    .progress-thumb {
+      position: absolute;
+      left: 0%;
+      top: 50%;
+      width: 10px;
+      height: 10px;
+      margin-top: -5px;
+      margin-left: -5px;
+      background: #fff;
+      border-radius: 50%;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.35), 0 0 0 2px var(--accent-mid);
+      pointer-events: none;
+      z-index: 2;
+      opacity: 0.82;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+    .progress-bar:hover .progress-thumb,
+    .progress-bar.scrubbing .progress-thumb { opacity: 1; transform: scale(1.14); }
     .time-row { display: flex; justify-content: space-between; }
     .time-lbl { font-size: 10px; color: var(--text-3); }
     .buy-link { display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: var(--accent-mid); text-decoration: none; flex-shrink: 0; transition: opacity 0.2s; }
@@ -2308,7 +2398,7 @@
       box-sizing: border-box;
     }
     #portfolioCardWrap .portfolio-surface.dragging { transition: none; cursor: grabbing; }
-    #portfolioCardWrap .portfolio-surface.spring-snap { transition: none; }
+    #portfolioCardWrap .portfolio-surface.spring-snap { transition: none; will-change: transform, opacity; }
     @keyframes portfolioCardEnter {
       from { opacity: 0; transform: translateX(18px); }
       to   { opacity: 1; transform: none; }
@@ -2656,7 +2746,11 @@
         display: block;
         height: 100dvh;
         overflow: hidden;
-        --w-portfolio: min(480px, calc(100vw - 48px));
+        --w-portfolio: min(400px, calc(100vw - 48px));
+      }
+      #portfolioCardWrap .yt-wrap {
+        width: 100%;
+        max-height: none;
       }
       body.portfolio-active .desktop-layout {
         position: fixed;
@@ -2843,7 +2937,7 @@
     }
     @media (min-width: 900px) {
       body.portfolio-active {
-        --w-portfolio: 460px;
+        --w-portfolio: 400px;
       }
       /* Laptop — aurora layers carry the motion; static wash only here */
       body.portfolio-active .bg-desktop {
@@ -3182,8 +3276,8 @@
         gap: 8px;
         padding-bottom: 6px;
       }
-      #discoverScreen .discover-toolbar .cat-row {
-        padding: 0 var(--px) 4px;
+      #discoverScreen .discover-toolbar .cat-segment {
+        margin: 0 var(--px) 4px;
       }
       #discoverScreen .card-wrap {
         align-items: center;
@@ -3321,7 +3415,21 @@
     }
     .dc-card.dc-enter { animation: dcCardEnter 0.32s cubic-bezier(0.22,1,0.36,1) forwards; }
     .crate-card.crate-enter { animation: dcCardEnter 0.32s cubic-bezier(0.22,1,0.36,1) forwards; }
-    .modal-handle { width: 36px; height: 4px; border-radius: 2px; background: var(--bg-3); margin: 12px auto 0; }
+    .modal-handle {
+      width: 36px; height: 4px; border-radius: 2px; background: var(--bg-3);
+      margin: 4px auto 0; box-sizing: content-box;
+      padding: 10px 48px 6px; background-clip: content-box;
+      cursor: grab; touch-action: none;
+    }
+    .modal-sheet.sheet-dragging,
+    .info-modal-sheet.sheet-dragging,
+    .onboard-sheet.sheet-dragging {
+      transition: none !important;
+      animation: none !important;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
     .modal-head { padding: 16px var(--px) 12px; display: flex; align-items: center; justify-content: space-between; }
     .modal-title { font-size: 17px; font-weight: 700; }
     .modal-close { background: var(--bg-3); border: none; color: var(--text-2); width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; }
@@ -3625,7 +3733,10 @@
     .onboard-handle {
       width: 36px; height: 4px; border-radius: 2px;
       background: rgba(255,255,255,0.14);
-      margin: 12px auto 0; flex-shrink: 0;
+      margin: 4px auto 0; flex-shrink: 0;
+      box-sizing: content-box;
+      padding: 10px 48px 6px; background-clip: content-box;
+      cursor: grab; touch-action: none;
     }
     .onboard-slides { display: flex; transition: transform 0.4s cubic-bezier(0.22,1,0.36,1); }
     .onboard-slide {

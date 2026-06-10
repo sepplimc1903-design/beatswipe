@@ -215,7 +215,7 @@
           <div class="land-step-num">01</div>
           <div class="land-step-body">
             <div class="land-step-title">Upload your beats</div>
-            <div class="land-step-desc">Add tracks on My Page — preview via YouTube, SoundCloud, or MP3.</div>
+            <div class="land-step-desc">Add short preview clips on My Page — YouTube, SoundCloud, or MP3 (~30–60s). Link your store for the full beat.</div>
           </div>
         </div>
         <div class="land-step reveal-on-scroll reveal-delay-1">
@@ -249,7 +249,7 @@
         </div>
         <div class="faq-item">
           <button class="faq-q" onclick="toggleFaq(this)">How do I get my producer page?<i class="ti ti-plus"></i></button>
-          <div class="faq-a">Sign up free, add your beats on My Page, and share beatswipe.app/p/yourname in your bio once they're approved — usually within 48h. Preview via YouTube, SoundCloud, or MP3 — buy links to BeatStars, Splice, or your store.</div>
+          <div class="faq-a">Sign up free, add your beats on My Page, and share beatswipe.app/p/yourname in your bio once they're approved — usually within 48h. Upload short previews only (YouTube, SoundCloud, or MP3 ~30–60s) — not full masters. Add buy links to BeatStars, Splice, or your store for the full beat.</div>
         </div>
         <div class="faq-item">
           <button class="faq-q" onclick="toggleFaq(this)">Do I need an account?<i class="ti ti-plus"></i></button>
@@ -294,11 +294,14 @@
         <p class="site-page-desc">Swipe left to skip, right to save — hear a beat, decide in seconds.</p>
       </div>
       <div class="discover-toolbar">
-        <div class="cat-row" id="catRow">
-          <button class="cat-pill active" data-cat="full">Beats</button>
-          <button class="cat-pill" data-cat="loops">Loops</button>
-          <button class="cat-pill" data-cat="drums">Drums</button>
-          <button class="cat-pill" data-cat="samples">Samples</button>
+        <div class="cat-segment" id="catSegment">
+          <div class="cat-segment-indicator" id="catSegmentIndicator" aria-hidden="true"></div>
+          <div class="cat-row" id="catRow">
+            <button type="button" class="cat-pill active" data-cat="full">Beats</button>
+            <button type="button" class="cat-pill" data-cat="loops">Loops</button>
+            <button type="button" class="cat-pill" data-cat="drums">Drums</button>
+            <button type="button" class="cat-pill" data-cat="samples">Samples</button>
+          </div>
         </div>
         <div class="discover-search-wrap">
           <i class="ti ti-search discover-search-icon"></i>
@@ -363,7 +366,7 @@
     <div class="submit-header" style="padding-top:0">
       <button type="button" class="my-page-back" onclick="hideMyPageAddBeat()"><i class="ti ti-arrow-left"></i> Back to My Page</button>
       <div class="submit-title">Add new beat</div>
-      <div class="submit-sub">Shows on your page after review — usually within 48h.</div>
+      <div class="submit-sub">Short preview only (~30–60s for MP3) — not the full beat. Shows on your page after review — usually within 48h.</div>
     </div>
     <div class="submit-scroll" id="submitForm">
       <input type="hidden" id="f-producer">
@@ -373,7 +376,7 @@
           <option value="">Select type...</option>
           <option value="YouTube">YouTube</option>
           <option value="SoundCloud">SoundCloud</option>
-          <option value="MP3">MP3 — upload directly</option>
+          <option value="MP3">MP3 — upload preview clip</option>
         </select>
       </div>
 
@@ -386,13 +389,14 @@
 
       <!-- MP3 File Upload -->
       <div class="field-group" id="preview-mp3-group" style="display:none">
-        <label class="field-label">MP3 files *</label>
+        <label class="field-label">MP3 preview *</label>
+        <div id="preview-mp3-hint" style="font-size:11px;color:var(--text-3);margin-top:5px;margin-bottom:10px">Preview only — short clip (~30–60s), not the full beat.</div>
 
         <!-- shown when NOT logged in -->
         <div id="uploadLoginHint" style="display:none;background:var(--bg-2);border:0.5px solid var(--border-2);border-radius:14px;padding:18px 16px;text-align:center">
           <i class="ti ti-lock" style="font-size:26px;color:var(--accent-mid);display:block;margin-bottom:8px"></i>
           <div style="font-size:14px;font-weight:600;margin-bottom:4px">Account required</div>
-          <div style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.5">Create a free account to upload MP3s directly.</div>
+          <div style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.5">Create a free account to upload MP3 preview clips (~30–60s).</div>
           <button onclick="goTo('profileScreen','navProfile')" style="padding:10px 22px;border-radius:10px;background:var(--accent);border:none;color:#fff;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
             <i class="ti ti-user"></i> Create account
           </button>
@@ -403,8 +407,8 @@
           <div class="upload-drop" id="uploadDrop" onclick="document.getElementById('f-mp3-file').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
             <input type="file" id="f-mp3-file" accept="audio/mpeg,.mp3" multiple style="display:none" onchange="handleFileSelect(event)">
             <i class="ti ti-file-music"></i>
-            <div class="upload-drop-title">Drop MP3s here or click to select</div>
-            <div class="upload-drop-sub">One or several · MP3 only · max. 15 MB each</div>
+            <div class="upload-drop-title">Drop preview MP3s here or click to select</div>
+            <div class="upload-drop-sub">Preview only · ~30–60s each · not full beats · max. 15 MB</div>
           </div>
           <div class="upload-queue" id="uploadQueue" style="display:none"></div>
           <div class="upload-progress-wrap" id="uploadProgressWrap">
@@ -453,6 +457,7 @@
       <div class="field-group">
         <label class="field-label">Where can people buy this beat? <span style="color:var(--text-3);font-weight:400">(optional)</span></label>
         <input type="url" id="f-buy" placeholder="BeatStars, Splice, Instagram, Website...">
+        <div style="font-size:11px;color:var(--text-3);margin-top:5px">Where fans buy the full beat — not the preview.</div>
       </div>
       </div>
       <div class="field-group" id="submitBatchNote">
@@ -660,10 +665,10 @@
         <div class="onboard-slide">
           <div class="onboard-icon"><i class="ti ti-link"></i></div>
           <div class="onboard-title">Producer? <span>Get your page</span></div>
-          <div class="onboard-desc">Free swipe portfolio for your bio. Add beats, share your link — fans save favorites and buy from you.</div>
+          <div class="onboard-desc">Free swipe portfolio for your bio. Add short preview clips (~30–60s), share your link — fans save favorites and buy the full beat from you.</div>
           <div class="onboard-demo onboard-demo--stack onboard-demo--checks">
             <div class="onboard-check-item"><i class="ti ti-check"></i><span>beatswipe.app/p/yourname</span></div>
-            <div class="onboard-check-item"><i class="ti ti-check"></i><span>YouTube, SoundCloud or MP3</span></div>
+            <div class="onboard-check-item"><i class="ti ti-check"></i><span>Preview via YouTube, SoundCloud or MP3 (~30–60s)</span></div>
             <div class="onboard-check-item"><i class="ti ti-check"></i><span>Reviewed within 48 hours</span></div>
             <div class="onboard-check-item"><i class="ti ti-check"></i><span>Buy links to your store</span></div>
           </div>
@@ -795,6 +800,7 @@
       <div class="field-group">
         <label class="field-label">Buy link <span style="color:var(--text-3);font-weight:400">(optional)</span></label>
         <input type="url" id="beat-edit-buy" placeholder="BeatStars track link">
+        <div style="font-size:11px;color:var(--text-3);margin-top:5px">Where fans buy the full beat — not the preview.</div>
       </div>
       <div class="beat-edit-actions">
         <button type="button" class="btn-secondary" onclick="closeBeatEditModal()">Cancel</button>

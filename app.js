@@ -48,6 +48,30 @@ function positionNavIndicator(indicator, container, tab, opts) {
   indicator.classList.add('visible');
 }
 
+function positionCatIndicator() {
+  const segment = document.getElementById('catSegment');
+  const indicator = document.getElementById('catSegmentIndicator');
+  const active = document.querySelector('#catRow .cat-pill.active');
+  if (!segment || !indicator || !active || segment.offsetParent === null) return;
+  const inset = 3;
+  const segRect = segment.getBoundingClientRect();
+  const tabRect = active.getBoundingClientRect();
+  indicator.style.width = tabRect.width + 'px';
+  indicator.style.height = (segRect.height - inset * 2) + 'px';
+  indicator.style.transform = `translate(${tabRect.left - segRect.left}px, ${inset}px)`;
+  indicator.classList.add('visible');
+}
+
+function setActiveCat(catKey) {
+  document.querySelectorAll('#catRow .cat-pill').forEach(b => {
+    b.classList.toggle('active', b.dataset.cat === catKey);
+  });
+  cat = catKey;
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => positionCatIndicator());
+  });
+}
+
 function updateNavIndicator(navId) {
   if (!navId) return;
   const dtbId = navId.replace(/^nav/, 'dtb');
@@ -83,6 +107,7 @@ window.addEventListener('resize', () => {
   _navIndicatorResizeTimer = setTimeout(() => {
     const active = document.querySelector('.nav-tab.active');
     if (active?.id) updateNavIndicator(active.id);
+    if (document.getElementById('discoverScreen')?.classList.contains('active')) positionCatIndicator();
   }, 120);
 });
 
@@ -187,6 +212,7 @@ function applyGoTo(screenId, navId) {
     renderCard();
     renderDesktopCrate();
     maybeShowSyncOnDiscoverReturn();
+    positionCatIndicator();
   }
   if (screenId === 'crateScreen') renderCrate();
   if (screenId === 'profileScreen') renderProfile();
@@ -521,10 +547,7 @@ function getDiscoverList(category) {
 }
 
 function resetDiscoverCategory() {
-  cat = 'full';
-  document.querySelectorAll('.cat-pill').forEach(b => {
-    b.classList.toggle('active', b.dataset.cat === 'full');
-  });
+  setActiveCat('full');
 }
 
 function resetGuestSwipeState() {
@@ -808,7 +831,7 @@ function maybeAutoplayPreview(useYT, useSC) {
 
 function getPlayerEl(id) {
   const map = {
-    playBtn: 'cpPlayBtn', progressFill: 'cpProgressFill',
+    playBtn: 'cpPlayBtn', progressFill: 'cpProgressFill', progressThumb: 'cpProgressThumb',
     timeCur: 'cpTimeCur', timeDur: 'cpTimeDur', progressBar: 'cpProgressBar'
   };
   if (_audioPanel === 'crate') return document.getElementById(map[id] || id);
@@ -947,29 +970,69 @@ function setPlayState(playing) {
   }, playing ? 100 : 600);
 }
 
-function onTimeUpdate() {
-  if (!audio) return;
-  const pct = (audio.currentTime / audio.duration) * 100 || 0;
+let _scrubBar = null;
+
+function updateProgressUI(pct) {
   const fill = getPlayerEl('progressFill');
+  const thumb = getPlayerEl('progressThumb');
   if (fill) fill.style.width = pct + '%';
+  if (thumb) thumb.style.left = pct + '%';
+}
+
+function onTimeUpdate() {
+  if (!audio || _scrubBar) return;
+  const pct = (audio.currentTime / audio.duration) * 100 || 0;
+  updateProgressUI(pct);
   const cur = getPlayerEl('timeCur');
   if (cur) cur.textContent = fmtTime(audio.currentTime);
 }
 
 function onEnded() {
   setPlayState(false);
-  const fill = getPlayerEl('progressFill');
-  if (fill) fill.style.width = '0%';
+  updateProgressUI(0);
   const cur = getPlayerEl('timeCur');
   if (cur) cur.textContent = '0:00';
 }
 
-function seekTo(e) {
+function seekFromProgressEvent(e, bar) {
   if (!audio || !audio.duration) return;
-  const bar = e.currentTarget;
   const rect = bar.getBoundingClientRect();
   const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
   audio.currentTime = pct * audio.duration;
+  updateProgressUI(pct * 100);
+  const cur = getPlayerEl('timeCur');
+  if (cur) cur.textContent = fmtTime(audio.currentTime);
+}
+
+function seekTo(e) {
+  seekFromProgressEvent(e, e.currentTarget);
+}
+
+function startProgressScrub(e) {
+  if (!audio || !audio.duration) return;
+  const bar = e.currentTarget;
+  if (bar.id === 'cpProgressBar') _audioPanel = 'crate';
+  e.preventDefault();
+  try { bar.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+  _scrubBar = bar;
+  bar.classList.add('scrubbing');
+  seekFromProgressEvent(e, bar);
+  const onMove = ev => {
+    if (ev.pointerId !== e.pointerId) return;
+    seekFromProgressEvent(ev, bar);
+  };
+  const onUp = ev => {
+    if (ev.pointerId !== e.pointerId) return;
+    bar.classList.remove('scrubbing');
+    try { bar.releasePointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+    _scrubBar = null;
+    bar.removeEventListener('pointermove', onMove);
+    bar.removeEventListener('pointerup', onUp);
+    bar.removeEventListener('pointercancel', onUp);
+  };
+  bar.addEventListener('pointermove', onMove);
+  bar.addEventListener('pointerup', onUp);
+  bar.addEventListener('pointercancel', onUp);
 }
 
 function fmtTime(s) {
@@ -1033,7 +1096,7 @@ function toggleCratePlay() {
 
 function seekCrateTo(e) {
   _audioPanel = 'crate';
-  seekTo(e);
+  startProgressScrub(e);
 }
 
 function renderCard(opts) {
@@ -1110,8 +1173,9 @@ function renderCard(opts) {
           <i class="ti ti-player-play" style="margin-left:2px"></i>
         </button>
         <div class="progress-wrap">
-          <div class="progress-bar" id="progressBar" onclick="seekTo(event)">
+          <div class="progress-bar" id="progressBar" onpointerdown="startProgressScrub(event)">
             <div class="progress-fill" id="progressFill"></div>
+            <div class="progress-thumb" id="progressThumb" aria-hidden="true"></div>
           </div>
           <div class="time-row">
             <span class="time-lbl" id="timeCur">0:00</span>
@@ -1197,8 +1261,13 @@ function renderCard(opts) {
   let springRAF = null;
   let gestureIsTouch = false;
   let _dragPin = null;
+  let lastMoveX = 0, lastMoveT = 0, releaseVelocity = 0;
   const SWIPE_THRESHOLD = 60;
-  const MAX_ROTATION   = 18;
+  const SWIPE_VELOCITY_THRESHOLD = 380;
+  const SWIPE_MIN_FLICK_DISTANCE = 14;
+  const MAX_ROTATION = 18;
+  const SPRING_SNAP_STIFFNESS = 380;
+  const SPRING_SNAP_DAMPING = 26;
 
   function pinCardForMobileDrag(card) {
     /* Portfolio: never pin — #portfolioCardWrap-scoped CSS (bg, radius) breaks on body */
@@ -1231,6 +1300,7 @@ function renderCard(opts) {
     card.style.width = '';
     card.style.margin = '';
     card.style.transform = '';
+    card.style.opacity = '';
     card.classList.remove('dragging', 'spring-snap', 'swipe-drag-pinned', 'fly-left', 'fly-right');
   }
 
@@ -1257,6 +1327,7 @@ function renderCard(opts) {
     _swipeCommitted = false;
     curX = 0;
     gestureIsTouch = false;
+    resetVelocity();
 
     if (_dragPin) {
       const { card, ph } = _dragPin;
@@ -1320,6 +1391,39 @@ function renderCard(opts) {
     if (springRAF) { cancelAnimationFrame(springRAF); springRAF = null; }
   }
 
+  function resetVelocity() {
+    lastMoveX = 0;
+    lastMoveT = 0;
+    releaseVelocity = 0;
+  }
+
+  function trackVelocity(x) {
+    const now = performance.now();
+    if (lastMoveT) {
+      const dt = (now - lastMoveT) / 1000;
+      if (dt > 0 && dt < 0.12) {
+        const instant = (x - lastMoveX) / dt;
+        releaseVelocity = releaseVelocity * 0.55 + instant * 0.45;
+      }
+    }
+    lastMoveX = x;
+    lastMoveT = now;
+  }
+
+  function cardTransform(x) {
+    const rot = (x / 320) * MAX_ROTATION;
+    return `translateX(${x}px) rotate(${rot}deg)`;
+  }
+
+  function resolveSwipeCommit(dx, vx) {
+    if (Math.abs(dx) >= SWIPE_THRESHOLD) return dx > 0 ? 'right' : 'left';
+    if (Math.abs(dx) >= SWIPE_MIN_FLICK_DISTANCE && Math.abs(vx) >= SWIPE_VELOCITY_THRESHOLD) {
+      if (vx > 0 && dx > 0) return 'right';
+      if (vx < 0 && dx < 0) return 'left';
+    }
+    return null;
+  }
+
   function updateGlow(dx) {
     const glow = getGlow();
     if (!glow) return;
@@ -1344,33 +1448,70 @@ function renderCard(opts) {
     glow.classList.remove('glow-toward-save', 'glow-toward-skip');
   }
 
-  function springSnapBack(card, fromX) {
+  function springSnapBack(card, fromX, fromV = 0) {
     cancelSpring();
     card.classList.add('spring-snap');
     let x = fromX;
-    let v = 0;
-    const stiffness = 280;
-    const damping = 24;
+    let v = fromV;
     let last = performance.now();
 
     function tick(now) {
       const dt = Math.min((now - last) / 1000, 0.028);
       last = now;
-      const a = (-stiffness * x - damping * v);
+      const a = (-SPRING_SNAP_STIFFNESS * x - SPRING_SNAP_DAMPING * v);
       v += a * dt;
       x += v * dt;
-      const rot = (x / 320) * MAX_ROTATION;
-      card.style.transform = `translateX(${x}px) rotate(${rot}deg)`;
+      card.style.transform = cardTransform(x);
       updateGlow(x);
-      if (Math.abs(x) > 0.4 || Math.abs(v) > 0.4) {
+      if (Math.abs(x) > 0.35 || Math.abs(v) > 0.35) {
         springRAF = requestAnimationFrame(tick);
       } else {
         card.style.transform = '';
+        card.style.opacity = '';
         card.classList.remove('spring-snap');
         unpinCardForMobileDrag(card);
         restoreEmbedsAfterDrag(card);
         resetGlow();
+        resetVelocity();
         springRAF = null;
+      }
+    }
+    springRAF = requestAnimationFrame(tick);
+  }
+
+  function springFlyOut(card, dir, fromX, fromV, onComplete) {
+    cancelSpring();
+    card.classList.add('spring-snap');
+    let x = fromX;
+    let v = fromV;
+    const sign = dir === 'right' ? 1 : -1;
+    const minLaunch = 820;
+    if (sign * v < minLaunch) v = sign * Math.max(minLaunch, Math.abs(v) * 1.35 + 520);
+    const accel = sign * 2400;
+    const exitX = sign * (window.innerWidth * 1.05);
+    let last = performance.now();
+
+    function tick(now) {
+      const dt = Math.min((now - last) / 1000, 0.028);
+      last = now;
+      v += accel * dt;
+      x += v * dt;
+      const traveled = Math.abs(x - fromX);
+      const total = Math.abs(exitX - fromX) || 1;
+      const progress = Math.min(traveled / total, 1);
+      card.style.transform = cardTransform(x);
+      card.style.opacity = String(Math.max(0, 1 - progress * 0.92));
+      updateGlow(x);
+      if (sign * x < sign * exitX && progress < 0.98) {
+        springRAF = requestAnimationFrame(tick);
+      } else {
+        card.style.transform = '';
+        card.style.opacity = '';
+        card.classList.remove('spring-snap');
+        resetGlow();
+        resetVelocity();
+        springRAF = null;
+        onComplete();
       }
     }
     springRAF = requestAnimationFrame(tick);
@@ -1397,12 +1538,14 @@ function renderCard(opts) {
     const card = getCard();
     if (!card || isLocked) return;
     cancelSpring();
+    resetVelocity();
     gestureIsTouch = !!fromTouch;
     _swipeCommitted = false;
     startX = x; startY = y; curX = 0;
     isDragging = true;
     _swipeDragging = true;
     card.classList.add('dragging');
+    card.style.opacity = '';
     dimEmbedsForDrag(card);
     pinCardForMobileDrag(card);
   }
@@ -1420,13 +1563,14 @@ function renderCard(opts) {
       _swipeDragging = false;
       card.classList.remove('dragging');
       unpinCardForMobileDrag(card);
+      restoreEmbedsAfterDrag(card);
+      resetVelocity();
       return;
     }
 
     curX = dx;
-
-    const rot = (dx / 320) * MAX_ROTATION;
-    card.style.transform = `translateX(${dx}px) rotate(${rot}deg)`;
+    trackVelocity(dx);
+    card.style.transform = cardTransform(dx);
     updateGlow(dx);
 
     const pct = Math.min(Math.abs(dx) / SWIPE_THRESHOLD, 1);
@@ -1442,6 +1586,14 @@ function renderCard(opts) {
     if (btnSave) btnSave.style.opacity = dx > 0 ? 0.5 + pct * 0.5 : 0.5;
   }
 
+  function clearDragChrome() {
+    document.querySelectorAll('.act-btn').forEach(b => b.style.opacity = '');
+    const skipLabel = document.getElementById('labelSkip');
+    const saveLabel = document.getElementById('labelSave');
+    if (skipLabel) skipLabel.style.opacity = 0;
+    if (saveLabel) saveLabel.style.opacity = 0;
+  }
+
   function onEnd() {
     if (_swipeCommitted) {
       _swipeDragging = false;
@@ -1454,39 +1606,48 @@ function renderCard(opts) {
     const card = getCard();
     if (!card) return;
     card.classList.remove('dragging');
+    clearDragChrome();
 
-    document.querySelectorAll('.act-btn').forEach(b => b.style.opacity = '');
-    const skipLabel = document.getElementById('labelSkip');
-    const saveLabel = document.getElementById('labelSave');
-    if (skipLabel) skipLabel.style.opacity = 0;
-    if (saveLabel) saveLabel.style.opacity = 0;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const commitDir = resolveSwipeCommit(curX, releaseVelocity);
 
-    if (Math.abs(curX) >= SWIPE_THRESHOLD) {
-      if (!gestureIsTouch) {
-        _pendingFlyRect = card.getBoundingClientRect();
-        _pendingFlyTransform = card.style.transform;
-        card.style.transform = '';
-        restoreEmbedsAfterDrag(card);
-      }
-      unpinCardForMobileDrag(card);
-      commitSwipe(curX > 0 ? 'right' : 'left');
-    } else if (gestureIsTouch) {
-      tryAutoplayFromGesture();
-      if (isMobileUI()) springSnapBack(card, curX);
-      else {
+    if (commitDir) {
+      if (reduced) {
+        if (!gestureIsTouch) {
+          _pendingFlyRect = card.getBoundingClientRect();
+          _pendingFlyTransform = card.style.transform;
+          card.style.transform = '';
+          restoreEmbedsAfterDrag(card);
+        }
         unpinCardForMobileDrag(card);
-        card.style.transform = '';
-        resetGlow();
-        card.classList.add('wobble');
-        setTimeout(() => { card.classList.remove('wobble'); }, 460);
+        commitSwipe(commitDir);
+        return;
       }
+
+      _swipeCommitted = true;
+      isLocked = true;
+
+      springFlyOut(card, commitDir, curX, releaseVelocity, () => {
+        unpinCardForMobileDrag(card);
+        restoreEmbedsAfterDrag(card);
+        doSwipe(commitDir, { skipFly: true });
+        setTimeout(() => {
+          isLocked = false;
+          _swipeCommitted = false;
+        }, 260);
+      });
+      return;
+    }
+
+    tryAutoplayFromGesture();
+    if (Math.abs(curX) > 2 || Math.abs(releaseVelocity) > 40) {
+      springSnapBack(card, curX, releaseVelocity);
     } else {
       unpinCardForMobileDrag(card);
       card.style.transform = '';
       restoreEmbedsAfterDrag(card);
       resetGlow();
-      card.classList.add('wobble');
-      setTimeout(() => { card.classList.remove('wobble'); }, 460);
+      resetVelocity();
     }
   }
 
@@ -1510,14 +1671,17 @@ function renderCard(opts) {
     _swipeDragging = false;
     if (card) {
       card.classList.remove('dragging');
-      if (gestureIsTouch && isMobileUI() && Math.abs(curX) > 4) springSnapBack(card, curX);
-      else {
+      if (Math.abs(curX) > 2 || Math.abs(releaseVelocity) > 40) {
+        springSnapBack(card, curX, releaseVelocity);
+      } else {
         unpinCardForMobileDrag(card);
         card.style.transform = '';
+        restoreEmbedsAfterDrag(card);
         resetGlow();
+        resetVelocity();
       }
     }
-    document.querySelectorAll('.act-btn').forEach(b => b.style.opacity = '');
+    clearDragChrome();
   }, { passive: true });
 
   // ── MOUSE ──
@@ -1595,7 +1759,7 @@ function queueSaveBeatToDB(beat) {
   }
 }
 
-function doSwipe(dir) {
+function doSwipe(dir, opts = {}) {
   const card = document.getElementById('theCard');
   if (!card) return;
   if (_portfolioMode && _portfolioSwipeLock) return;
@@ -1624,10 +1788,16 @@ function doSwipe(dir) {
     }
     _portfolioSwipeLock = true;
     pauseTrackForCardSwap();
-    flyOutPortfolioCard(dir, () => {
+    const onReplaced = () => {
       renderPortfolioCard();
       if (!isMobileUI()) tryAutoplayFromGesture();
-    });
+      _portfolioSwipeLock = false;
+    };
+    if (opts.skipFly) {
+      onReplaced();
+    } else {
+      flyOutPortfolioCard(dir, onReplaced);
+    }
     requestAnimationFrame(() => showEmojiPop(dir));
     return;
   }
@@ -1648,14 +1818,19 @@ function doSwipe(dir) {
     if (!skippedIds[cat].includes(item.id)) skippedIds[cat].push(item.id);
   }
   pauseTrackForCardSwap();
-  flyOutDiscoverCard(dir, () => {
+  const onReplaced = () => {
     saveSkippedState();
     saveSwipeState();
     if (savedThisSwipe) updateCrateCountUI();
     renderCard({ deferAudio: true });
     tryAutoplayFromGesture();
     if (savedThisSwipe) setTimeout(() => renderCrate(), 80);
-  });
+  };
+  if (opts.skipFly) {
+    onReplaced();
+  } else {
+    flyOutDiscoverCard(dir, onReplaced);
+  }
   requestAnimationFrame(() => showEmojiPop(dir));
 }
 
@@ -1693,8 +1868,9 @@ function buildCratePreviewHTML(d) {
       <div class="player-controls">
         <button class="play-btn" id="cpPlayBtn" onclick="toggleCratePlay()" aria-label="Play/Pause"><i class="ti ti-player-play" style="margin-left:2px"></i></button>
         <div class="progress-wrap">
-          <div class="progress-bar" id="cpProgressBar" onclick="seekCrateTo(event)">
+          <div class="progress-bar" id="cpProgressBar" onpointerdown="seekCrateTo(event)">
             <div class="progress-fill" id="cpProgressFill"></div>
+            <div class="progress-thumb" id="cpProgressThumb" aria-hidden="true"></div>
           </div>
           <div class="time-row">
             <span class="time-lbl" id="cpTimeCur">0:00</span>
@@ -1931,16 +2107,16 @@ async function removeBeatFromCrate(beatId) {
   }
 }
 
-// ─── CATEGORY PILLS ───────────────────────────────────────────────────────
+// ─── CATEGORY SEGMENT ─────────────────────────────────────────────────────
 document.getElementById('catRow').querySelectorAll('.cat-pill').forEach(btn => {
   btn.onclick = () => {
-    document.querySelectorAll('.cat-pill').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    cat = btn.dataset.cat;
+    if (btn.dataset.cat === cat) return;
+    setActiveCat(btn.dataset.cat);
     saveSwipeState();
     renderCard();
   };
 });
+requestAnimationFrame(() => positionCatIndicator());
 
 // ─── SUPABASE ──────────────────────────────────────────────────────────────
 const SUPA_URL = 'https://yprwklxolgrlyswqwkzr.supabase.co';
@@ -2709,6 +2885,184 @@ function closeFilterModal() {
 function closeFilterIfBackdrop(e) {
   if (e.target === document.getElementById('filterModal')) closeFilterModal();
 }
+
+// ─── SHEET DRAG-TO-DISMISS (mobile bottom sheets) ─────────────────────────
+function isBottomSheetBackdrop(backdrop) {
+  if (!backdrop || !isMobileUI()) return false;
+  return getComputedStyle(backdrop).alignItems === 'flex-end';
+}
+
+function initSheetDragDismiss({ backdrop, sheet, onClose, dismissThreshold = 96, velocityThreshold = 720 }) {
+  if (!backdrop || !sheet || typeof onClose !== 'function') return;
+
+  let dragging = false;
+  let dismissing = false;
+  let startY = 0;
+  let curY = 0;
+  let velocity = 0;
+  let lastY = 0;
+  let lastT = 0;
+  let scrollEl = null;
+  let scrimBase = 0.65;
+
+  const BLOCK_SEL = 'button,a,input,select,textarea,.filter-pill,.modal-apply,.onboard-btn,.onboard-skip,.modal-close';
+
+  function readScrimBase() {
+    const parts = getComputedStyle(backdrop).backgroundColor.match(/[\d.]+/g);
+    if (parts?.length >= 4) scrimBase = parseFloat(parts[3]);
+  }
+
+  function getScrollableFrom(target) {
+    const el = target.closest('.info-modal-body, .modal-body');
+    if (el && el.scrollHeight > el.clientHeight + 2) return el;
+    return null;
+  }
+
+  function dimBackdrop(dy) {
+    const ratio = Math.max(0.12, 1 - dy / 360);
+    backdrop.style.backgroundColor = `rgba(0, 0, 0, ${scrimBase * ratio})`;
+  }
+
+  function resetSheetStyles() {
+    sheet.style.transition = '';
+    sheet.style.transform = '';
+    sheet.style.opacity = '';
+    sheet.style.willChange = '';
+    sheet.classList.remove('sheet-dragging');
+    backdrop.style.transition = '';
+    backdrop.style.backgroundColor = '';
+    dragging = false;
+    curY = 0;
+    velocity = 0;
+    scrollEl = null;
+  }
+
+  function finishDismiss() {
+    if (dismissing) return;
+    dismissing = true;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) {
+      resetSheetStyles();
+      onClose();
+      dismissing = false;
+      return;
+    }
+    sheet.style.transition = 'transform 0.3s cubic-bezier(0.22,1,0.36,1), opacity 0.28s ease';
+    sheet.style.transform = 'translateY(100%)';
+    sheet.style.opacity = '0';
+    backdrop.style.transition = 'background-color 0.28s ease';
+    backdrop.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+    const done = () => {
+      resetSheetStyles();
+      onClose();
+      dismissing = false;
+    };
+    sheet.addEventListener('transitionend', e => {
+      if (e.target === sheet && e.propertyName === 'transform') done();
+    }, { once: true });
+    setTimeout(done, 340);
+  }
+
+  function snapBack() {
+    if (curY < 2) {
+      resetSheetStyles();
+      return;
+    }
+    sheet.style.transition = 'transform 0.32s cubic-bezier(0.22,1,0.36,1), opacity 0.28s ease';
+    backdrop.style.transition = 'background-color 0.28s ease';
+    sheet.style.transform = '';
+    sheet.style.opacity = '';
+    backdrop.style.backgroundColor = '';
+    const done = () => resetSheetStyles();
+    sheet.addEventListener('transitionend', e => {
+      if (e.target === sheet && e.propertyName === 'transform') done();
+    }, { once: true });
+    setTimeout(done, 360);
+  }
+
+  function onPointerDown(e) {
+    if (!backdrop.classList.contains('open') || !isBottomSheetBackdrop(backdrop) || dismissing) return;
+    if (e.button !== undefined && e.button !== 0) return;
+    if (e.target.closest(BLOCK_SEL)) return;
+
+    scrollEl = getScrollableFrom(e.target);
+    if (scrollEl && scrollEl.scrollTop > 2) return;
+
+    dragging = true;
+    startY = e.clientY;
+    lastY = startY;
+    lastT = performance.now();
+    curY = 0;
+    velocity = 0;
+    readScrimBase();
+    sheet.classList.add('sheet-dragging');
+    sheet.style.transition = 'none';
+    sheet.style.animation = 'none';
+    sheet.style.willChange = 'transform';
+    backdrop.style.transition = 'none';
+    sheet.setPointerCapture?.(e.pointerId);
+  }
+
+  function onPointerMove(e) {
+    if (!dragging) return;
+    const dy = e.clientY - startY;
+    if (dy < 0) {
+      if (scrollEl) {
+        dragging = false;
+        resetSheetStyles();
+        try { sheet.releasePointerCapture(e.pointerId); } catch (_) {}
+        return;
+      }
+      curY = 0;
+      sheet.style.transform = '';
+      dimBackdrop(0);
+      return;
+    }
+
+    curY = dy;
+    const now = performance.now();
+    const dt = (now - lastT) / 1000;
+    if (dt > 0 && dt < 0.1) velocity = (e.clientY - lastY) / dt;
+    lastY = e.clientY;
+    lastT = now;
+
+    sheet.style.transform = `translateY(${dy}px)`;
+    dimBackdrop(dy);
+  }
+
+  function onPointerUp(e) {
+    if (!dragging) return;
+    dragging = false;
+    try { sheet.releasePointerCapture(e.pointerId); } catch (_) {}
+
+    if (curY >= dismissThreshold || velocity >= velocityThreshold) finishDismiss();
+    else snapBack();
+  }
+
+  sheet.addEventListener('pointerdown', onPointerDown);
+  sheet.addEventListener('pointermove', onPointerMove);
+  sheet.addEventListener('pointerup', onPointerUp);
+  sheet.addEventListener('pointercancel', onPointerUp);
+
+  const obs = new MutationObserver(() => {
+    if (!backdrop.classList.contains('open')) resetSheetStyles();
+  });
+  obs.observe(backdrop, { attributes: true, attributeFilter: ['class'] });
+}
+
+(function initSheetDragDismissAll() {
+  const sheets = [
+    { backdropId: 'filterModal', sheetSel: '.modal-sheet', onClose: closeFilterModal },
+    { backdropId: 'impressumModal', sheetSel: '.info-modal-sheet', onClose: () => closeInfoModal('impressumModal') },
+    { backdropId: 'privacyModal', sheetSel: '.info-modal-sheet', onClose: () => closeInfoModal('privacyModal') },
+    { backdropId: 'onboardBackdrop', sheetSel: '.onboard-sheet', onClose: closeOnboard },
+  ];
+  sheets.forEach(({ backdropId, sheetSel, onClose }) => {
+    const backdrop = document.getElementById(backdropId);
+    const sheet = backdrop?.querySelector(sheetSel);
+    if (backdrop && sheet) initSheetDragDismiss({ backdrop, sheet, onClose });
+  });
+})();
 
 function updateFilterBtnStyle() {
   const btn = document.getElementById('filterIconBtn');

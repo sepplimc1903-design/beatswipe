@@ -405,8 +405,9 @@ function buildBeatCardHTML(d, opts) {
           <i class="ti ti-player-play" style="margin-left:2px"></i>
         </button>
         <div class="progress-wrap">
-          <div class="progress-bar" id="progressBar" onclick="seekTo(event)">
+          <div class="progress-bar" id="progressBar" onpointerdown="startProgressScrub(event)">
             <div class="progress-fill" id="progressFill"></div>
+            <div class="progress-thumb" id="progressThumb" aria-hidden="true"></div>
           </div>
           <div class="time-row">
             <span class="time-lbl" id="timeCur">0:00</span>
