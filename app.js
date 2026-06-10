@@ -255,10 +255,16 @@ function initScrollReveal() {
   });
 }
 
+function syncDesktopScrollMode() {
+  if (!isDesktop() || _portfolioMode) return;
+  const activeScreen = document.querySelector('.screen.active')?.id;
+  document.body.classList.toggle('site-scroll', activeScreen !== 'discoverScreen');
+}
+
 function bootLandingReveal() {
   if (getPortfolioSlugFromURL()) return;
   if (!document.getElementById('landScreen')?.classList.contains('active')) return;
-  if (isDesktop() && !_portfolioMode) document.body.classList.add('site-scroll');
+  syncDesktopScrollMode();
   initScrollReveal();
 }
 
@@ -478,7 +484,15 @@ function getDiscoverList(category) {
   });
 }
 
+function resetDiscoverCategory() {
+  cat = 'full';
+  document.querySelectorAll('.cat-pill').forEach(b => {
+    b.classList.toggle('active', b.dataset.cat === 'full');
+  });
+}
+
 function resetGuestSwipeState() {
+  resetDiscoverCategory();
   Object.keys(skippedIds).forEach(k => { skippedIds[k] = []; });
   Object.keys(catIdx).forEach(k => { catIdx[k] = 0; });
 }
@@ -584,6 +598,7 @@ async function initApp() {
   const portfolioSlug = getPortfolioSlugFromURL();
   if (portfolioSlug && !_portfolioMode) showPortfolioLoadingState(portfolioSlug);
   await loadBeats();
+  resetDiscoverCategory();
   if (currentUser) {
     await syncCrateFromDB();
     restoreSkippedState();

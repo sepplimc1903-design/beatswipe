@@ -806,13 +806,6 @@ function saveSwipeState() {
 
 function restoreSwipeState() {
   try {
-    const savedCat = localStorage.getItem('bs_cat');
-    if (savedCat && db[savedCat]) {
-      cat = savedCat;
-      document.querySelectorAll('.cat-pill').forEach(b => {
-        b.classList.toggle('active', b.dataset.cat === cat);
-      });
-    }
     if (!currentUser) {
       Object.keys(catIdx).forEach(k => {
         const saved = parseInt(localStorage.getItem('bs_idx_' + k)) || 0;
@@ -849,7 +842,7 @@ initApp().then(() => {
   initOnboard();
   initCookie();
   if (isDesktop() && !_portfolioMode) {
-    document.body.classList.add('site-scroll');
+    syncDesktopScrollMode();
     if (!document.getElementById('discoverScreen')?.classList.contains('active')) {
       setActiveNav('navHome');
       initScrollReveal();
