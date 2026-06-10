@@ -76,7 +76,8 @@ NIEMALS „Tinder" verwenden (Marke). Stattdessen:
 **Beat-Verwaltung (v44, shipped):**
 
 - Live-Beats: **Edit** (Modal `#beatEditModal`), **Delete** (confirm), **Reihenfolge** (Drag-Griff + Pfeile hoch/runter)
-- API: `api/manage-beat.js` — Auth via Supabase JWT, PATCH/DELETE Airtable (Delete: `Select: Removed` oder Record-Delete)
+- API: `api/manage-beat.js` — Auth via Supabase JWT, PATCH/DELETE Airtable (Delete: `Select: Removed` oder Record-Delete); **PATCH Title-Feld = `Title`** (nicht `TItle` — Airtable lehnt Tippfeld ab)
+- Nach Save: `loadBeats()` + `renderMyPage()` — **kurze Verzögerung normal** (~1–2s, Airtable + Cache)
 - Reihenfolge: `localStorage bs_beat_order_${userId}` + Sync zu Supabase `profiles.beat_order` (jsonb) — **Spalte angelegt (Juni 2026)**; Fans lesen Order via `loadPortfolioProfile()` REST
 - Portfolio sortiert via `sortBeatsByOrder()` + `getBeatOrderForProducer()` in `openPortfolio`
 - JS: `openBeatEditModal`, `saveBeatEdit`, `deleteMyBeat`, `moveMyBeat`, `initMyPageBeatDrag`, `persistBeatOrder`, `manageBeatRequest`
@@ -88,7 +89,7 @@ NIEMALS „Tinder" verwenden (Marke). Stattdessen:
 - Beat order: `localStorage bs_beat_order_${userId}` + optional `profiles.beat_order`
 - Backend: Make.com → Airtable (Review/Approved), Supabase `profiles`
 
-**JS:** `renderMyPage`, `renderMyPageBeatRows`, `renderMyPageDashboard`, `renderMyPageOnboarding`, `showMyPageAddBeat`, `hideMyPageAddBeat`, `doSubmitForm`, `doSubmitMp3Batch`, `renderUploadQueue`, `resetAddBeatForm`, `addFilesToQueue`, `uploadMp3File`
+**JS (in `mypage.js`):** `renderMyPage`, `renderMyPageBeatRows`, `renderMyPageDashboard`, `renderMyPageOnboarding`, `showMyPageAddBeat`, `hideMyPageAddBeat`, `doSubmitForm`, `doSubmitMp3Batch`, `renderUploadQueue`, `resetAddBeatForm`, `addFilesToQueue`, `uploadMp3File`, `manageBeatRequest`, `saveBeatEdit`
 
 **Add beat (v50):** Kein Auto-Focus auf `#f-genre` beim Öffnen (Mobile öffnete sonst native Picker)
 
@@ -188,10 +189,63 @@ NIEMALS „Tinder" verwenden (Marke). Stattdessen:
 - **v55–v56:** DB-replace sync; Guest-Merge nur expliziter Login
 - **v57:** `/api/crate` + Token-Refresh + pending queue — Save hält nach Reload ✅ (Luca lokal + Vercel)
 - **v57b–c:** Swipe-Perf — **kein** `await saveBeatToDB` vor Fly; Mobile: Fly-Clone auf `body` **vor** `renderCard()`; deferred `renderCrate` + Save (~520ms Mobile)
+- **v57d–f:** Desktop + aktives YouTube — `buildFlyCardShell`, `stripEmbedsForFly`, Fly vor `renderCard`; Maus-Commit: `_pendingFlyRect`/`_pendingFlyTransform` + `dimEmbedsForDrag`
+- **v57g:** Desktop Favorites-Sidebar — `renderDesktopCrate()` auch bei leerem `crate` in `renderCrate()`
+- **v57h:** Landing sofort sichtbar — `bootLandingReveal()` + `initScrollReveal` in-viewport sofort; nicht auf `initApp`/Beats warten
 
-## Stand Code (Juni 2026 — Session-Update v57c)
+## Desktop Ambient + Topbar (v58, shipped)
 
-**Production (GitHub/Vercel):** `deploy: 2026-06-09-v57c`
+- **Laptop ≥900px:** stärkerer Lila-Wash auf App-Pages — Landing, Discover, Profile, My Page, Favorites (`body.site-scroll` + `body.discover-active .bg-desktop`)
+- **Hellere Glows:** `#A78BFA` (accent-mid) + `#7C3AED` in `::before`/`::after` Radials; Discover `.discover-ambient-glow` verstärkt
+- **`/p/` ausgenommen:** `body.portfolio-active` behält Beat-`--pf-glow`; Topbar hidden; kein App-Lila
+- **Topbar-Fade (v58):** `body:not(.portfolio-active) .desktop-topbar` — unten `transparent` (zeigt Page-BG), oben `#050508`; kein `::after`-Streifen; leichter blur (10px)
+- **Luca-Entscheidung v37 (abgelöst):** subtile Orbs only → v58 explizit gewünscht: mehr Lila + clean Topbar-Fade
+- CSS: `@media (min-width: 900px)` Block ~549+ (`.bg-desktop`, `body.site-scroll`, `body.discover-active`); Topbar ~718+
+
+## Code-Split (Juni 2026 — lokal getestet, noch nicht deployed)
+
+Monolith aufgeteilt für weniger Tokens / wartbarer — **Verhalten 1:1**, Schritt für Schritt:
+
+| Schritt | Status | Datei |
+|---------|--------|-------|
+| 1 CSS | ✅ lokal | `styles.css` (~3582 Zeilen) |
+| 2 Portfolio JS | ✅ lokal | `portfolio.js` (~806 Zeilen) |
+| 3 My Page JS | ✅ lokal | `mypage.js` (~1295 Zeilen) |
+| 4 App-Kern JS | ⏳ nächster Chat | `app.js` aus `index.html` |
+
+**`index.html` (~3583 Zeilen):** HTML + App-Kern-JS in **3 Script-Blöcken:**
+
+1. `<script>` — Discover, Auth, Favorites, Profile, Nav, Swipe, …
+2. `<script src="/mypage.js">` — Upload, Dashboard, Beat-Edit
+3. `<script src="/portfolio.js">` — `/p/` Portfolio
+4. `<script>` — Init (`initApp`, Keyboard, `popstate`)
+
+**Asset-Pfade:** immer **root-absolut** — `href="/styles.css"`, `src="/mypage.js"`, `src="/portfolio.js"`. Relativ `styles.css` bricht auf `/p/slug` (Vercel Rewrite liefert HTML statt CSS).
+
+**Split-Regeln:** kein Verhalten ändern; ein Schritt pro Deploy; nach jedem Schritt testen (`/p/clyriax`, My Page Edit, Discover Save).
+
+## Stand Code (Juni 2026 — Session-Update v59-split lokal)
+
+**Production (GitHub/Vercel):** noch `deploy: 2026-06-09-v58` — Split + manage-beat-Fix **lokal, uncommitted**
+
+### Lokal v59-split (2026-06-10, Luca getestet)
+
+**Schritt 1–3: CSS + portfolio.js + mypage.js**
+
+- CSS → `styles.css`; Fix `/styles.css` für Portfolio-Routes
+- Portfolio → `portfolio.js` (State, `openPortfolio`, Swipe-Fly, Meta, `copyPortfolioLink`)
+- My Page → `mypage.js` (Upload-Queue, Submit, Dashboard, Beat-Edit, `persistBeatOrder`, `getBeatOrderForProducer`)
+
+**manage-beat Title-Fix**
+
+- Airtable-Spalte heißt **`Title`**; PATCH mit `TItle` → `Unknown field name`
+- `api/manage-beat.js`: nur `Title` schreiben; Lesen weiter `TItle || Title` in `api/beats.js`
+
+**Lokal `.env.local`:** `AIRTABLE_TOKEN` braucht `data.records:read` **+** `data.records:write` + Base-Zugriff BeatSwipe
+
+**Supabase:** `profiles` RLS **enabled** (Policies aktiv) — Luca bestätigt ok
+
+**Nächster Schritt:** Schritt 4 — Rest-JS → `app.js`; dann commit/deploy als v59
 
 ### Shipped v34 (2026-06-08)
 
@@ -230,13 +284,11 @@ NIEMALS „Tinder" verwenden (Marke). Stattdessen:
 - `#myPageMain`, `#myPageAddBeat`: `flex:1`, `display:flex`, `min-height:0`, `overflow:hidden`
 - `body.site-scroll` Override: `overflow:visible` auf Desktop
 
-### Shipped v37 (2026-06-08)
+### Shipped v37 (2026-06-08) — durch v58 erweitert
 
-**Desktop Site-Scroll Purple Margins**
+**Desktop Site-Scroll Purple Margins (Basis)**
 
-- Laptop ≥900px: dezenter Lila-Glow in leeren Seitenrändern auf Landing, Profile, My Page, Favorites (`body.site-scroll .bg-desktop::before/::after`)
-- Discover + Portfolio unverändert
-- **Luca-Entscheidung:** page-wide Purple-Wash + Topbar-Fade getestet → **abgelehnt**; v37 (subtile Orbs) behalten
+- Laptop ≥900px: dezenter Lila-Glow in Seitenrändern — v58 hat Wash + Glow deutlich verstärkt (siehe Desktop Ambient v58)
 
 ### Shipped v38–v40 (2026-06-08)
 
@@ -335,7 +387,7 @@ NIEMALS „Tinder" verwenden (Marke). Stattdessen:
 
 - v55: DB-authoritative `syncCrateFromDB`; Remove mit `res.ok`-Check
 - v56: Kein Re-Merge auf iOS Session-Restore; `_pendingGuestCrateMerge` nur bei `handleAuth`
-- **Luca-Feedback:** Phantom-Favorites auf Mobile nach Reload teils behoben; **neues Problem:** Discover-Save verschwindet nach Reload — v57-local angefangen, **im neuen Chat weiter**
+- **Luca-Feedback:** Phantom-Favorites + Reload-Save — v57 behoben ✅
 
 ### Shipped v57 (2026-06-09)
 
@@ -353,6 +405,37 @@ NIEMALS „Tinder" verwenden (Marke). Stattdessen:
 - **v57c:** Mobile Discover — Fly-Clone `fixed` auf `body` (`.discover-fly-clone--viewport`); **`renderCard()` 48ms nach Fly-Start**; `renderCard({ deferAudio: true })` auf Mobile
 - **Lesson:** `await saveBeatToDB` oder `renderCard()` **vor** Fly = spürbarer Lag (v.a. Mobile)
 
+### Shipped v57d–f (2026-06-09)
+
+**Discover Swipe — Desktop YouTube + Maus**
+
+- **v57d:** Desktop Fly wie Mobile — body-fixed Clone, `renderCard` 48ms deferred, `deferAudio: true`
+- **v57e:** Kein `cloneNode` auf Iframe — `buildFlyCardShell` + `stripEmbedsForFly`
+- **v57f:** Maus-Commit — Transform/Rect speichern, clearen vor Fly; `dimEmbedsForDrag` / `restoreEmbedsAfterDrag`
+- JS: `buildFlyCardShell`, `stripEmbedsForFly`, `measureFlyPlayerHeight`, `takePendingFlyMetrics`, `_pendingFlyRect`, `_pendingFlyTransform`
+- Luca: Mobile ok; Laptop YouTube + Pfeiltasten/Buttons ok; Maus-Swipe mit laufendem YT ok nach v57f
+
+### Shipped v57g (2026-06-09)
+
+**Desktop Favorites Sidebar Empty State**
+
+- Letzter Beat entfernen: Counter „0 beats" aber Card blieb — `renderCrate()` rief bei `!crate.length` `renderDesktopCrate()` nicht auf → gefixt
+
+### Shipped v57h (2026-06-09)
+
+**Landing Boot — kein 2s Blank auf Laptop**
+
+- `.reveal-on-scroll { opacity: 0 }` auf Desktop blockierte Hero bis `initApp()` (Auth + Beats)
+- `bootLandingReveal()` auf DOMContentLoaded; `initScrollReveal` zeigt above-fold sofort (`getBoundingClientRect` in-viewport)
+
+### Shipped v58 (2026-06-09)
+
+**Desktop Purple Ambient + Topbar Fade**
+
+- Stärkerer Lila-Background auf Laptop App-Pages; `/p/` unverändert (Beat-Glow)
+- Topbar: transparent unten → schwarz oben, kein sichtbarer Streifen
+- Luca: approved + gepusht
+
 ### Früher shipped (v22–v52, weiterhin gültig)
 
 - Autoplay Guard (v28), Portfolio Desktop Immersive (v28–v30), Profile Redesign (v33)
@@ -360,13 +443,17 @@ NIEMALS „Tinder" verwenden (Marke). Stattdessen:
 
 ### Bekannte offene Probleme
 
-**Favorites Sync — v57c shipped (Luca bestätigt)**
+**Favorites Sync — v57g shipped (Luca bestätigt)**
 
 | Symptom | Status |
 |---------|--------|
 | Discover-Save verschwindet nach Reload (eingeloggt) | ✅ v57 |
 | Laptop ↔ Mobile gleich (nach Reload) | ✅ v57 laut Luca |
-| Swipe-Lag nach v57 Save-Fix | ✅ v57b–c |
+| Swipe-Lag nach v57 Save-Fix (Mobile) | ✅ v57b–c |
+| Desktop YouTube-Swipe-Lag (Buttons/Kbd) | ✅ v57d–e |
+| Desktop YouTube-Swipe-Lag (Maus-Drag) | ✅ v57f |
+| Sidebar letzter Favorite bleibt sichtbar | ✅ v57g |
+| Landing 2s blank auf Laptop | ✅ v57h |
 | Preview → keine Saves | ✅ v54 |
 | Live-Sync ohne Reload cross-device | ❌ bewusst nicht (Phase 1) |
 
@@ -381,7 +468,9 @@ NIEMALS „Tinder" verwenden (Marke). Stattdessen:
 
 **Mobile App Ambient — Feinschliff offen:** Linear-Wash Lesbarkeit; `/p/` Beat-Glow nicht mit App-Lila vermischen
 
-**Sonst niedrige Prio:** OG-Image pro Producer, Desktop-BG weiter tweaken (nur auf explizites Go)
+**Desktop Ambient — v58 shipped (Luca ok):** Stärkeres Lila + Topbar-Fade; Feintuning nur auf explizites Go
+
+**Sonst niedrige Prio:** OG-Image pro Producer
 
 **Bewusst geparkt (Luca-Entscheidungen Juni 2026):**
 
@@ -412,14 +501,23 @@ NIEMALS „Tinder" verwenden (Marke). Stattdessen:
 - **`await saveBeatToDB` vor Fly-Animation** → Swipe-Lag (v57b: `queueSaveBeatToDB`)
 - **`renderCard()` vor Mobile-Fly** → verzögerter Ruckler (v57c: Fly zuerst, render deferred)
 - **Direkter Supabase REST auf `crates` ohne RLS/Service Role** → Save schlägt fehl (403) — v57: `/api/crate`
+- **`cloneNode(true)` auf aktivem YouTube-Iframe** → Desktop-Swipe-Lag (v57e: `buildFlyCardShell`)
+- **Maus-Swipe mit offener Transform + YT-Iframe** → Lag nur bei Drag, nicht Buttons (v57f: pending metrics + clear transform)
+- **Topbar `::after` + extra Lila unten** → sichtbarer Streifen unter Hotbar (v58: entfernt, transparent bottom)
+- **`renderCrate()` early return ohne `renderDesktopCrate()`** → letzter Sidebar-Beat bleibt (v57g)
+- **Relatives CSS/JS auf `/p/`** → Portfolio ohne Styles (v59-split: `/styles.css` Pfad-Fix)
+- **AIRTABLE_TOKEN nur read** → Beat-Edit 403 lokal; Write-Scope nötig
+- **PATCH `TItle`** → Unknown field name; Spalte heißt `Title`
 
 ### Nächste Arbeit (Reihenfolge für neuen Chat)
 
-1. **Mobile App Ambient Feinschliff** — Linear-Wash Lesbarkeit; **`/p/` unangetastet**
+1. **Code-Split Schritt 4** — App-Kern JS → `app.js` (Discover, Auth, Favorites, Profile, Nav, Swipe); testen; dann **commit + deploy v59**
 2. **Profile polish** — Hero/Settings Mobile Feinschliff
-3. Optional: OG-Image pro Producer
-4. Optional: Upload — Title leer statt Dateiname
-5. Optional: Live Favorites-Sync (Polling/Realtime) — nicht MVP
+3. **Mobile App Ambient Feinschliff** — Linear-Wash Lesbarkeit; **`/p/` unangetastet**
+4. Optional: Desktop Ambient/Topbar Feintuning (v58 Basis shipped)
+5. Optional: OG-Image pro Producer
+6. Optional: Upload — Title leer statt Dateiname
+7. Optional: Live Favorites-Sync (Polling/Realtime) — nicht MVP
 
 ## Arbeitsweise
 
@@ -430,11 +528,11 @@ NIEMALS „Tinder" verwenden (Marke). Stattdessen:
 - Push-Auth: GitHub Personal Access Token (HTTPS), Scope `repo`
 - NIEMALS index.html auf GitHub per Delete + Upload ersetzen
 - Ein Feature → ein Commit → deployen → testen → nächstes Feature
-- Vor jedem Schritt: `grep "accent:" index.html` → muss `#7C3AED` sein
+- Vor jedem Schritt: `grep "accent:" styles.css` → muss `#7C3AED` sein
 - Gezielte Edits, nie komplette Neuschreibung
-- Dateien: `index.html` (~9140 Zeilen), `vercel.json`, `og-image.png`, `api/beats.js`, `api/pending-beats.js`, `api/manage-beat.js`, `api/crate.js`, `.gitignore`, `.cursor/rules/beatswipe.mdc`
-- **Env (nie committen):** `.env.local` — `SUPABASE_SERVICE_ROLE_KEY`, `AIRTABLE_TOKEN`, optional `SUPABASE_URL` / `SUPABASE_ANON_KEY`
-- **Aktuell:** Production v57c auf GitHub/Vercel
+- Dateien: `index.html` (~3583), `styles.css` (~3582), `portfolio.js` (~806), `mypage.js` (~1295), `vercel.json`, `og-image.png`, `api/beats.js`, `api/pending-beats.js`, `api/manage-beat.js`, `api/crate.js`, `.gitignore`, `.cursor/rules/beatswipe.mdc`; **nach Schritt 4:** `app.js`
+- **Env (nie committen):** `.env.local` — `SUPABASE_SERVICE_ROLE_KEY`, `AIRTABLE_TOKEN` (read+write), optional `SUPABASE_URL` / `SUPABASE_ANON_KEY`
+- **Aktuell:** Production v58 auf GitHub/Vercel; **lokal v59-split** uncommitted
 - Live testen: `beatswipe.app/p/clyriax` + Hard-Refresh (`Cmd+Shift+R`)
 - Lokal: `cd beatswipe && npx vercel dev` → `http://localhost:3000` (Port 3001 falls 3000 belegt); Hard-Refresh nach Edits
 - `.env.local` **nie** committen (in `.gitignore`)
@@ -451,79 +549,73 @@ NIEMALS „Tinder" verwenden (Marke). Stattdessen:
 
 ## Tech-Stack
 
-- Frontend: Single index.html
-- Beats-DB: Airtable (Base appB4LCctwYvuxK5S, Table tblkdiwaGP5e5xAot); Title intern TItle; Status = Select, Filter Approved
-- API: `api/beats.js` (GET, `s-maxage=45`), `api/pending-beats.js` (GET, Auth), `api/manage-beat.js` (POST); braucht `AIRTABLE_TOKEN` env (+ Supabase anon für Auth-APIs)
-- Auth/Storage: Supabase (https://yprwklxolgrlyswqwkzr.supabase.co); Tabellen: crates, profiles (`beat_order` jsonb auf profiles)
-- Beat-Submit: Make.com Webhook (`WEBHOOK_URL` in index.html)
+- Frontend: `index.html` + `styles.css` + `portfolio.js` + `mypage.js` (+ `app.js` nach Schritt 4)
+- Beats-DB: Airtable (Base appB4LCctwYvuxK5S, Table tblkdiwaGP5e5xAot); **Lesen** `TItle || Title`; **Schreiben (manage-beat)** nur `Title`; Status = Select, Filter Approved
+- API: `api/beats.js` (GET, `s-maxage=45`), `api/pending-beats.js` (GET, Auth), `api/manage-beat.js` (POST); `AIRTABLE_TOKEN` read+write
+- Auth/Storage: Supabase; Tabellen: crates, profiles (`beat_order` jsonb); **`profiles` RLS enabled**
+- Beat-Submit: Make.com Webhook (`WEBHOOK_URL` in `mypage.js`)
 - Audio: YouTube, SoundCloud, natives MP3
 
-## Portfolio — relevante Code-Stellen (index.html)
+## Portfolio — relevante Code-Stellen
 
-- CSS: `/* ── PORTFOLIO SWIPE (/p/name) ── */` (~Zeile 1650+)
-- CSS Mobile: `@media (max-width: 599px)` Portfolio-Block
-- CSS Desktop: `@media (min-width: 600px)` + `900px` + `1100px` unter `body.portfolio-active`
-- HTML: `#portfolioScreen` → `#portfolioPageInner` → `#portfolioCardWrap` → `#portfolioCardSlot`
-- JS: `openPortfolio`, `showPortfolioLoadingState`, `closePortfolioPreview`, `setPortfolioBackVisible`, `renderPortfolioCard`, `renderPortfolioHeader`, `updatePortfolioProgress`, `portfolioInitials`, `loadPortfolioProfile`, `buildPortfolioSocialsHTML`, `flyOutPortfolioCard`, `setPortfolioDoneMode`, `playPortfolioEnterAnim`, `spawnPortfolioConfetti`, `sortBeatsByOrder`, `getBeatOrderForProducer`, `persistBeatOrder`, `purgeOrphanSwipeNodes`, `_portfolioPreview`, `previewMyPage`
-- Boot: `<head>` `portfolio-route-boot`; Init: `_bootPortfolioSlug` → `showPortfolioLoadingState`
+- **CSS:** `styles.css` — `/* ── PORTFOLIO SWIPE (/p/name) ── */`; Mobile `@media (max-width: 599px)`; Desktop `600px` / `900px` / `1100px` unter `body.portfolio-active`
+- **HTML:** `index.html` — `#portfolioScreen` → `#portfolioPageInner` → `#portfolioCardWrap` → `#portfolioCardSlot`
+- **JS:** `portfolio.js` — `openPortfolio`, `showPortfolioLoadingState`, `closePortfolioPreview`, `setPortfolioBackVisible`, `renderPortfolioCard`, `renderPortfolioHeader`, `updatePortfolioProgress`, `portfolioInitials`, `loadPortfolioProfile`, `buildPortfolioSocialsHTML`, `flyOutPortfolioCard`, `setPortfolioDoneMode`, `playPortfolioEnterAnim`, `spawnPortfolioConfetti`, `_portfolioPreview`
+- **Beat-Order (mypage.js):** `sortBeatsByOrder`, `getBeatOrderForProducer`, `persistBeatOrder` — von `openPortfolio` genutzt
+- **App-Kern (index.html):** `doSwipe` Portfolio-Branch, `isPortfolioScreenActive`, `purgeOrphanSwipeNodes`; Boot `<head>` `portfolio-route-boot`
 - Back-Button: `#portfolioBackBtn`, `body.portfolio-has-back`
-- Swipe: Portfolio commit on **touchend**; Clone-Fly in `doSwipe`; Wobble: `.portfolio-surface.wobble`
-- **v53 Swipe:** `initSwipeGesture` IIFE — `pinCardForMobileDrag` (Discover only), `resetSwipeGestureState`; `playPortfolioEnterAnim` Mobile nur Header; `flyOutPortfolioCard` Clone an `#portfolioCardWrap`
+- Swipe: Portfolio commit on **touchend**; Clone-Fly in `doSwipe` / `flyOutPortfolioCard`; Wobble: `.portfolio-surface.wobble`
+- **v53:** `pinCardForMobileDrag` nur Discover; Portfolio **nie** body-pinnen
+- **v57d–f Fly (index.html):** `buildFlyCardShell`, `stripEmbedsForFly`, `flyOutDiscoverCard`
 
 ## Favorites / Crate Sync — relevante Code-Stellen
 
 - **API:** `api/crate.js` — env `SUPABASE_SERVICE_ROLE_KEY`
-- **JS:** `syncCrateFromDB`, `saveBeatToDB`, `queueSaveBeatToDB`, `flushPendingCrateSaves`, `removeBeatFromCrate`, `updateCrateCountUI`, `renderCrate`, `doSwipe`, `flyOutDiscoverCard` (Mobile `.discover-fly-clone--viewport`)
+- **JS:** `syncCrateFromDB`, `saveBeatToDB`, `queueSaveBeatToDB`, `flushPendingCrateSaves`, `removeBeatFromCrate`, `updateCrateCountUI`, `renderCrate`, `renderDesktopCrate`, `doSwipe`, `flyOutDiscoverCard`
 - State: `crate`, `_cratePendingSaves`, `_pendingGuestCrateMerge`, `_crateSyncInFlight`, `_authInitReady`
 - Auth: `onAuthStateChange` — Guest-Merge nur `SIGNED_IN && _pendingGuestCrateMerge`; `getAccessToken` mit `expires_at` + refresh
 - Supabase: `crates` Tabelle (`user_id`, `beat_id`, `beat_data`)
 
-## My Page — relevante Code-Stellen (index.html)
+## My Page — relevante Code-Stellen
 
-- CSS: `/* SUBMIT */` / `#myPageMain`, `#myPageAddBeat` (~Zeile 1520+)
-- CSS Upload: `/* ── MP3 FILE UPLOAD ── */` (~3078+); `.upload-queue-acc`, `.upload-queue-head`
-- HTML: `#submitScreen` → `#myPageMain` + `#myPageAddBeat` → `#submitForm`, `#uploadQueue`, `#submitSingleFields`, `#submitBatchNote`
-- JS Queue: `_mp3Queue`, `addFilesToQueue`, `renderUploadQueue`, `toggleQueueExpand`, `updateQueueField`
-- JS Submit: `doSubmitForm`, `doSubmitMp3Batch`, `uploadMp3File`, `postBeatWebhook`, `resetAddBeatForm`, `syncQueueFormLayout`
-- JS My Page: `renderMyPage`, `renderMyPageBeatRows`, `refreshMyPendingBeats`, `showMyPageAddBeat`, `hideMyPageAddBeat`, `openBeatEditModal`, `saveBeatEdit`, `deleteMyBeat`, `moveMyBeat`, `persistBeatOrder`
-- Beat-Edit-Modal: `#beatEditModal`, `#beat-edit-*`
+- **CSS:** `styles.css` — `/* SUBMIT */`, `#myPageMain`, `#myPageAddBeat`, `/* ── MP3 FILE UPLOAD ── */`, `.upload-queue-acc`
+- **HTML:** `index.html` — `#submitScreen`, `#beatEditModal`, `#beat-edit-*`
+- **JS:** `mypage.js` — Upload-Queue, Submit, Dashboard, Onboarding, `manageBeatRequest`, `saveBeatEdit`, `deleteMyBeat`, `moveMyBeat`, `persistBeatOrder`, `getBeatOrderForProducer`, `previewMyPage` (ruft `openPortfolio` in portfolio.js)
 
-## Desktop Background (site-scroll) — relevante Code-Stellen (index.html)
+## Desktop Background + Topbar — relevante Code-Stellen (styles.css)
 
-- `@media (min-width: 900px)` Block ~411+: `body.site-scroll .bg-desktop::before/::after` (v37 subtile Purple-Margins)
+- `@media (min-width: 900px)`: `.bg-desktop`, `body.site-scroll`, `body.discover-active` + `::before/::after` (v58)
+- `body:not(.portfolio-active) .desktop-topbar`: Gradient transparent→`#050508`
+- `body.portfolio-active .bg-desktop`: Beat-`--pf-glow`; Topbar hidden
+- `.discover-ambient-glow`
 
-## Mobile Ambient + Discover Mobile — relevante Code-Stellen (index.html)
+## Mobile Ambient + Discover Mobile — relevante Code-Stellen
 
-- `@media (max-width: 899px)` nach `.shell`: Mobile Linear Purple-Wash + `body.portfolio-active` Override (~Zeile 139+)
-- Discover/Swipe Mobile: `/* Mobile swipe — no side clip */` (~2795+); `/* Discover mobile — larger swipe zone */` (~2860+)
-- JS Swipe: `initSwipeGesture` IIFE (~5295+); `resetSwipeGestureState`, `purgeOrphanSwipeNodes` (~4870+)
-- JS: `loadBeats`, `retryLoadBeats`, `fetchBeatsFromApi`, `_beatsCache`; `isSwipeGestureTarget` → `#cardWrap` / `#portfolioPageInner`
-- Landing: `#beatsLoadBanner`, `#beatsLoadRetryBtn`
-- Portfolio Glow: `setPortfolioGlow`, `--pf-glow`, `body.portfolio-active .bg-desktop::before`
-- Viewport meta: `interactive-widget=overlays-content`, `viewport-fit=cover`
+- **CSS `styles.css`:** Mobile Linear Purple-Wash `@media (max-width: 899px)`; Swipe overflow-Kette; Discover mobile swipe zone
+- **JS `index.html`:** `initSwipeGesture` IIFE, `doSwipe`, `flyOutDiscoverCard`, `buildFlyCardShell`, `loadBeats`, `_beatsCache`
+- **JS `portfolio.js`:** `flyOutPortfolioCard`, `purgeOrphanSwipeNodes` (Portfolio-Cleanup)
+- Viewport meta in `index.html`: `interactive-widget=overlays-content`, `viewport-fit=cover`
 
-## Profile — relevante Code-Stellen (index.html)
+## Profile — relevante Code-Stellen
 
-- CSS: `/* ── PROFILE SCREEN ── */` (~Zeile 2550+); `.profile-wrap--guest`, `.profile-guest-scroll`
-- JS: `renderProfile`, `switchProfileTab`, `saveProfile`, `copyPortfolioLink`, `isProfileDirty`, `confirmDiscardProfileChanges`, `bindProfileFormWatch`
+- **CSS:** `styles.css` — `/* ── PROFILE SCREEN ── */`, `.profile-wrap--guest`
+- **JS:** `index.html` — `renderProfile`, `switchProfileTab`, `saveProfile`, `copyPortfolioLink`, `isProfileDirty`, `confirmDiscardProfileChanges`
 
-## Nav — relevante Code-Stellen (index.html)
+## Nav — relevante Code-Stellen
 
-- CSS: `/* NAV */` (~1300+); `.nav-indicator`, `.dtb-nav-indicator`, `.portfolio-progress`
-- HTML: `#navIndicator`, `#dtbNavIndicator`
-- JS: `setActiveNav`, `updateNavIndicator`, `positionNavIndicator`, `playScreenEnterAnim`, `goTo` / `applyGoTo`, `body.nav-switching`
+- **CSS:** `styles.css` — `/* NAV */`, `.nav-indicator`, `.dtb-nav-indicator`, `.portfolio-progress`
+- **JS:** `index.html` — `setActiveNav`, `updateNavIndicator`, `goTo` / `applyGoTo`, `body.nav-switching`
 
-## Toast — relevante Code-Stellen (index.html)
+## Toast — relevante Code-Stellen
 
-- CSS: `/* ── TOAST ── */` (~Zeile 2380+)
-- HTML: `#bsToastWrap`
-- JS: `showToast()` — direkt nach `escHtml()`
+- **CSS:** `styles.css` — `/* ── TOAST ── */`
+- **HTML:** `#bsToastWrap` in `index.html`
+- **JS:** `showToast()` in `index.html` (nach `escHtml()`)
 
-## Landing — relevante Code-Stellen (index.html)
+## Landing — relevante Code-Stellen
 
-- Mobile Mockup: `@media (max-width: 899px)` `#landScreen .hero-visual`
-- Live CTA: `.hero-live-cta`, `.hero-live-link` im Hero
-- Desktop Mockup: `@media (min-width: 900px)` `.hero-mockup-*`
+- **CSS:** `styles.css` — Hero, Mockup, FAQ, `@media` Mobile/Desktop
+- **JS:** `index.html` — `bootLandingReveal()`, `initScrollReveal`, `#beatsLoadBanner`
 
 ## Autoplay — relevante Code-Stellen (index.html)
 
@@ -542,10 +634,13 @@ NIEMALS „Tinder" verwenden (Marke). Stattdessen:
 - **Portfolio Swipe:** `.portfolio-surface` nie an `body` pinnen — Styles sind `#portfolioCardWrap`-descendant-only
 - `body.site-scroll` (Desktop 900px+): inner containers `overflow:visible; flex:none` damit Body scrollt
 - Airtable nur über /api/beats Proxy
-- Funktionen NIE außerhalb Haupt-script duplizieren
+- Funktionen NIE zwischen `index.html` / `portfolio.js` / `mypage.js` / `app.js` duplizieren — Load-Order: App-Kern → `mypage.js` → `portfolio.js` → Init
 - Onboard + Cookie-Banner: skippen wenn `_portfolioMode`
-- Vercel `env pull` kann `AIRTABLE_TOKEN=""` liefern — Token manuell in `.env.local`
-- **Favorites:** `syncCrateFromDB` = replace aus DB; nie lokalen `crate` bei jedem `SIGNED_IN` zurück in DB mergen (iOS Session-Restore); Saves über `/api/crate` + `SUPABASE_SERVICE_ROLE_KEY`; **`queueSaveBeatToDB` nicht awaiten vor Fly**; Mobile Fly vor `renderCard`
+- Vercel `env pull` kann `AIRTABLE_TOKEN=""` liefern — Token manuell in `.env.local`; **PAT Scopes:** `data.records:read` + `data.records:write`
+- **Split-Falle:** relatives `href="styles.css"` auf `/p/*` → unstyled (Rewrite); immer `/styles.css`
+- **manage-beat:** nur Airtable-Feld `Title` patchen — nicht `TItle`
+- **Favorites:** `syncCrateFromDB` = replace aus DB; nie lokalen `crate` bei jedem `SIGNED_IN` zurück in DB mergen (iOS Session-Restore); Saves über `/api/crate` + `SUPABASE_SERVICE_ROLE_KEY`; **`queueSaveBeatToDB` nicht awaiten vor Fly**; Fly vor `renderCard` (Mobile + Desktop); `renderDesktopCrate()` auch bei leerem crate
+- **YouTube Swipe:** nie `cloneNode(true)` auf Iframe; `buildFlyCardShell`; Maus-Commit `_pendingFlyRect`/`_pendingFlyTransform` vor Fly
 
 ## Invite Gate (Private Beta)
 
