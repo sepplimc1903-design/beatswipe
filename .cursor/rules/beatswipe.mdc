@@ -69,20 +69,17 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 - **Favorites:** `syncCrateFromDB` replace not merge; saves via `/api/crate`; no guest→DB merge on iOS session restore
 - **Upload:** multi-MP3 accordion, no genre/type prefill, title from filename only
 - **Preview portfolio:** `{ preview: true }` — no crate saves
+- **Portfolio card-glow:** hidden in idle (`opacity: 0`); purple/orange only while swiping — never beat `--glow-color` on `/p/`
 
-## Aktuell (2026-06-10)
+## Aktuell (2026-06-11)
 
-- **Landing:** hero swipe demo, live-page card CTA, numbered how-it-works steps, shorter copy, mobile scroll reveal
-- **Portfolio:** mobile + laptop aurora bg, glass card; kbd hints desktop
-- **Onboarding tutorial:** glass redesign, pill/swipe demos; laptop = centered modal (520–580px), mobile = bottom sheet
-- **Profile:** mobile hero (centered avatar, live badge, copy-primary actions), glass guest auth, sticky save, clickable Favorites card
-- **Auth:** password reset — URL capture before Supabase init; PKCE `?code=` + hash `setSession` fallback; modal z-index 400 (above invite gate)
-- **Legal:** Austrian ECG Impressum + GDPR/DSG Privacy Policy; newsletter opt-in checkbox
-- **Fix:** Discover YouTube keeps playing after nav away → `stopEmbedPreview`
+- **Portfolio `/p/`:** swipe card-glow like Discover — purple save / orange skip behind card only while dragging; idle = page aurora only (no card glow)
+- **Profile mobile:** compact hero card; settings scroll hint + smaller cards; save button not sticky; legal/privacy modals scroll on phone
+- **Landing / Discover / Auth / Legal:** unchanged from prior deploy (hero demo, password reset, GDPR texts)
 
 ## Nächster Schritt
 
-1. **Deploy + Supabase:** push → Vercel; Redirect URLs `https://beatswipe.app/` + `http://localhost:3000/`
+1. **Verify deploy:** `beatswipe.app/p/clyriax` swipe glow + Profile mobile after Vercel (~1–2 min)
 2. **Legal:** `[Your full legal name]` + Adresse; AV-Verträge (Supabase, Vercel, Airtable, Make)
 3. **Account:** Delete account in-app (DSGVO Art. 17)
 4. Optional: OG per producer, live favorites sync, landing stats count-up
