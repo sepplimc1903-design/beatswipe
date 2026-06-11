@@ -579,13 +579,16 @@
     }
     .dtb-signin:hover { border-color: var(--accent-mid); color: var(--accent-mid); }
     .dtb-user-btn {
-      background: none; border: none; padding: 0; cursor: pointer;
-      border-radius: 50%; transition: opacity 0.2s, box-shadow 0.2s;
+      width: 34px; height: 34px;
+      background: var(--accent); border: 2px solid var(--accent); padding: 0; cursor: pointer;
+      border-radius: 50%; overflow: hidden;
+      transition: opacity 0.2s, border-color 0.2s;
     }
-    .dtb-user-btn:hover { opacity: 0.88; box-shadow: 0 0 0 2px var(--accent-mid); }
+    .dtb-user-btn:hover { opacity: 0.88; border-color: var(--accent-mid); }
     .dtb-user-btn img {
-      width: 34px; height: 34px; border-radius: 50%;
-      object-fit: cover; border: 2px solid var(--accent); display: block;
+      width: 100%; height: 100%;
+      object-fit: cover; border: none; display: block;
+      transform: scale(1.1);
     }
     .dtb-initial {
       width: 34px; height: 34px; border-radius: 50%;
@@ -936,8 +939,7 @@
       }
       .dtb-signin:hover { border-color: rgba(255,255,255,0.22); color: var(--text); }
       .discover-filter-btn:hover { border-color: rgba(255,255,255,0.18); color: var(--text); }
-      .dtb-user-btn:hover { box-shadow: 0 0 0 2px rgba(255,255,255,0.12); }
-      .dtb-user-btn img { border-color: rgba(255,255,255,0.18); }
+      .dtb-user-btn:hover { border-color: rgba(255,255,255,0.22); }
       .dtb-initial { border-color: rgba(255,255,255,0.18); }
       .producer-row:hover { border-color: var(--border-2); }
       input:focus, select:focus, textarea:focus { box-shadow: 0 0 0 3px rgba(124,58,237,0.12); }
@@ -1853,7 +1855,20 @@
     .swipe-label-skip  { left: 18px;  color: #f87171; border-color: #f87171; transform: rotate(-8deg); }
     .swipe-label-save  { right: 18px; color: var(--accent-mid); border-color: var(--accent-mid); transform: rotate(8deg); }
     .card-head { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 16px; position: relative; }
+    .cover-box,
+    .mini-cover,
+    .dc-cover,
+    .crate-preview-cover {
+      background: #7C3AED20;
+      border: 0.5px solid #7C3AED50;
+    }
+    .cover-box i,
+    .mini-cover i,
+    .dc-cover i,
+    .crate-preview-cover i { color: var(--accent-mid); }
+    .dc-cover i { font-size: 16px; }
     .cover-box { width: 60px; height: 60px; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .cover-box i { font-size: 24px; }
     .track-name { font-size: 20px; font-weight: 700; margin-bottom: 3px; line-height: 1.15; letter-spacing: -0.4px; }
     .track-by { font-size: 13px; color: var(--text-2); font-weight: 400; }
     .type-pill { font-size: 10px; font-weight: 600; padding: 3px 10px; border-radius: 100px; background: var(--bg-3); border: 0.5px solid var(--border-2); color: var(--text-3); letter-spacing: 0.2px; white-space: nowrap; }
@@ -3594,7 +3609,7 @@
       -webkit-overflow-scrolling: touch;
       gap: 0;
     }
-    .profile-guest-scroll { padding-bottom: 24px; display: flex; flex-direction: column; gap: 12px; }
+    .profile-guest-scroll { padding-bottom: 24px; display: flex; flex-direction: column; gap: 16px; }
     .profile-wrap--guest .legal-links { margin: 4px var(--px) 0; }
     .profile-guest-header {
       margin: 0 var(--px);
@@ -3641,8 +3656,7 @@
         border-radius: 16px;
       }
       .profile-hero-body { width: 100%; }
-      .profile-hero-avatar,
-      .profile-hero-avatar-fallback { width: 56px; height: 56px; }
+      .profile-hero-avatar-wrap { width: 56px; height: 56px; }
       .profile-hero-avatar-fallback { font-size: 22px; }
       .profile-hero-name { font-size: 16px; }
       .profile-hero-email { font-size: 12px; }
@@ -3657,18 +3671,30 @@
       position: relative;
       flex-shrink: 0;
       cursor: pointer;
-    }
-    .profile-hero-avatar,
-    .profile-hero-avatar-fallback {
       width: 64px;
       height: 64px;
       border-radius: 50%;
-      object-fit: cover;
       border: 2px solid var(--accent);
+      box-sizing: border-box;
+    }
+    .profile-hero-avatar-clip {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      overflow: hidden;
+      background: var(--accent);
+    }
+    .profile-hero-avatar,
+    .profile-hero-avatar-fallback {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border: none;
       display: block;
     }
+    .profile-hero-avatar { transform: scale(1.1); }
     .profile-hero-avatar-fallback {
-      background: var(--accent-light);
+      background: var(--accent-dark);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -3878,6 +3904,7 @@
     .profile-newsletter-row {
       display: flex;
       gap: 8px;
+      margin-bottom: 14px;
     }
     .profile-newsletter-row input {
       flex: 1;
@@ -3928,8 +3955,7 @@
     }
     @media (min-width: 900px) {
       .profile-hero { padding: 22px 24px; }
-      .profile-hero-avatar,
-      .profile-hero-avatar-fallback { width: 72px; height: 72px; }
+      .profile-hero-avatar-wrap { width: 72px; height: 72px; }
       .profile-hero-avatar-fallback { font-size: 28px; }
       .profile-section { padding: 22px 24px; }
     }
@@ -3937,21 +3963,20 @@
       background: rgba(255,255,255,0.03);
       border-radius: 20px;
       border: 0.5px solid rgba(255,255,255,0.08);
-      padding: 20px;
+      padding: 22px 20px;
       margin: 0 var(--px);
     }
-    .profile-tabs--auth { margin: 0 0 16px; }
     .auth-dsgvo-row {
       display: flex;
       align-items: flex-start;
-      gap: 10px;
-      margin-bottom: 4px;
+      gap: 12px;
+      margin-bottom: 16px;
     }
     .auth-dsgvo-box {
-      width: 20px; height: 20px; border-radius: 6px;
+      width: 22px; height: 22px; border-radius: 6px;
       border: 1.5px solid var(--border-2);
       background: var(--bg-3);
-      flex-shrink: 0; margin-top: 1px;
+      flex-shrink: 0; margin-top: 2px;
       cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       transition: background 0.15s, border-color 0.15s;
@@ -3960,23 +3985,23 @@
     .auth-dsgvo-box i { font-size: 13px; color: #fff; display: none; }
     .auth-dsgvo-box.checked i { display: block; }
     .auth-dsgvo-label {
-      font-size: 12px; color: var(--text-2); line-height: 1.5; cursor: pointer;
+      font-size: 13px; color: var(--text-2); line-height: 1.55; cursor: pointer;
     }
     .auth-dsgvo-label a { color: var(--accent-mid); cursor: pointer; }
-    .auth-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
-    .auth-sub { font-size: 13px; color: var(--text-2); margin-bottom: 20px; line-height: 1.5; }
+    .auth-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .auth-sub { font-size: 13px; color: var(--text-2); margin-bottom: 18px; line-height: 1.55; }
     .auth-tabs { display: flex; background: var(--bg-3); border-radius: 10px; padding: 3px; margin-bottom: 18px; gap: 3px; }
     .auth-tab { flex: 1; padding: 8px; border-radius: 8px; border: none; background: none; color: var(--text-2); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
     .auth-tab.active { background: var(--bg); color: var(--text); font-weight: 600; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
-    .auth-field { margin-bottom: 12px; }
-    .auth-btn { width: 100%; padding: 13px; border-radius: 12px; background: var(--accent); border: none; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 4px; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .auth-field { margin-bottom: 14px; }
+    .auth-btn { width: 100%; padding: 13px; border-radius: 12px; background: var(--accent); border: none; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 0; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
     .auth-btn:hover { opacity: 0.88; }
     .auth-btn:disabled { opacity: 0.6; cursor: not-allowed; }
     .auth-msg { font-size: 12px; margin-top: 10px; text-align: center; min-height: 18px; }
     .auth-msg.error { color: #f87171; }
     .auth-msg.success { color: #4ade80; }
     .auth-forgot-link {
-      display: block; width: 100%; margin: 2px 0 10px; padding: 0;
+      display: block; width: 100%; margin: 2px 0 18px; padding: 0;
       background: none; border: none; color: var(--accent-mid); font-size: 13px;
       text-align: right; cursor: pointer; transition: color 0.15s;
     }
@@ -3989,6 +4014,7 @@
     .auth-back-link:hover { color: var(--text); }
     /* ── PROFILE TABS ── */
     .profile-tabs { display: flex; background: rgba(255,255,255,0.04); border-radius: 14px; padding: 4px; gap: 4px; margin: 0 var(--px); border: 0.5px solid var(--border); flex-shrink: 0; }
+    .profile-tabs.profile-tabs--auth { margin: 0 0 20px; }
     .profile-tab { flex: 1; padding: 9px; border-radius: 10px; border: none; background: none; color: var(--text-3); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
     .profile-tab.active { background: var(--bg); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
     .profile-tab i { font-size: 15px; }
@@ -4025,12 +4051,16 @@
       }
       #ptSettings .profile-settings-title { font-size: 13px; margin-bottom: 2px; }
       #ptSettings .profile-settings-title i { font-size: 14px; }
-      #ptSettings .profile-settings-desc { font-size: 11px; margin-bottom: 8px; }
+      #ptSettings .profile-settings-desc { font-size: 11px; margin-bottom: 10px; }
       #ptSettings .profile-stat-value { font-size: 14px; }
       #ptSettings .profile-stat-label { font-size: 11px; }
+      #ptSettings .profile-newsletter-row { margin-bottom: 12px; }
       #ptSettings .profile-newsletter-row input,
-      #ptSettings .profile-newsletter-row button { padding: 9px 10px; font-size: 12px; }
-      #ptSettings .auth-dsgvo-label { font-size: 11px; line-height: 1.45; }
+      #ptSettings .profile-newsletter-row button { padding: 10px 12px; font-size: 12px; }
+      #ptSettings .auth-dsgvo-row { margin-bottom: 14px; }
+      #ptSettings .auth-dsgvo-label { font-size: 12px; line-height: 1.55; }
+      .profile-guest-scroll .auth-dsgvo-row { margin-bottom: 14px; }
+      .profile-guest-scroll .auth-dsgvo-label { font-size: 12px; line-height: 1.55; }
       #ptSettings .profile-action-btn,
       #ptSettings .logout-btn { padding: 10px; font-size: 13px; }
       #ptSettings .legal-link { padding: 12px 14px; font-size: 13px; }

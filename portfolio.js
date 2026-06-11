@@ -422,8 +422,8 @@ function buildBeatCardHTML(d, opts) {
       <div class="card-head">
         <span class="swipe-label swipe-label-skip" id="labelSkip">SKIP</span>
         <span class="swipe-label swipe-label-save" id="labelSave">SAVE</span>
-        <div class="cover-box" style="background:${d.color}20;border:0.5px solid ${d.color}50">
-          <i class="ti ti-${d.type==='Drums'?'circle':'music'}" style="font-size:24px;color:${d.color}"></i>
+        <div class="cover-box">
+          <i class="ti ti-${d.type==='Drums'?'circle':'music'}"></i>
         </div>
         <div style="flex:1;min-width:0">
           <div class="track-name">${d.title}</div>

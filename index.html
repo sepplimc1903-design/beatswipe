@@ -122,8 +122,8 @@
                 <div class="card-glow hero-card-glow" id="heroCardGlow" style="--glow-color:#7C3AED"></div>
                 <div class="beat-card hero-beat-card" id="heroBeatCard">
                   <div class="card-head">
-                    <div class="cover-box" style="background:#7C3AED20;border:0.5px solid #7C3AED50">
-                      <i class="ti ti-music" style="font-size:24px;color:#7C3AED"></i>
+                    <div class="cover-box">
+                      <i class="ti ti-music"></i>
                     </div>
                     <div style="flex:1;min-width:0">
                       <div class="track-name">Midnight Drive</div>
@@ -930,16 +930,53 @@
 <script src="/portfolio.js"></script>
 <script>
 // ─── LIVE STATS ────────────────────────────────────────────────────────────
-function updateStats() {
+let _statsCountUpDone = false;
+
+function fmtStat(n, threshold) {
+  return n > 0 ? n + (n >= threshold ? '+' : '') : '–';
+}
+
+function parseStatNum(text) {
+  if (!text || text === '–') return 0;
+  return parseInt(String(text).replace('+', ''), 10) || 0;
+}
+
+function animateStat(el, target, threshold, delayMs) {
+  if (!el) return;
+  if (target <= 0) { el.textContent = '–'; return; }
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    el.textContent = fmtStat(target, threshold);
+    return;
+  }
+  const start = parseStatNum(el.textContent);
+  const duration = 820;
+  const startAt = performance.now() + (delayMs || 0);
+  function tick(now) {
+    if (now < startAt) { requestAnimationFrame(tick); return; }
+    const t = Math.min(1, (now - startAt) / duration);
+    const eased = 1 - Math.pow(1 - t, 3);
+    const val = Math.round(start + (target - start) * eased);
+    el.textContent = fmtStat(val, threshold);
+    if (t < 1) requestAnimationFrame(tick);
+    else el.textContent = fmtStat(target, threshold);
+  }
+  requestAnimationFrame(tick);
+}
+
+function updateStats(animate) {
   const allBeats = Object.values(db).flat();
   const beatCount = allBeats.length;
   const producerCount = new Set(allBeats.map(b => b.producer)).size;
-  const fmt = (n, threshold) => n > 0 ? n + (n >= threshold ? '+' : '') : '–';
-  // in-app stats
   const bEl = document.getElementById('statBeats');
   const pEl = document.getElementById('statProducers');
-  if (bEl) bEl.textContent = fmt(beatCount, 10);
-  if (pEl) pEl.textContent = fmt(producerCount, 5);
+  if (animate && !_statsCountUpDone) {
+    _statsCountUpDone = true;
+    animateStat(bEl, beatCount, 10, 0);
+    animateStat(pEl, producerCount, 5, 120);
+    return;
+  }
+  if (bEl) bEl.textContent = fmtStat(beatCount, 10);
+  if (pEl) pEl.textContent = fmtStat(producerCount, 5);
 }
 
 // ─── REPLAY SKIPPED ──────────────────────────────────────────────────────

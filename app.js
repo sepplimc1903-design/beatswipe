@@ -457,7 +457,7 @@ function applyBeatsList(beats) {
   db = { full: [], loops: [], drums: [], samples: [] };
   beats.forEach(b => db[typeTocat(b.type)].push(b));
   _rawDb = JSON.parse(JSON.stringify(db));
-  updateStats();
+  updateStats(true);
   return true;
 }
 
@@ -1214,8 +1214,8 @@ function renderCard(opts) {
       <div class="card-head">
         <span class="swipe-label swipe-label-skip" id="labelSkip">SKIP</span>
         <span class="swipe-label swipe-label-save" id="labelSave">SAVE</span>
-        <div class="cover-box" style="background:${d.color}20;border:0.5px solid ${d.color}50">
-          <i class="ti ti-${d.type==='Drums'?'circle':'music'}" style="font-size:24px;color:${d.color}"></i>
+        <div class="cover-box">
+          <i class="ti ti-${d.type==='Drums'?'circle':'music'}"></i>
         </div>
         <div style="flex:1;min-width:0">
           <div class="track-name">${d.title}</div>
@@ -1917,7 +1917,7 @@ function buildCratePreviewHTML(d) {
   }
   return `<div class="crate-preview-card">
     <div class="crate-preview-head">
-      <div class="crate-preview-cover" style="background:${d.color}20;border:0.5px solid ${d.color}50"><i class="ti ti-music" style="color:${d.color}"></i></div>
+      <div class="crate-preview-cover"><i class="ti ti-music"></i></div>
       <div>
         <div class="crate-preview-title">${d.title}</div>
         <div class="crate-preview-producer" onclick="openProducerProfile('${prodEsc}')">by ${d.producer}</div>
@@ -2051,8 +2051,8 @@ function renderCrate() {
       : `<button class="crate-action-btn crate-action-btn--ghost" onclick="event.stopPropagation();openProducerProfile('${prodEsc}')" title="Contact ${d.producer} for licensing"><i class="ti ti-user"></i> Contact</button>`;
     return `
     <div class="crate-card${enterCls}${selCls}" id="crate-card-${d.id}"${staggerStyle} onclick="selectCrateBeat('${d.id}')">
-      <div class="mini-cover" style="background:${d.color}20;border:0.5px solid ${d.color}50">
-        <i class="ti ti-music" style="color:${d.color}"></i>
+      <div class="mini-cover">
+        <i class="ti ti-music"></i>
       </div>
       <div class="crate-info">
         <div class="crate-name">${d.title}</div>
@@ -2093,8 +2093,8 @@ function renderDesktopCrate(stagger) {
     const staggerStyle = stagger ? ' style="--i:' + Math.min(idx, 7) + '"' : '';
     return '<div class="dc-card' + enterCls + '"' + staggerStyle + '>'
       + '<div class="dc-card-top">'
-      + '<div class="dc-cover" style="background:' + d.color + '20;border:0.5px solid ' + d.color + '50">'
-      + '<i class="ti ti-music" style="font-size:16px;color:' + d.color + '"></i></div>'
+      + '<div class="dc-cover">'
+      + '<i class="ti ti-music"></i></div>'
       + '<div class="dc-info">'
       + '<div class="dc-name">' + d.title + '</div>'
       + '<div class="dc-meta">' + d.producer + ' · ' + d.genre + '</div>'
@@ -2381,11 +2381,14 @@ async function loadUserProfile() {
 }
 
 function getAvatarHTML() {
+  let inner;
   if (_userProfile?.avatar_url) {
-    return `<img src="${escHtml(_userProfile.avatar_url)}" class="profile-hero-avatar" alt="">`;
+    inner = `<img src="${escHtml(_userProfile.avatar_url)}" class="profile-hero-avatar" alt="">`;
+  } else {
+    const initials = (_userProfile?.producer_name || currentUser?.email || '?')[0].toUpperCase();
+    inner = `<div class="profile-hero-avatar-fallback">${escHtml(initials)}</div>`;
   }
-  const initials = (_userProfile?.producer_name || currentUser?.email || '?')[0].toUpperCase();
-  return `<div class="profile-hero-avatar-fallback">${escHtml(initials)}</div>`;
+  return `<div class="profile-hero-avatar-clip">${inner}</div>`;
 }
 
 function renderProfile() {
@@ -2910,16 +2913,19 @@ async function confirmCrop() {
   const canvas = document.createElement('canvas');
   canvas.width = 280; canvas.height = 280;
   const ctx = canvas.getContext('2d');
-  // Clip to circle
+  // Clip to circle; purple fill + slight bleed avoids dark fringe at edge
   ctx.beginPath();
   ctx.arc(140, 140, 140, 0, Math.PI * 2);
   ctx.clip();
+  ctx.fillStyle = '#7C3AED';
+  ctx.fillRect(0, 0, 280, 280);
 
   const img = document.getElementById('cropImg');
-  const w = _cropNaturalW * _cropScale;
-  const h = _cropNaturalH * _cropScale;
-  const x = 140 - w/2 + _cropOffsetX;
-  const y = 140 - h/2 + _cropOffsetY;
+  const bleed = 1.08;
+  const w = _cropNaturalW * _cropScale * bleed;
+  const h = _cropNaturalH * _cropScale * bleed;
+  const x = 140 - w / 2 + _cropOffsetX;
+  const y = 140 - h / 2 + _cropOffsetY;
   ctx.drawImage(img, x, y, w, h);
 
   canvas.toBlob(async blob => {

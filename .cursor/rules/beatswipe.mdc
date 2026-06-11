@@ -73,16 +73,17 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 
 ## Aktuell (2026-06-11)
 
-- **Portfolio `/p/`:** swipe card-glow like Discover — purple save / orange skip behind card only while dragging; idle = page aurora only (no card glow)
-- **Profile mobile:** compact hero card; settings scroll hint + smaller cards; save button not sticky; legal/privacy modals scroll on phone
-- **Landing / Discover / Auth / Legal:** unchanged from prior deploy (hero demo, password reset, GDPR texts)
+- **Beat cover:** Music-Icon + lila Box (`#7C3AED` / `--accent-mid`) überall — Discover, Favorites, `/p/`; Card-Glow bleibt beat-spezifisch
+- **Landing stats:** Count-up beim ersten Beats-Load (ease-out, reduced-motion = instant)
+- **Portfolio `/p/`:** swipe card-glow like Discover — purple save / orange skip behind card only while dragging
+- **Profile mobile:** compact hero; settings scroll hint; legal modals scroll on phone
 
 ## Nächster Schritt
 
-1. **Verify deploy:** `beatswipe.app/p/clyriax` swipe glow + Profile mobile after Vercel (~1–2 min)
+1. **Verify deploy:** `/p/clyriax` glow + Landing stats count-up + lila covers lokal testen
 2. **Legal:** `[Your full legal name]` + Adresse; AV-Verträge (Supabase, Vercel, Airtable, Make)
 3. **Account:** Delete account in-app (DSGVO Art. 17)
-4. Optional: OG per producer, live favorites sync, landing stats count-up
+4. Optional: OG per producer (SSR), live favorites sync
 
 ## Rules pflegen (Agent)
 
