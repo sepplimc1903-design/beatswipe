@@ -32,7 +32,7 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 | `mypage.js` | My Page upload, dashboard, beat edit/order |
 | `portfolio.js` | `/p/` portfolio |
 | `styles.css` | All CSS |
-| `api/*.js` | beats, pending-beats, manage-beat, crate |
+| `api/*.js` | beats, pending-beats, manage-beat, submit-beat, crate |
 
 **Script order:** `/app.js` → `/mypage.js` → `/portfolio.js` → init inline in `index.html`
 
@@ -47,15 +47,16 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 - One feature → one commit → test → next
 - Never replace `index.html` via delete+upload on GitHub
 - Before CSS work: `grep "accent:" styles.css` → must be `#7C3AED`
-- `.env.local` never commit (`SUPABASE_SERVICE_ROLE_KEY`, `AIRTABLE_TOKEN` read+write)
+- `.env.local` never commit (`SUPABASE_SERVICE_ROLE_KEY`); `AIRTABLE_TOKEN` optional entfernen
 - Local: `npx vercel dev` → `localhost:3000`, hard-refresh after edits
 - Test: `beatswipe.app/p/clyriax`, My Page edit, Discover save
 
 ## Tech stack (short)
 
-- Beats: Airtable via `api/beats.js` — read `TItle || Title`; **write** manage-beat only `Title`
+- **Beats:** Supabase `beats` — `api/beats.js`, `pending-beats.js`, `manage-beat.js`, `submit-beat.js`; Review in Supabase Table Editor (`beat_status` enum)
 - Auth/profiles: Supabase (RLS on). Favorites: `api/crate.js` + service role
-- Submit: Make.com webhook in `mypage.js`
+- Submit: `/api/submit-beat` → Supabase (`mypage.js`); MP3 previews: Storage bucket `beats`
+- Newsletter: Make.com webhook in `app.js` (nur Landing)
 - UI: English, „Favorites" not Crate, dark-only, glass cards, neutral `.wbar` waveform
 
 ## Critical pitfalls (don’t re-break)
@@ -70,20 +71,21 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 - **Upload:** multi-MP3 accordion, no genre/type prefill, title from filename only
 - **Preview portfolio:** `{ preview: true }` — no crate saves
 - **Portfolio card-glow:** hidden in idle (`opacity: 0`); purple/orange only while swiping — never beat `--glow-color` on `/p/`
+- **Local dev env:** `vercel dev` lädt `.env.local` nicht zuverlässig in APIs — `api/_env.js` liest `.env.local` als Fallback; Production nutzt Vercel `SUPABASE_SERVICE_ROLE_KEY`
 
-## Aktuell (2026-06-11)
+## Aktuell (2026-06-22)
 
-- **Beat cover:** Music-Icon + lila Box (`#7C3AED` / `--accent-mid`) überall — Discover, Favorites, `/p/`; Card-Glow bleibt beat-spezifisch
-- **Landing stats:** Count-up beim ersten Beats-Load (ease-out, reduced-motion = instant)
-- **Portfolio `/p/`:** swipe card-glow like Discover — purple save / orange skip behind card only while dragging
-- **Profile mobile:** compact hero; settings scroll hint; legal modals scroll on phone
+- **Beats auf Supabase:** deployed — Upload, Pending, Discover, `/p/`, My Page edit/delete; Airtable + Make-Beat-Webhook aus Code
+- **Review:** Supabase Table Editor → `status` Dropdown (`pending` / `approved` / `rejected` / `removed`)
+- **Favorites:** Supabase `crates`. **Skipped** → nur `localStorage`, nicht cross-device
+- **SQL:** `supabase/beats.sql` + optional `beats-status-enum.sql` (bereits in Prod-DB)
 
 ## Nächster Schritt
 
-1. **Verify deploy:** `/p/clyriax` glow + Landing stats count-up + lila covers lokal testen
-2. **Legal:** `[Your full legal name]` + Adresse; AV-Verträge (Supabase, Vercel, Airtable, Make)
-3. **Account:** Delete account in-app (DSGVO Art. 17)
-4. Optional: OG per producer (SSR), live favorites sync
+1. **Live testen:** beatswipe.app — Upload → approve → Discover + `/p/`
+2. **Aufräumen:** `AIRTABLE_TOKEN` auf Vercel entfernen; Make Beat-Szenario abschalten
+3. **Legal:** Privacy-Texte (Airtable für Beats raus); Account delete in-app
+4. Später: In-app Approve-UI, Skip-Sync cross-device
 
 ## Rules pflegen (Agent)
 

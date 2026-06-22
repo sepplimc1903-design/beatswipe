@@ -1,36 +1,52 @@
+import { getServiceRoleKey, getSupabaseUrl } from './_env.js';
+
+function serviceHeaders() {
+  const key = getServiceRoleKey();
+  return {
+    Authorization: `Bearer ${key}`,
+    apikey: key,
+    Accept: 'application/json'
+  };
+}
+
+function beatFromRow(row) {
+  const bpmNum = row.bpm != null ? parseFloat(row.bpm) : NaN;
+  return {
+    id: row.id,
+    title: row.title || 'Untitled',
+    producer: row.producer || 'Unknown',
+    type: row.type || 'Full Beat',
+    bpm: !Number.isNaN(bpmNum) && bpmNum > 0 ? `${bpmNum} BPM` : '--- BPM',
+    key: row.key || 'N/A',
+    genre: row.genre || 'Other',
+    color: row.color || '#BA7517',
+    mp3: row.preview_url || '',
+    buy: row.buy_link || ''
+  };
+}
+
 export default async function handler(req, res) {
-  // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET');
   res.setHeader('Cache-Control', 'public, s-maxage=45, stale-while-revalidate=60');
 
-  const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
-  const BASE_ID  = 'appB4LCctwYvuxK5S';
-  const TABLE_ID = 'tblkdiwaGP5e5xAot';
+  if (!getServiceRoleKey()) {
+    return res.status(500).json({ error: 'Server not configured' });
+  }
+
   try {
-    const url = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}?filterByFormula={Select}="Approved"`;
-    const response = await fetch(url, {
-      headers: { 'Authorization': `Bearer ${AIRTABLE_TOKEN}` }
-    });
-    if (!response.ok) {
-      const errText = await response.text();
-      return res.status(500).json({ error: errText, status: response.status });
+    const dbRes = await fetch(
+      `${getSupabaseUrl()}/rest/v1/beats?status=eq.approved&select=id,producer,title,genre,type,bpm,key,preview_url,buy_link,color&order=created_at.asc`,
+      { headers: serviceHeaders(), cache: 'no-store' }
+    );
+    const text = await dbRes.text();
+    if (!dbRes.ok) {
+      return res.status(500).json({ error: text || 'Could not load beats', status: dbRes.status });
     }
-    const data = await response.json();
-    const beats = data.records.map(r => ({
-      id:       r.id,
-      title:    r.fields['TItle']        || r.fields['Title'] || 'Untitled',
-      producer: r.fields['Producer']     || 'Unknown',
-      type:     r.fields['Type']         || 'Full Beat',
-      bpm:      r.fields['BPM'] ? r.fields['BPM'] + ' BPM' : '--- BPM',
-      key:      r.fields['Key']          || 'N/A',
-      genre:    r.fields['Genre']        || 'Other',
-      color:    r.fields['Color']        || '#BA7517',
-      mp3:      r.fields['Preview URL']  || '',
-      buy:      r.fields['Buy Link']     || ''
-    }));
-    res.status(200).json({ beats });
+    const rows = JSON.parse(text || '[]');
+    const beats = rows.map(beatFromRow);
+    return res.status(200).json({ beats });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    return res.status(500).json({ error: e.message });
   }
 }

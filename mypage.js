@@ -1,7 +1,4 @@
 /* BeatSwipe My Page module — upload, dashboard, beat order */
-// ─── MAKE.COM WEBHOOK ─────────────────────────────────────────────────────
-const WEBHOOK_URL = 'https://hook.eu1.make.com/emrsw3rs980mwsi3a1b3kyfcobec3ahb';
-
 // ─── PREVIEW TYPE + MP3 UPLOAD ────────────────────────────────────────────
 let _mp3File = null;
 let _mp3PublicUrl = null;
@@ -393,24 +390,20 @@ async function uploadMp3ToSupabase() {
   return url;
 }
 
-async function postBeatWebhook(payload) {
-  const controller = new AbortController();
-  const webhookTimeout = setTimeout(() => controller.abort(), 10000);
-  try {
-    const res = await fetch(WEBHOOK_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      signal: controller.signal,
-      body: JSON.stringify(payload)
-    });
-    if (!res.ok) console.warn('[BeatSwipe] Webhook returned non-ok — treating as success');
-    return true;
-  } catch (fetchErr) {
-    console.warn('[BeatSwipe] Webhook failed (file may already be uploaded):', fetchErr.message);
-    return true;
-  } finally {
-    clearTimeout(webhookTimeout);
-  }
+async function postBeatSubmit(payload) {
+  const token = await getAccessToken();
+  if (!token) throw new Error('Session expired — please sign in again.');
+  const res = await fetch('/api/submit-beat', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(payload)
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(parseManageBeatError(data.error) || 'Submit failed');
+  return data;
 }
 
 function getResolvedBuyLink() {
@@ -506,18 +499,15 @@ async function doSubmitForm() {
   setSubmitBtnLoading(true, 'Sending...');
 
   try {
-    await postBeatWebhook({
-      Producer: producer,
-      Title: title,
-      BPM: parseFloat(bpm) || 0,
-      Key: key,
-      Genre: genre,
-      Type: type,
-      PreviewType: previewType,
-      PreviewURL: previewUrl,
-      BuyLink: buyLink,
-      Note: note,
-      Status: 'New'
+    await postBeatSubmit({
+      title,
+      bpm: parseFloat(bpm) || null,
+      key,
+      genre,
+      type,
+      previewType,
+      previewUrl,
+      buyLink
     });
 
     addMyPendingBeat(title);
@@ -567,18 +557,15 @@ async function doSubmitMp3Batch(shared) {
       }
 
       progressLbl.textContent = `Saving ${n} of ${total}…`;
-      await postBeatWebhook({
-        Producer: shared.producer,
-        Title: item.title.trim(),
-        BPM: parseFloat(item.bpm) || 0,
-        Key: item.key || '',
-        Genre: item.genre,
-        Type: item.type,
-        PreviewType: 'MP3',
-        PreviewURL: previewUrl,
-        BuyLink: (item.buyLink || '').trim(),
-        Note: shared.note,
-        Status: 'New'
+      await postBeatSubmit({
+        title: item.title.trim(),
+        bpm: parseFloat(item.bpm) || null,
+        key: item.key || '',
+        genre: item.genre,
+        type: item.type,
+        previewType: 'MP3',
+        previewUrl,
+        buyLink: (item.buyLink || '').trim()
       });
       addMyPendingBeat(item.title.trim());
       submitted.push(item.title.trim());
@@ -921,7 +908,7 @@ async function saveBeatEdit() {
     await manageBeatRequest('update', _editingBeatId, { title, genre, type, bpm, key, buy });
     closeBeatEditModal();
     showToast('Beat updated!', 'success');
-    await loadBeats();
+    await loadBeats({ force: true });
     renderMyPage();
   } catch (e) {
     showToast(e.message || 'Could not update beat.', 'error', 3600);
@@ -942,7 +929,7 @@ async function deleteMyBeat(beatId) {
     await persistBeatOrder(nextOrder);
     closeBeatEditModal();
     showToast('Beat removed.', 'success');
-    await loadBeats();
+    await loadBeats({ force: true });
     renderMyPage();
   } catch (e) {
     showToast(e.message || 'Could not remove beat.', 'error', 3600);
