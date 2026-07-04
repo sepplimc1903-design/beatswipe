@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Allow: /p/
+
+Sitemap: https://beatswipe.app/sitemap.xml

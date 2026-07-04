@@ -165,6 +165,39 @@ function closeInviteIfBackdrop(e) {
   if (e.target === document.getElementById('inviteGate')) closeInviteGate();
 }
 
+// Producer funnel — /p/ Done CTA, footer, landing hero
+function scrollProducerCtaIfIntent() {
+  try {
+    if (sessionStorage.getItem('bs_producer_intent') !== '1') return;
+    sessionStorage.removeItem('bs_producer_intent');
+  } catch (e) { return; }
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      document.getElementById('producer-start')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 180);
+  });
+}
+
+function openProducerSignup() {
+  if (currentUser) {
+    goTo('submitScreen', 'navSubmit');
+    return;
+  }
+  if (!hasInviteAccess()) {
+    try { sessionStorage.setItem('bs_producer_intent', '1'); } catch (e) {}
+    const onLand = document.getElementById('landScreen')?.classList.contains('active') && !_portfolioMode;
+    if (onLand) {
+      scrollProducerCtaIfIntent();
+      return;
+    }
+    goTo('landScreen', 'navHome');
+    return;
+  }
+  try { sessionStorage.setItem('bs_producer_signup_intent', '1'); } catch (e) {}
+  setAuthMode('signup');
+  goTo('profileScreen', 'navProfile');
+}
+
 function submitInviteCode() {
   const input = document.getElementById('inviteCodeInput');
   const err = document.getElementById('inviteCodeErr');
@@ -234,6 +267,7 @@ function applyGoTo(screenId, navId) {
   if (screenId === 'landScreen') {
     initScrollReveal();
     initHeroDemoCard();
+    scrollProducerCtaIfIntent();
   } else {
     stopHeroDemoCard();
   }
@@ -1081,7 +1115,7 @@ function isYouTube(url) {
 }
 
 function resolveBeatBuyLink(beat) {
-  const raw = (beat?.buy || '').trim();
+  const raw = (beat?.buy || beat?.buyLink || '').trim();
   if (!raw) return '';
   let buy = raw;
   if (!/^https?:\/\//i.test(buy)) {
@@ -1107,6 +1141,18 @@ function beatBuyAction(beat) {
   if (isYouTube(mp3)) return { link: mp3, html: '<i class="ti ti-brand-youtube"></i> YouTube' };
   if (isSoundCloud(mp3)) return { link: mp3, html: '<i class="ti ti-brand-soundcloud"></i> SoundCloud' };
   return null;
+}
+
+function getCrateBeats() {
+  const beatMap = new Map();
+  const pool = _beatsCache?.length ? _beatsCache : Object.values(_rawDb).flat();
+  pool.forEach(b => { if (b?.id) beatMap.set(b.id, b); });
+  return crate.map(b => {
+    const live = beatMap.get(b.id);
+    if (!live) return b;
+    const buy = (live.buy || live.buyLink || b.buy || b.buyLink || '').trim();
+    return { ...b, ...live, buy };
+  });
 }
 
 function getYtId(url) {
@@ -1755,19 +1801,44 @@ function renderCard(opts) {
   }
 
   // ── TOUCH ──
+  let _touchPending = false;
+
   document.addEventListener('touchstart', e => {
     if (!isSwipeGestureTarget(e.target)) return;
-    onStart(e.touches[0].clientX, e.touches[0].clientY, true);
+    _touchPending = true;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    _audioUnlocked = true;
+    tryAutoplayFromGesture();
   }, { passive: true });
 
   document.addEventListener('touchmove', e => {
+    const x = e.touches[0].clientX;
+    const y = e.touches[0].clientY;
+
+    if (_touchPending && !isDragging) {
+      const dx = x - startX;
+      const dy = y - startY;
+      if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
+      _touchPending = false;
+      if (Math.abs(dy) >= Math.abs(dx)) return;
+      onStart(startX, startY, true);
+    }
+
     if (!isDragging) return;
-    e.preventDefault();
-    onMove(e.touches[0].clientX, e.touches[0].clientY);
+    onMove(x, y);
+    if (!isDragging) return;
+    const dx = x - startX;
+    const dy = y - startY;
+    if (Math.abs(dx) > Math.abs(dy)) e.preventDefault();
   }, { passive: false });
 
-  document.addEventListener('touchend', onEnd, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (_touchPending) { _touchPending = false; return; }
+    onEnd();
+  }, { passive: true });
   document.addEventListener('touchcancel', () => {
+    _touchPending = false;
     if (!isDragging) return;
     const card = getCard();
     isDragging = false;
@@ -1947,10 +2018,11 @@ function selectCrateBeat(beatId) {
   renderCrate();
 }
 
-function buildCratePreviewHTML(d) {
+function buildCratePreviewHTML(d, opts = {}) {
   if (!d) {
     return `<div class="crate-preview-empty"><i class="ti ti-headphones"></i>Select a beat from the list<br>to preview it here.</div>`;
   }
+  const prominent = !!opts.prominentBuy;
   const prodEsc = d.producer.replace(/'/g, "\\'");
   const useYT = isYouTube(d.mp3);
   const useSC = isSoundCloud(d.mp3);
@@ -1983,18 +2055,19 @@ function buildCratePreviewHTML(d) {
       </div>
     </div>`;
   }
-  const hasBuy = resolveBeatBuyLink(d);
+  const action = beatBuyAction(d);
+  const btnCls = prominent ? 'crate-buy-btn crate-buy-btn--prominent' : 'crate-action-btn';
+  const ghostCls = prominent ? 'crate-buy-btn crate-buy-btn--ghost' : 'crate-action-btn crate-action-btn--ghost';
   let buyBtn = '';
-  if (hasBuy) {
-    buyBtn = `<button class="crate-action-btn" onclick="window.open('${hasBuy.replace(/'/g, "\\'")}','_blank')"><i class="ti ti-external-link"></i> Get this beat</button>`;
-  } else if (useYT) {
-    buyBtn = `<button class="crate-action-btn" onclick="window.open('${d.mp3}','_blank')"><i class="ti ti-brand-youtube"></i> YouTube</button>`;
-  } else if (useSC) {
-    buyBtn = `<button class="crate-action-btn" onclick="window.open('${d.mp3}','_blank')"><i class="ti ti-brand-soundcloud"></i> SoundCloud</button>`;
+  if (action) {
+    const label = prominent && action.html.includes('Buy')
+      ? '<i class="ti ti-shopping-cart"></i> Buy this beat'
+      : action.html;
+    buyBtn = `<button type="button" class="${btnCls}" onclick="window.open('${action.link.replace(/'/g, "\\'")}','_blank')">${label}</button>`;
   } else {
-    buyBtn = `<button class="crate-action-btn crate-action-btn--ghost" onclick="openProducerProfile('${prodEsc}')"><i class="ti ti-user"></i> Contact producer</button>`;
+    buyBtn = `<button type="button" class="${ghostCls}" onclick="openProducerProfile('${prodEsc}')"><i class="ti ti-user"></i> Contact producer</button>`;
   }
-  return `<div class="crate-preview-card">
+  const cardBody = `
     <div class="crate-preview-head">
       <div class="crate-preview-cover"><i class="ti ti-music"></i></div>
       <div>
@@ -2005,7 +2078,14 @@ function buildCratePreviewHTML(d) {
     <div class="crate-preview-tags">
       <span>${d.bpm} BPM</span><span>${d.key}</span><span>${d.genre}</span><span>${d.type}</span>
     </div>
-    ${playerHTML}
+    ${playerHTML}`;
+  if (prominent) {
+    return `<div class="crate-preview-stack">
+      <div class="crate-preview-card">${cardBody}</div>
+      <div class="crate-preview-buy-foot">${buyBtn}</div>
+    </div>`;
+  }
+  return `<div class="crate-preview-card">${cardBody}
     <div class="crate-preview-actions">${buyBtn}</div>
   </div>`;
 }
@@ -2097,38 +2177,16 @@ function renderCrate() {
   } else if (!_selectedCrateId || !crate.find(b => b.id === _selectedCrateId)) {
     _selectedCrateId = crate[0].id;
   }
-  const selectedBeat = crate.find(b => b.id === _selectedCrateId);
-  body.innerHTML = crate.map((d, idx) => {
-    const hasBuy = d.buy && d.buy.startsWith('http') && d.buy !== d.mp3;
-    const isYT = isYouTube(d.mp3);
-    const isSC = isSoundCloud(d.mp3);
-    let btnLabel, btnLink;
-    if (hasBuy) {
-      const buyUrl = d.buy.toLowerCase();
-      if (buyUrl.includes('beatstars.com'))        { btnLabel = `<i class="ti ti-external-link"></i> BeatStars`; }
-      else if (buyUrl.includes('splice.com'))       { btnLabel = `<i class="ti ti-external-link"></i> Splice`; }
-      else if (buyUrl.includes('loopmasters.com'))  { btnLabel = `<i class="ti ti-external-link"></i> Loopmasters`; }
-      else if (buyUrl.includes('instagram.com'))    { btnLabel = `<i class="ti ti-brand-instagram"></i> Instagram`; }
-      else if (buyUrl.includes('soundcloud.com'))   { btnLabel = `<i class="ti ti-brand-soundcloud"></i> SoundCloud`; }
-      else if (buyUrl.includes('youtube.com') || buyUrl.includes('youtu.be')) { btnLabel = `<i class="ti ti-brand-youtube"></i> YouTube`; }
-      else { btnLabel = `<i class="ti ti-external-link"></i> Get beat`; }
-      btnLink = d.buy;
-    } else if (isYT) {
-      btnLabel = `<i class="ti ti-brand-youtube"></i> YouTube`;
-      btnLink = d.mp3;
-    } else if (isSC) {
-      btnLabel = `<i class="ti ti-brand-soundcloud"></i> SoundCloud`;
-      btnLink = d.mp3;
-    } else {
-      btnLabel = null;
-      btnLink = null;
-    }
+  const items = getCrateBeats();
+  const selectedBeat = items.find(b => b.id === _selectedCrateId);
+  body.innerHTML = items.map((d, idx) => {
+    const action = beatBuyAction(d);
     const enterCls = stagger ? ' list-enter' : (d.id === _lastSavedBeatId ? ' crate-enter' : '');
     const staggerStyle = stagger ? ` style="--i:${Math.min(idx, 7)}"` : '';
     const selCls = d.id === _selectedCrateId ? ' crate-card--selected' : '';
     const prodEsc = d.producer.replace(/'/g,"\\'");
-    const actionHTML = btnLink
-      ? `<button class="crate-action-btn" onclick="event.stopPropagation();window.open('${btnLink}','_blank')">${btnLabel}</button>`
+    const actionHTML = action
+      ? `<button class="crate-action-btn" onclick="event.stopPropagation();window.open('${action.link.replace(/'/g, "\\'")}','_blank')">${action.html}</button>`
       : `<button class="crate-action-btn crate-action-btn--ghost" onclick="event.stopPropagation();openProducerProfile('${prodEsc}')" title="Contact ${d.producer} for licensing"><i class="ti ti-user"></i> Contact</button>`;
     return `
     <div class="crate-card${enterCls}${selCls}" id="crate-card-${d.id}"${staggerStyle} onclick="selectCrateBeat('${d.id}')">
@@ -2159,18 +2217,11 @@ function renderDesktopCrate(stagger) {
     updateDiscoverLeftRail();
     return;
   }
-  body.innerHTML = crate.map((d, idx) => {
-    const hasBuy = d.buy && d.buy.startsWith('http');
-    const isYT = isYouTube(d.mp3);
-    const isSC = isSoundCloud(d.mp3);
-    let btnLink = hasBuy ? d.buy : (isYT || isSC ? d.mp3 : null);
-    let btnIcon = hasBuy ? 'ti-external-link' : (isYT ? 'ti-brand-youtube' : (isSC ? 'ti-brand-soundcloud' : 'ti-music'));
-    let btnLabel = hasBuy ? 'Get this beat' : (isYT ? 'Watch on YouTube' : (isSC ? 'Listen on SoundCloud' : null));
-    const buyUrl = (d.buy||'').toLowerCase();
-    if (buyUrl.includes('beatstars')) btnLabel = 'Get on BeatStars';
-    else if (buyUrl.includes('splice')) btnLabel = 'Get on Splice';
-    else if (buyUrl.includes('instagram')) { btnLabel = 'DM on Instagram'; btnIcon = 'ti-brand-instagram'; }
-    const buyBtn = btnLink ? '<button class="dc-buy" onclick="window.open(\'' + btnLink + '\',\'_blank\'"><i class="ti ' + btnIcon + '"></i> ' + btnLabel + '</button>' : '';
+  body.innerHTML = getCrateBeats().map((d, idx) => {
+    const action = beatBuyAction(d);
+    const buyBtn = action
+      ? '<button class="dc-buy" onclick="window.open(\'' + action.link.replace(/'/g, "\\'") + '\',\'_blank\')">' + action.html + '</button>'
+      : '';
     const enterCls = stagger ? ' list-enter' : (d.id === _lastSavedBeatId ? ' dc-enter' : '');
     const staggerStyle = stagger ? ' style="--i:' + Math.min(idx, 7) + '"' : '';
     return '<div class="dc-card' + enterCls + '"' + staggerStyle + '>'
@@ -2370,6 +2421,14 @@ supa.auth.onAuthStateChange(async (event, session) => {
     renderCrate();
     renderDiscoverHint();
     if (isDiscoverScreenActive()) renderCard();
+    if (event === 'SIGNED_IN') {
+      try {
+        if (sessionStorage.getItem('bs_producer_signup_intent') === '1') {
+          sessionStorage.removeItem('bs_producer_signup_intent');
+          goTo('submitScreen', 'navSubmit');
+        }
+      } catch (e) {}
+    }
   }
 });
 
@@ -2633,6 +2692,7 @@ function renderProfile() {
             <i class="ti ti-trash"></i> Clear local data
           </button>
           <button type="button" class="logout-btn" style="margin-top:0" onclick="signOut()"><i class="ti ti-logout"></i> Sign out</button>
+          <button type="button" class="profile-delete-btn" onclick="deleteAccount()"><i class="ti ti-user-x"></i> Delete account</button>
         </div>
 
         <div class="legal-links">
@@ -2821,6 +2881,59 @@ async function handleResetPassword() {
     await syncCrateFromDB();
     await loadUserProfile();
     renderProfile();
+  }
+}
+
+async function deleteAccount() {
+  if (!currentUser) return;
+  if (!confirm('Delete your account permanently? This removes your profile, beats, favorites, and uploads. This cannot be undone.')) return;
+  if (!confirm('Last chance — permanently delete this account and all your data?')) return;
+
+  const btn = document.querySelector('.profile-delete-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Deleting…';
+  }
+
+  const token = await getAccessToken();
+  if (!token) {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-user-x"></i> Delete account'; }
+    showToast('Session expired — please sign in again.', 'error');
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/delete-account', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Could not delete account');
+
+    try {
+      Object.keys(localStorage).forEach(k => {
+        if (k.startsWith('sb-') || k.startsWith('bs_')) localStorage.removeItem(k);
+      });
+    } catch (e) {}
+
+    currentUser = null;
+    _userProfile = null;
+    _myPendingBeatsCache = null;
+    _myPendingBeatsCacheAt = 0;
+    _pendingGuestCrateMerge = null;
+    _cratePendingSaves.clear();
+    crate = [];
+    resetGuestSwipeState();
+    if (typeof resetSiteMeta === 'function') resetSiteMeta();
+    renderCrate();
+    renderProfile();
+    renderDiscoverHint();
+    updateDesktopTopbarAuth();
+    goTo('landScreen', null);
+    showToast('Your account has been deleted.', 'success');
+  } catch (e) {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-user-x"></i> Delete account'; }
+    showToast(e.message || 'Could not delete account — try again or email hellobeatswipe@gmail.com', 'error');
   }
 }
 

@@ -1504,7 +1504,7 @@ async function renderMyPage() {
         <i class="ti ti-link" style="font-size:48px;color:var(--accent-mid)"></i>
         <div style="font-size:18px;font-weight:700">Sign in to get your page</div>
         <div style="font-size:14px;color:var(--text-2);line-height:1.6;max-width:300px">Create a free account, add preview clips (~30–60s), and share one link in your Instagram bio.</div>
-        <button onclick="goTo('profileScreen','navProfile')" style="padding:13px 28px;border-radius:14px;background:var(--accent);border:none;color:#fff;font-size:15px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px">
+        <button onclick="openProducerSignup()" style="padding:13px 28px;border-radius:14px;background:var(--accent);border:none;color:#fff;font-size:15px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px">
           <i class="ti ti-user"></i> Sign in / Create account
         </button>
       </div>`;

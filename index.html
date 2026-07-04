@@ -11,7 +11,46 @@
       meta.name = 'theme-color';
       meta.content = isPortfolio ? '#050508' : '#09090b';
       document.head.appendChild(meta);
-      if (isPortfolio) document.documentElement.classList.add('portfolio-route-boot');
+      if (isPortfolio) {
+        document.documentElement.classList.add('portfolio-route-boot');
+        var parts = location.pathname.split('/').filter(Boolean);
+        var slug = parts.length >= 2 ? decodeURIComponent(parts[1]) : '';
+        if (slug) {
+          try {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', '/api/portfolio-meta?slug=' + encodeURIComponent(slug), false);
+            xhr.send(null);
+            if (xhr.status === 200) {
+              var d = JSON.parse(xhr.responseText);
+              function setPfMeta(name, content, isProp) {
+                if (!content) return;
+                var sel = isProp ? 'meta[property="' + name + '"]' : 'meta[name="' + name + '"]';
+                var el = document.querySelector(sel);
+                if (!el) {
+                  el = document.createElement('meta');
+                  if (isProp) el.setAttribute('property', name);
+                  else el.setAttribute('name', name);
+                  document.head.appendChild(el);
+                }
+                el.setAttribute('content', content);
+              }
+              if (d.title) document.title = d.title;
+              setPfMeta('description', d.description, false);
+              setPfMeta('og:type', 'website', true);
+              setPfMeta('og:url', d.url, true);
+              setPfMeta('og:title', d.title, true);
+              setPfMeta('og:description', d.description, true);
+              setPfMeta('og:image', d.image, true);
+              setPfMeta('twitter:card', 'summary_large_image', false);
+              setPfMeta('twitter:title', d.title, false);
+              setPfMeta('twitter:description', d.description, false);
+              setPfMeta('twitter:image', d.image, false);
+              var canon = document.querySelector('link[rel="canonical"]');
+              if (canon && d.url) canon.setAttribute('href', d.url);
+            }
+          } catch (e) {}
+        }
+      }
     })();
   </script>
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -35,6 +74,16 @@
   <meta name="twitter:title" content="BeatSwipe – Free Swipe Portfolio for Producers">
   <meta name="twitter:description" content="Your swipe page for the bio. Fans swipe through your beats, save favorites, and buy directly from you — free for producers.">
   <meta name="twitter:image" content="https://beatswipe.app/og-image.png">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "BeatSwipe",
+    "url": "https://beatswipe.app",
+    "description": "Your swipe page for the bio. Fans swipe through your beats, save favorites, and buy directly from you — free for producers."
+  }
+  </script>
 
   <!-- Favicon -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%237C3AED'/><text x='16' y='22' text-anchor='middle' font-family='system-ui,sans-serif' font-size='14' font-weight='700' fill='white'>B</text></svg>">
@@ -210,8 +259,8 @@
           <div class="hero-badge">Free swipe portfolio for producers</div>
           <div class="hero-title">Your swipe page for the <span>bio</span></div>
           <div class="hero-sub">One link in your bio. Fans swipe your beats — skip, save, buy from your store.</div>
-          <div class="hero-btns">
-            <button class="btn-primary" onclick="goTo('submitScreen','navSubmit')"><i class="ti ti-upload"></i> Get your free page</button>
+          <div class="hero-btns" id="producer-start">
+            <button class="btn-primary" onclick="openProducerSignup()"><i class="ti ti-upload"></i> Get your free page</button>
             <button class="btn-secondary" onclick="goTo('discoverScreen','navDiscover')"><i class="ti ti-headphones"></i> Discover beats</button>
           </div>
           <a class="hero-live-card" href="/p/clyriax">
@@ -380,7 +429,7 @@
         </div>
       </div>
       <div class="cta-strip reveal-on-scroll">
-        <button class="btn-primary" onclick="goTo('submitScreen','navSubmit')"><i class="ti ti-upload"></i> Get your free page</button>
+        <button class="btn-primary" onclick="openProducerSignup()"><i class="ti ti-upload"></i> Get your free page</button>
         <div class="cta-label">Free forever · No cut on sales</div>
       </div>
       <footer class="site-footer reveal-on-scroll">
@@ -618,7 +667,7 @@
         <span class="portfolio-kbd-hint"><kbd>Space</kbd> play</span>
       </div>
       <div class="portfolio-foot">
-        Powered by <span style="color:var(--text-2)">BeatSwipe</span> · <a onclick="goTo('landScreen','navHome')">Get your own page</a>
+        Powered by <span style="color:var(--text-2)">BeatSwipe</span> · <a onclick="openProducerSignup()">Get your own page</a>
       </div>
     </div>
   </div>
@@ -742,7 +791,7 @@
           <li>Swipe progress &amp; favorites (localStorage) — improves your experience</li>
           <li>Cookie banner preference (localStorage)</li>
         </ul>
-        <p>You can clear local data in your browser or via Profile → Clear local data. Signing out removes your login session.</p>
+        <p>You can clear local data in your browser or via Profile → Clear local data. Signing out removes your login session. To delete your account and all associated data, use Profile → Settings → Delete account.</p>
 
         <h3>8. Embedded content &amp; external links</h3>
         <p>Beat previews may load from YouTube or SoundCloud embeds. Clicking buy links (BeatStars, Splice, etc.) takes you to third-party sites with their own privacy policies. We have no control over data collected there.</p>

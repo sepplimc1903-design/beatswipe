@@ -49,8 +49,10 @@
       min-height: 0;
     }
     html.portfolio-route-boot body {
-      height: 100dvh;
-      overflow: hidden;
+      min-height: calc(100dvh + 1px);
+      overflow-x: hidden;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
     html.portfolio-route-boot .bg-desktop::before,
     html.portfolio-route-boot .bg-desktop::after {
@@ -127,7 +129,9 @@
 
     /* Discover ambient — side atmosphere on wide desktop */
     .discover-ambient { display: none; pointer-events: none; }
-    .discover-left-rail { display: none; }
+    .discover-left-rail,
+    .favorites-left-rail,
+    .mypage-left-rail,
     .portfolio-left-rail { display: none; }
 
     /* Portfolio /p/ — drifting aurora */
@@ -680,21 +684,25 @@
         min-height: 0;
         overflow: hidden;
       }
-      /* Desktop app pages — edge atmosphere, dark center (/p/ excluded via body.portfolio-active below) */
+      /* Laptop — /p/ aurora wash on all app pages */
       .bg-desktop {
         background:
           linear-gradient(180deg,
-            rgba(124,58,237,0.12) 0%,
-            rgba(124,58,237,0.06) 20%,
-            transparent 42%,
-            rgba(124,58,237,0.03) 88%,
-            rgba(124,58,237,0.06) 100%),
+            rgba(124,58,237,0.2) 0%,
+            rgba(124,58,237,0.11) 30%,
+            rgba(124,58,237,0.04) 58%,
+            rgba(5,5,8,1) 100%),
           #050508;
       }
       .bg-desktop::before {
         animation: none;
         width: 100%; height: 100%; top: 0; left: 0; border-radius: 0;
         background:
+          radial-gradient(ellipse 140% 58% at 50% -6%, rgba(167,139,250,0.12) 0%, transparent 74%),
+          radial-gradient(ellipse 110% 42% at 50% 102%, rgba(124,58,237,0.07) 0%, transparent 72%);
+      }
+      body:not(.portfolio-active) .bg-desktop::before {
+        background:
           linear-gradient(180deg,
             #050508 0%,
             rgba(5,5,8,0.94) 14px,
@@ -702,82 +710,17 @@
             rgba(5,5,8,0.2) 56px,
             rgba(5,5,8,0.04) 72px,
             rgba(5,5,8,0) 88px),
-          radial-gradient(ellipse 110% 22% at 50% 0%, rgba(124,58,237,0.06) 0%, transparent 78%);
+          radial-gradient(ellipse 140% 58% at 50% -6%, rgba(167,139,250,0.12) 0%, transparent 74%),
+          radial-gradient(ellipse 110% 42% at 50% 102%, rgba(124,58,237,0.07) 0%, transparent 72%);
       }
       .bg-desktop::after {
-        display: block;
-        content: '';
-        position: absolute; inset: 0;
-        background:
-          radial-gradient(ellipse 36% 70% at 4% 50%, rgba(167,139,250,0.07) 0%, transparent 72%),
-          radial-gradient(ellipse 36% 70% at 96% 50%, rgba(124,58,237,0.07) 0%, transparent 72%),
-          radial-gradient(ellipse 120% 16% at 50% 100%, rgba(124,58,237,0.04) 0%, transparent 75%);
-        pointer-events: none;
+        display: none;
       }
       .bg-grid, .bg-noise { display: none; }
-      /* Site-scroll — Landing, Profile, My Page, Favorites */
-      body.site-scroll .bg-desktop {
-        background:
-          linear-gradient(180deg,
-            rgba(124,58,237,0.18) 0%,
-            rgba(124,58,237,0.1) 26%,
-            rgba(124,58,237,0.04) 52%,
-            rgba(5,5,8,1) 100%),
-          #050508;
-      }
-      body.site-scroll .bg-desktop::before {
-        background:
-          linear-gradient(180deg,
-            #050508 0%,
-            rgba(5,5,8,0.94) 14px,
-            rgba(5,5,8,0.55) 34px,
-            rgba(5,5,8,0.2) 56px,
-            rgba(5,5,8,0.04) 72px,
-            rgba(5,5,8,0) 88px),
-          radial-gradient(ellipse 110% 24% at 50% 0%, rgba(124,58,237,0.07) 0%, transparent 78%);
-      }
-      body.site-scroll .bg-desktop::after {
-        display: block;
-        content: '';
-        position: absolute; inset: 0;
-        background:
-          radial-gradient(ellipse 40% 65% at 5% 48%, rgba(167,139,250,0.09) 0%, transparent 72%),
-          radial-gradient(ellipse 40% 65% at 95% 48%, rgba(124,58,237,0.09) 0%, transparent 72%),
-          radial-gradient(ellipse 120% 16% at 50% 100%, rgba(124,58,237,0.05) 0%, transparent 75%);
-        pointer-events: none;
-      }
-      /* Discover — dark stage, edge glow; card-glow carries the center */
-      body.discover-active .bg-desktop {
-        background:
-          linear-gradient(180deg,
-            rgba(124,58,237,0.14) 0%,
-            rgba(124,58,237,0.07) 22%,
-            transparent 46%,
-            rgba(124,58,237,0.03) 88%,
-            rgba(124,58,237,0.05) 100%),
-          #050508;
-      }
-      body.discover-active .bg-desktop::before {
-        background:
-          linear-gradient(180deg,
-            #050508 0%,
-            rgba(5,5,8,0.94) 14px,
-            rgba(5,5,8,0.55) 34px,
-            rgba(5,5,8,0.2) 56px,
-            rgba(5,5,8,0.04) 72px,
-            rgba(5,5,8,0) 88px),
-          radial-gradient(ellipse 110% 22% at 50% 0%, rgba(124,58,237,0.06) 0%, transparent 78%);
-      }
-      body.discover-active .bg-desktop::after {
-        display: block;
-        content: '';
-        position: absolute; inset: 0;
-        background:
-          radial-gradient(ellipse 38% 72% at 5% 54%, rgba(248,113,113,0.05) 0%, transparent 72%),
-          radial-gradient(ellipse 38% 72% at 95% 54%, rgba(167,139,250,0.08) 0%, transparent 72%),
-          radial-gradient(ellipse 38% 72% at 95% 54%, rgba(124,58,237,0.07) 0%, transparent 72%),
-          radial-gradient(ellipse 120% 16% at 50% 100%, rgba(124,58,237,0.04) 0%, transparent 75%);
-        pointer-events: none;
+      .portfolio-ambient { display: block; }
+      .pf-ambient-layer {
+        filter: blur(56px);
+        opacity: 0.62;
       }
       body.discover-active .discover-ambient {
         display: block;
@@ -1618,7 +1561,7 @@
       body.profile-active .discover-side-hint { display: none !important; }
       body.profile-active #profileScreen .page-inner--wide {
         width: 100%;
-        max-width: min(720px, 100%);
+        max-width: var(--w-page);
         margin-inline: auto;
       }
       body.profile-active #profileScreen .site-page-head {
@@ -1643,19 +1586,39 @@
         border-radius: 18px;
       }
       @media (min-width: 1100px) {
-        body.profile-active #profileScreen .page-inner--wide {
-          max-width: min(1080px, 100%);
+        body.profile-active #profileScreen .page-inner--wide:has(.profile-side-panel:not([hidden])) {
+          width: auto;
+          max-width: none;
+          margin-left: max(var(--px), calc((100vw - var(--w-page)) / 2));
+          margin-right: var(--px);
         }
-        body.profile-active .profile-layout {
-          display: grid;
-          grid-template-columns: minmax(0, 1fr) 320px;
-          gap: 32px;
-          align-items: start;
+        body.profile-active .profile-layout:has(.profile-side-panel:not([hidden])) {
+          display: flex;
+          flex-direction: row;
+          align-items: flex-start;
+          gap: 48px;
+          width: fit-content;
+        }
+        body.profile-active .profile-main-col {
+          width: var(--w-page);
+          max-width: 100%;
+          flex: 0 0 var(--w-page);
+          min-width: 0;
+          margin-inline: 0;
+        }
+        body.profile-active #profileScreen .page-inner--wide:has(.profile-side-panel:not([hidden])) .site-page-head {
+          width: var(--w-page);
+          max-width: 100%;
+        }
+        body.profile-active .profile-hero-link-row {
+          display: none;
         }
         body.profile-active .profile-side-panel:not([hidden]) {
           display: block;
           position: sticky;
           top: calc(var(--topbar-h) + 24px);
+          width: 300px;
+          flex: 0 0 300px;
         }
       }
       @keyframes cratePreviewEnter {
@@ -2643,10 +2606,11 @@
     /* ── PORTFOLIO SWIPE (/p/name) ── */
     .portfolio-back-btn {
       display: none;
-      position: fixed;
-      z-index: 200;
-      top: calc(env(safe-area-inset-top, 0px) + 10px);
-      left: max(12px, env(safe-area-inset-left, 0px) + 12px);
+      position: relative;
+      z-index: 2;
+      flex-shrink: 0;
+      align-self: flex-start;
+      margin: calc(env(safe-area-inset-top, 0px) + 10px) 0 6px max(12px, env(safe-area-inset-left, 0px) + 12px);
       width: 40px;
       height: 40px;
       border-radius: 50%;
@@ -2670,25 +2634,33 @@
     body.portfolio-has-back .portfolio-back-btn { display: flex; }
     @media (max-width: 599px) {
       body.portfolio-has-back .portfolio-back-btn {
-        top: calc(env(safe-area-inset-top, 0px) + 8px);
-        left: 16px;
+        margin: calc(env(safe-area-inset-top, 0px) + 8px) 0 4px 16px;
         width: 36px;
         height: 36px;
       }
       body.portfolio-has-back .portfolio-back-btn i { font-size: 18px; }
-      body.portfolio-has-back .portfolio-header {
-        padding-top: calc(env(safe-area-inset-top, 0px) + 50px);
+    }
+    @media (min-width: 600px) and (max-width: 899px) {
+      body.portfolio-has-back .portfolio-back-btn {
+        margin: calc(env(safe-area-inset-top, 0px) + 16px) 0 8px max(20px, calc(50% - var(--w-portfolio, 480px) / 2 - 56px));
       }
     }
-    @media (min-width: 600px) {
-      .portfolio-back-btn {
-        top: calc(env(safe-area-inset-top, 0px) + 16px);
-        left: max(20px, calc(50% - var(--w-portfolio, 480px) / 2 - 56px));
+    @media (min-width: 900px) and (max-width: 1099px) {
+      body.portfolio-has-back .portfolio-back-btn {
+        position: fixed;
+        top: calc(env(safe-area-inset-top, 0px) + 28px);
+        left: 24px;
+        margin: 0;
+        z-index: 6;
       }
     }
-    @media (min-width: 900px) {
-      .portfolio-back-btn {
-        left: max(24px, calc(50% - var(--w-portfolio, 460px) / 2 - 64px));
+    @media (min-width: 1100px) {
+      body.portfolio-has-back .portfolio-back-btn {
+        position: fixed;
+        top: calc(env(safe-area-inset-top, 0px) + 28px);
+        left: calc(var(--discover-left, 200px) + 16px);
+        margin: 0;
+        z-index: 6;
       }
     }
     body.portfolio-active {
@@ -2919,6 +2891,10 @@
       pointer-events: none;
       margin: 0;
       box-sizing: border-box;
+      background: rgba(17,17,19,0.92);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      box-shadow: none;
     }
     #portfolioCardWrap .portfolio-surface.dragging { transition: none; cursor: grabbing; }
     #portfolioCardWrap .portfolio-surface.spring-snap { transition: none; will-change: transform, opacity; }
@@ -3264,8 +3240,190 @@
       display: none;
       min-width: 0;
     }
+    .portfolio-done-side {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-width: 0;
+    }
     .portfolio-done-preview-panel[hidden] {
       display: none !important;
+    }
+    body.portfolio-swipe-done .portfolio-done-preview-panel .crate-preview-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    body.portfolio-swipe-done .portfolio-done-preview-panel .crate-preview-buy-foot {
+      flex-shrink: 0;
+    }
+    body.portfolio-swipe-done .portfolio-done-preview-panel .crate-buy-btn {
+      width: 100%;
+      padding: 14px 18px;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: opacity 0.2s ease, transform 0.15s ease, background 0.2s ease;
+      box-sizing: border-box;
+    }
+    body.portfolio-swipe-done .portfolio-done-preview-panel .crate-buy-btn--prominent {
+      background: var(--accent);
+      border: none;
+      color: #fff;
+      box-shadow: 0 4px 22px rgba(124,58,237,0.38);
+    }
+    body.portfolio-swipe-done .portfolio-done-preview-panel .crate-buy-btn--prominent:active {
+      opacity: 0.92;
+      transform: scale(0.98);
+    }
+    body.portfolio-swipe-done .portfolio-done-preview-panel .crate-buy-btn--prominent i {
+      font-size: 18px;
+    }
+    body.portfolio-swipe-done .portfolio-done-preview-panel .crate-buy-btn--ghost {
+      background: rgba(255,255,255,0.04);
+      border: 0.5px solid rgba(255,255,255,0.1);
+      color: var(--text-2);
+      box-shadow: none;
+    }
+    @media (max-width: 1099px) {
+      body.portfolio-swipe-done .portfolio-done-layout {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+      }
+      body.portfolio-swipe-done .portfolio-done-main {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        min-width: 0;
+      }
+      body.portfolio-swipe-done .portfolio-done-preview-panel {
+        display: none;
+      }
+      body.portfolio-swipe-done .portfolio-done-list {
+        max-height: none;
+      }
+      body.portfolio-swipe-done .portfolio-done-chevron {
+        font-size: 18px;
+        color: var(--text-3);
+      }
+      body.portfolio-swipe-done.portfolio-done-preview-open .portfolio-done-head,
+      body.portfolio-swipe-done.portfolio-done-preview-open .portfolio-done-sub,
+      body.portfolio-swipe-done.portfolio-done-preview-open .portfolio-done-main {
+        display: none;
+      }
+      body.portfolio-swipe-done.portfolio-done-preview-open .portfolio-done-preview-panel {
+        display: block;
+      }
+      .portfolio-done-back {
+        width: 100%;
+        padding: 11px 16px;
+        margin-bottom: 12px;
+        border-radius: 12px;
+        border: 0.5px solid var(--border-2);
+        background: var(--bg-2);
+        color: var(--text);
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: background 0.15s;
+      }
+      .portfolio-done-back:active { background: var(--bg-3); }
+      body.portfolio-swipe-done .portfolio-done-preview-panel .crate-preview-card {
+        background: rgba(255,255,255,0.03);
+        border: 0.5px solid rgba(255,255,255,0.08);
+        border-radius: 18px;
+        padding: 16px;
+      }
+      body.portfolio-swipe-done .portfolio-done-preview-panel .crate-preview-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      body.portfolio-swipe-done .portfolio-done-preview-panel .crate-preview-cover {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      body.portfolio-swipe-done .portfolio-done-preview-panel .crate-preview-cover i {
+        font-size: 20px;
+      }
+      body.portfolio-swipe-done .portfolio-done-preview-panel .crate-preview-title {
+        font-size: 16px;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        margin-bottom: 3px;
+      }
+      body.portfolio-swipe-done .portfolio-done-preview-panel .crate-preview-producer {
+        font-size: 12px;
+        color: var(--accent-mid);
+      }
+      body.portfolio-swipe-done .portfolio-done-preview-panel .crate-preview-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-bottom: 12px;
+      }
+      body.portfolio-swipe-done .portfolio-done-preview-panel .crate-preview-tags span {
+        font-size: 11px;
+        padding: 4px 10px;
+        border-radius: 100px;
+        background: rgba(255,255,255,0.05);
+        color: var(--text-2);
+      }
+      body.portfolio-swipe-done .portfolio-done-preview-panel .crate-preview-player {
+        border-radius: 14px;
+        background: rgba(255,255,255,0.04);
+        overflow: hidden;
+        margin-bottom: 12px;
+      }
+      body.portfolio-swipe-done .portfolio-done-preview-panel .crate-preview-player iframe {
+        display: block;
+        width: 100%;
+        border: none;
+      }
+      body.portfolio-swipe-done .portfolio-done-preview-panel .crate-preview-mp3 {
+        padding: 12px;
+      }
+      body.portfolio-swipe-done .portfolio-done-preview-panel .crate-preview-mp3 .player-controls {
+        margin-top: 8px;
+      }
+      body.portfolio-swipe-done .portfolio-done-preview-panel .crate-preview-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      body.portfolio-swipe-done .portfolio-done-preview-panel .crate-preview-empty {
+        text-align: center;
+        padding: 28px 16px;
+        color: var(--text-2);
+        font-size: 13px;
+        line-height: 1.55;
+        background: rgba(255,255,255,0.03);
+        border: 0.5px solid rgba(255,255,255,0.08);
+        border-radius: 18px;
+      }
+      body.portfolio-swipe-done .portfolio-done-preview-panel .crate-preview-empty i {
+        font-size: 24px;
+        display: block;
+        margin-bottom: 8px;
+        color: var(--text-3);
+      }
     }
     @media (min-width: 1100px) {
       body.portfolio-swipe-done .portfolio-done-layout {
@@ -3274,13 +3432,38 @@
         gap: 32px;
         align-items: start;
       }
+      body.portfolio-swipe-done .portfolio-done-side {
+        position: sticky;
+        top: 24px;
+        gap: 16px;
+      }
       body.portfolio-swipe-done .portfolio-done-list {
         max-height: min(62vh, 560px);
       }
       body.portfolio-swipe-done .portfolio-done-preview-panel {
         display: block;
-        position: sticky;
-        top: 24px;
+      }
+      body.portfolio-swipe-done .portfolio-done-side .portfolio-done-producer {
+        margin-top: 0;
+        padding: 16px 14px;
+        border-radius: 16px;
+        background: rgba(255,255,255,0.03);
+        border-color: rgba(255,255,255,0.08);
+        box-shadow: none;
+      }
+      body.portfolio-swipe-done .portfolio-done-side .portfolio-done-producer-title {
+        font-size: 13px;
+        font-weight: 600;
+      }
+      body.portfolio-swipe-done .portfolio-done-side .portfolio-done-producer-sub {
+        font-size: 11px;
+        max-width: none;
+      }
+      body.portfolio-swipe-done .portfolio-done-side .portfolio-done-producer-btn {
+        max-width: none;
+        padding: 11px 16px;
+        font-size: 13px;
+        box-shadow: 0 2px 14px rgba(124,58,237,0.28);
       }
     }
     @media (min-width: 600px) and (max-width: 1099px) {
@@ -3335,12 +3518,82 @@
       font-size: 15px;
       color: var(--accent-mid);
     }
+    .portfolio-done-producer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 8px;
+      margin-top: 20px;
+      padding: 18px 16px;
+      border-radius: 18px;
+      background: rgba(124,58,237,0.08);
+      border: 0.5px solid rgba(124,58,237,0.22);
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .portfolio-done-foot .portfolio-done-producer {
+      margin-top: 6px;
+      max-width: 420px;
+    }
+    .portfolio-done-producer-title {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+    .portfolio-done-producer-sub {
+      margin: 0;
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--text-2);
+      max-width: 300px;
+    }
+    .portfolio-done-producer-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 4px;
+      padding: 13px 22px;
+      border: none;
+      border-radius: 14px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 22px rgba(124,58,237,0.38);
+      transition: opacity 0.2s ease, transform 0.15s ease;
+      width: 100%;
+      max-width: 320px;
+      box-sizing: border-box;
+    }
+    .portfolio-done-producer-btn:active {
+      opacity: 0.92;
+      transform: scale(0.98);
+    }
+    .portfolio-done-producer-btn i {
+      font-size: 17px;
+    }
+    @media (min-width: 900px) {
+      .portfolio-done--simple .portfolio-done-foot {
+        gap: 14px;
+      }
+      .portfolio-done--simple .portfolio-done-producer {
+        margin-top: 4px;
+        padding: 16px 20px;
+        max-width: 360px;
+      }
+      .portfolio-done--simple .portfolio-done-producer-btn {
+        max-width: 100%;
+      }
+    }
     /* Portfolio mobile — one gutter column, full width, glow on page bg */
     @media (max-width: 599px) {
       body.portfolio-active {
         display: block;
-        height: 100dvh;
-        overflow: hidden;
       }
       body.portfolio-active .desktop-layout,
       body.portfolio-active .desktop-right {
@@ -3363,6 +3616,9 @@
       }
       body.portfolio-active .portfolio-header {
         padding: calc(env(safe-area-inset-top, 0px) + 12px) 0 10px;
+      }
+      body.portfolio-has-back.portfolio-active .portfolio-header {
+        padding-top: 8px;
       }
       body.portfolio-active .portfolio-card-wrap,
       body.portfolio-active #portfolioCardWrap {
@@ -3439,10 +3695,7 @@
         filter: blur(56px);
         opacity: 0.62;
       }
-      body.portfolio-active #portfolioCardWrap .portfolio-surface.dragging,
-      body.portfolio-active #portfolioCardWrap .portfolio-surface.fly-left,
-      body.portfolio-active #portfolioCardWrap .portfolio-surface.fly-right,
-      body.portfolio-active #portfolioCardWrap .portfolio-surface.portfolio-fly-clone {
+      body.portfolio-active #portfolioCardWrap .portfolio-surface.dragging {
         background: rgba(17,17,19,0.82);
         backdrop-filter: blur(20px) saturate(1.1);
         -webkit-backdrop-filter: blur(20px) saturate(1.1);
@@ -3518,6 +3771,9 @@
       }
       body.portfolio-active .portfolio-header {
         padding: calc(env(safe-area-inset-top, 0px) + 24px) 0 14px;
+      }
+      body.portfolio-has-back.portfolio-active .portfolio-header {
+        padding-top: 8px;
       }
       body.portfolio-active .portfolio-card-wrap,
       body.portfolio-active #portfolioCardWrap {
@@ -3650,6 +3906,9 @@
       body.portfolio-active .portfolio-header {
         padding-top: calc(env(safe-area-inset-top, 0px) + 32px);
       }
+      body.portfolio-has-back.portfolio-active .portfolio-header {
+        padding-top: 8px;
+      }
       body.portfolio-active #portfolioCardWrap .card-glow {
         top: 46%;
         width: 82%;
@@ -3667,16 +3926,12 @@
       #portfolioCardWrap .portfolio-surface.fly-right {
         transition: transform 0.42s cubic-bezier(0.34, 1.2, 0.64, 1), opacity 0.35s ease;
       }
-      body.portfolio-active #portfolioCardWrap .portfolio-surface.dragging,
-      body.portfolio-active #portfolioCardWrap .portfolio-surface.fly-left,
-      body.portfolio-active #portfolioCardWrap .portfolio-surface.fly-right,
-      body.portfolio-active #portfolioCardWrap .portfolio-surface.portfolio-fly-clone {
+      body.portfolio-active #portfolioCardWrap .portfolio-surface.dragging {
         background: rgba(17,17,19,0.82);
         backdrop-filter: blur(20px) saturate(1.1);
         -webkit-backdrop-filter: blur(20px) saturate(1.1);
       }
     }
-    /* Portfolio laptop — 3-zone: left rail + swipe column + producer sidebar */
     @media (min-width: 1100px) {
       body.portfolio-active {
         --w-portfolio: 480px;
@@ -3987,9 +4242,14 @@
       body.portfolio-active #portfolioCardWrap .card-stage {
         overflow: visible;
       }
-      body.discover-active {
-        overflow: hidden;
-        height: 100dvh;
+      body.discover-active,
+      body.portfolio-active {
+        display: block;
+        height: auto;
+        min-height: calc(100dvh + 1px);
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
       }
       body.swipe-card-dragging .shell,
       body.swipe-card-dragging .screen,
@@ -4245,6 +4505,25 @@
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
       gap: 0;
+    }
+    @media (max-width: 899px) {
+      body.profile-active #profileScreen .page-inner--wide {
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+      }
+      body.profile-active .profile-wrap,
+      body.profile-active .profile-wrap--guest {
+        overflow: visible;
+        flex: none;
+        min-height: auto;
+      }
+      body.profile-active .profile-tab-content,
+      body.profile-active .profile-tab-content.active {
+        overflow: visible;
+        flex: none;
+        min-height: auto;
+      }
     }
     .profile-guest-scroll { padding-bottom: 24px; display: flex; flex-direction: column; gap: 16px; }
     .profile-wrap--guest .legal-links { margin: 4px var(--px) 0; }
@@ -4698,7 +4977,8 @@
       .profile-guest-scroll .auth-dsgvo-row { margin-bottom: 14px; }
       .profile-guest-scroll .auth-dsgvo-label { font-size: 12px; line-height: 1.55; }
       #ptSettings .profile-action-btn,
-      #ptSettings .logout-btn { padding: 10px; font-size: 13px; }
+      #ptSettings .logout-btn,
+      #ptSettings .profile-delete-btn { padding: 10px; font-size: 13px; }
       #ptSettings .legal-link { padding: 12px 14px; font-size: 13px; }
       #ptSettings .legal-links { margin-bottom: 4px; }
     }
@@ -4712,6 +4992,15 @@
     .profile-name { font-size: 16px; font-weight: 600; }
     .logout-btn { width: 100%; padding: 13px; border-radius: 12px; background: none; border: 0.5px solid var(--border-2); color: var(--text-2); font-size: 14px; font-weight: 500; cursor: pointer; margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; }
     .logout-btn:hover { border-color: #f87171; color: #f87171; }
+    .profile-delete-btn {
+      width: 100%; padding: 13px; border-radius: 12px; margin-top: 10px;
+      background: rgba(248,113,113,0.08); border: 0.5px solid rgba(248,113,113,0.28);
+      color: #fca5a5; font-size: 14px; font-weight: 600; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+    }
+    .profile-delete-btn:hover { background: rgba(248,113,113,0.14); border-color: rgba(248,113,113,0.45); color: #fecaca; }
+    .profile-delete-btn:disabled { opacity: 0.6; cursor: not-allowed; }
     .crate-sync-badge { font-size: 10px; color: var(--accent-mid); background: var(--accent-light); padding: 2px 7px; border-radius: 100px; font-weight: 600; letter-spacing: 0.2px; }
     .profile-stat-top .crate-sync-badge { margin-left: 0; }
 

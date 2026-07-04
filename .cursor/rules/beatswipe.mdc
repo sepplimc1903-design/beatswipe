@@ -32,7 +32,7 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 | `mypage.js` | My Page upload, dashboard, beat edit/order |
 | `portfolio.js` | `/p/` portfolio |
 | `styles.css` | All CSS |
-| `api/*.js` | beats, pending-beats, manage-beat, submit-beat, crate |
+| `api/*.js` | beats, pending-beats, manage-beat, submit-beat, crate, delete-account, portfolio-meta, sitemap |
 
 **Script order:** `/app.js` → `/mypage.js` → `/portfolio.js` → init inline in `index.html`
 
@@ -69,28 +69,38 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 - **Swipe perf:** `queueSaveBeatToDB` — don’t await before fly; fly before `renderCard`; no `cloneNode` on YT iframe (`buildFlyCardShell`)
 - **Favorites:** `syncCrateFromDB` replace not merge; saves via `/api/crate`; no guest→DB merge on iOS session restore
 - **Upload:** multi-MP3 accordion, no genre/type prefill, title from filename only
-- **Preview portfolio:** `{ preview: true }` — no crate saves
+- **Preview portfolio:** `{ preview: true }` — no crate saves; Swipe-Glow muss wie Discover/`/p/` sein (`#cardGlow` + `updateGlow` — **kein** separates `bg-desktop`-Swipe-System)
 - **Portfolio card-glow:** hidden in idle (`opacity: 0`); purple/orange only while swiping — never beat `--glow-color` on `/p/`
 - **Local dev env:** `vercel dev` lädt `.env.local` nicht zuverlässig in APIs — `api/_env.js` liest `.env.local` als Fallback; Production nutzt Vercel `SUPABASE_SERVICE_ROLE_KEY`
 - **iOS autoplay:** Playback nur in User-Geste — `unlockAudioTouch` + `onStart` (swipe) → `tryAutoplayFromGesture()`; YT via `startVideo()` (`about:blank` → `&autoplay=1`); MP3 braucht `_audioUnlocked`. YT-Overlay auf iOS bis Geste sichtbar (`isIOS()`). Kein Autoplay beim allerersten Page-Load ohne Touch (Apple-Limit). Helpers: `app.js` — `maybeAutoplayPreview`, `startVideo`, `isIOS`
 - **Discover desktop layout:** `--w-discover` 480px (Card capped) — Ränder via Sidebars füllen, nicht Card auf 720px strecken. Tokens: `--discover-left`, `--sidebar-w`. Left rail `#discoverLeftRail` / `updateDiscoverLeftRail()`; `desktop-crate` ab 1100px. Swipe-overflow `visible` beibehalten.
 - **YT desktop keyboard:** iframe cross-origin — `←`/`→` steuern YouTube wenn Player Fokus hat. **Nicht** `pointer-events:none` auf iframe (blockiert Scrub). Fokus-Modell: Klick auf Card → Skip/Save-Tasten; Klick in Player → Seek. `refocusSwipeShortcuts()` + `initDesktopSwipeFocus()` nach Swipe/neuer Card.
-- **Laptop page body classes:** `discover-active` / `crate-active` / `mypage-active` / `profile-active` — je Screen in `applyGoTo()`; nur einer aktiv. Left rails in `index.html` (`discover-left-rail`, `favorites-left-rail`, `mypage-left-rail`, `portfolio-left-rail`). Profile: kein left rail, Bio-Link-Sidebar ab 1100px. Portfolio entfernt alle + `site-scroll`. Sidebars meist ab 1100px.
-- **`/p/` done screen (swipe complete):** Gäste bleiben auf `/p/`. Saves in `localStorage` (`crate`). Done: Favorites-Split — Liste (`portfolio-done-list-panel`) + Preview (`#portfolioDonePreviewPanel`) **getrennt** (ab 1100px). Replay/Guest-Hinweis in `.portfolio-done-foot` **unter der Liste** (`.portfolio-done-main`). Buy via `resolveBeatBuyLink()` + Merge `_portfolioBeats` in `getPortfolioSavedBeats()`. **Nicht** `#portfolioSidePanel` für Done-Player.
+- **Laptop page body classes:** `discover-active` / `crate-active` / `mypage-active` / `profile-active` — je Screen in `applyGoTo()`; nur einer aktiv. Left rails in `index.html`. **Profile ≥1100px:** kein left rail; `--w-page` zentriert via `margin-left: calc((100vw - var(--w-page))/2)`; Bio-Link `.profile-side-panel` Flex rechts daneben — **nicht** `position:fixed` (Overlap). Portfolio entfernt alle + `site-scroll`. Sidebars meist ab 1100px.
+- **Left rails mobile:** alle vier Rails global `display: none` (`discover-`, `favorites-`, `mypage-`, `portfolio-left-rail`) — sonst Laptop-Sidebar-Text im Hintergrund sichtbar
+- **Favorites Buy:** `getCrateBeats()` merged mit Live-Beats (`_beatsCache`); Buttons via `beatBuyAction()` / `resolveBeatBuyLink()` — **nicht** `d.buy.startsWith('http')` (ohne `https://` ging nicht)
+- **Profile mobile scroll:** `body.profile-active #profileScreen .page-inner--wide` → `overflow-y: auto`; `.profile-wrap` / tabs `overflow: visible` — sonst kein Scroll auf Handy
+- **`/p/` done screen (swipe complete):** Gäste bleiben auf `/p/`. Saves in `crate` (RAM/guest). **Desktop (≥1100px):** Liste + Preview-Split; erster Beat vorausgewählt; **Producer-CTA** in `.portfolio-done-side` unter Preview (nicht unter dem Grid). **Mobile:** nur Liste → Tap öffnet Preview (`portfolio-done-preview-open`, `backPortfolioDoneList()`); Buy **unter** Karte (`buildCratePreviewHTML(beat, { prominentBuy: true })`); Done-CTA volle Breite unter Liste. Merge `_portfolioBeats` in `getPortfolioSavedBeats()`. Replay/Guest in `.portfolio-done-foot`. **Nicht** `#portfolioSidePanel` für Done-Player.
+- **Profile laptop:** zentriert (`--w-page`); Bio-Link-Sidebar rechts daneben (Flex, kein `fixed`/Overlap) ab 1100px
+- **Vercel static:** kein `public/`-Ordner (sonst 404 auf `index.html` in `vercel dev`); kein `middleware.js` — Bot-OG via `vercel.json` Rewrite
+- **Producer funnel:** `openProducerSignup()` in `app.js` — eingeloggt → `submitScreen`; Gast ohne Invite → Landing `#producer-start` scroll (`bs_producer_intent`); Gast mit Invite → Signup → nach `SIGNED_IN` My Page (`bs_producer_signup_intent`). Alle „Get your page“-CTAs nutzen das (Done, Footer, Side-Panel, Landing, My Page guest).
 
 ## Aktuell (2026-07-04)
 
-- **Beats auf Supabase:** deployed — Upload, Pending, Discover, `/p/`, My Page edit/delete
-- **Review:** Supabase Table Editor → `status` (`pending` / `approved` / `rejected` / `removed`)
-- **Favorites:** Supabase `crates`. **Skipped** → nur `localStorage`, nicht cross-device
-- **Laptop layout:** Discover / Favorites / My Page / Profile wie zuvor. **Portfolio `/p/`** (`portfolio-active`): Swipen = left rail + 480px + Producer-Sidebar; **Done** = breitere Shell (720/1080px), Liste+Preview-Split, Sidebar aus
-- **`/p/` Done (deployed):** `crate-card`-Liste, Preview ab 1100px, Buy-Links normalisiert, Replay-Pill unter Liste, Skip/Save größer (Mobile 74px)
-- **YT keyboard / iOS autoplay:** unverändert
+- **Beats auf Supabase:** Upload, Pending, Discover, `/p/`, My Page edit/delete
+- **Delete account:** Profile → Settings → `POST /api/delete-account` (Crates, Beats+Storage, Profile, Auth)
+- **Favorites / Profile:** Buy-Links ok; Handy-Scroll ok; Laptop Profile zentriert + Bio-Link rechts daneben
+- **`/p/`:** Done Split; Mobile Swipe-Button-Perf (Fly vor `renderPortfolioCard`); Pull-to-refresh; Preview Back
+- **Laptop BG:** Aurora-Wash wie `/p/` + Hotbar-Fade (non-portfolio)
+- **Producer Funnel + Done-CTA:** `openProducerSignup()`
+- **SEO (Code, und deployed):** `robots.txt`, `/sitemap.xml` → `/api/sitemap`, `/api/portfolio-meta`, `/api/portfolio-og` + Bot-Rewrite in `vercel.json`, JSON-LD Landing + `/p/` — **Luca:** Erklärung im nächsten Chat
+- **Noch nicht deployed** — Workspace only bis Luca push sagt
 
 ## Nächster Schritt
 
-1. **Mobile `/p/` testen:** `/p/clyriax` am Handy — Swipe, Done-Liste, Buy, Replay — was noch fehlt/buggy?
-2. **Aufräumen:** `AIRTABLE_TOKEN` Vercel; Make Beat-Szenario abschalten
+1. **Deploy** wenn ready — Delete account, SEO, Profile-Layout, `/p/` Swipe-Perf, Laptop BG, Done, Funnel, Preview Back, Pull-to-refresh
+2. **Nächster Chat:** SEO Luca erklären (was live ist, was Crawler sehen, optional SSR/Impressum)
+3. **Preview Swipe-Glow** — `getGlow()` scopen
+4. **Aufräumen:** Impressum `[Your full legal name]`; `AIRTABLE_TOKEN` Vercel
 
 ## Rules pflegen (Agent)
 

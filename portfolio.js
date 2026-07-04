@@ -142,9 +142,30 @@ function updatePortfolioMeta(producerName, profile, slug) {
   setHeadMeta('twitter:description', bio, false);
   setHeadMeta('twitter:image', image, false);
   setCanonical(url);
+  let ld = document.getElementById('portfolioJsonLd');
+  if (!ld) {
+    ld = document.createElement('script');
+    ld.type = 'application/ld+json';
+    ld.id = 'portfolioJsonLd';
+    document.head.appendChild(ld);
+  }
+  ld.textContent = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'ProfilePage',
+    name: title,
+    description: bio,
+    url,
+    mainEntity: {
+      '@type': 'MusicGroup',
+      name: producerName,
+      url,
+      ...(image ? { image } : {})
+    }
+  });
 }
 
 function resetSiteMeta() {
+  document.getElementById('portfolioJsonLd')?.remove();
   document.title = _SITE_META.title;
   setHeadMeta('description', _SITE_META.description, false);
   setHeadMeta('og:type', 'website', true);
@@ -174,18 +195,31 @@ function getPortfolioSavedBeats() {
 }
 
 let _portfolioDoneSelectedId = null;
+let _portfolioDonePreviewOpen = false;
+
+function isPortfolioDoneMobileFlow() {
+  return typeof isMobileUI === 'function' && isMobileUI();
+}
+
+function syncPortfolioDonePreviewMode() {
+  document.body.classList.toggle(
+    'portfolio-done-preview-open',
+    isPortfolioDoneMobileFlow() && _portfolioDonePreviewOpen
+  );
+}
 
 function renderPortfolioDoneList() {
   const list = document.getElementById('portfolioDoneList');
   if (!list) return;
   const saved = getPortfolioSavedBeats();
+  const mobile = isPortfolioDoneMobileFlow();
   list.innerHTML = saved.map(d => {
-    const sel = d.id === _portfolioDoneSelectedId ? ' crate-card--selected' : '';
+    const sel = !mobile && d.id === _portfolioDoneSelectedId ? ' crate-card--selected' : '';
     const action = beatBuyAction(d);
     const id = String(d.id).replace(/'/g, "\\'");
-    const actionHTML = action
+    const actionHTML = !mobile && action
       ? `<button class="crate-action-btn" onclick="event.stopPropagation();window.open('${action.link.replace(/'/g, "\\'")}','_blank')">${action.html}</button>`
-      : '';
+      : (mobile ? '<i class="ti ti-chevron-right portfolio-done-chevron"></i>' : '');
     return `<div class="crate-card${sel}" onclick="selectPortfolioDoneBeat('${id}')">
       <div class="mini-cover"><i class="ti ti-music"></i></div>
       <div class="crate-info">
@@ -200,16 +234,43 @@ function renderPortfolioDoneList() {
 function renderPortfolioDonePreview() {
   const panel = document.getElementById('portfolioDonePreviewPanel');
   if (!panel) return;
+  const mobile = isPortfolioDoneMobileFlow();
+  if (mobile && !_portfolioDonePreviewOpen) {
+    panel.hidden = true;
+    panel.innerHTML = '';
+    return;
+  }
   const beat = getPortfolioSavedBeats().find(b => b.id === _portfolioDoneSelectedId);
-  const html = beat ? buildCratePreviewHTML(beat) : buildCratePreviewHTML(null);
+  const previewHTML = beat ? buildCratePreviewHTML(beat, { prominentBuy: true }) : buildCratePreviewHTML(null);
+  const backBtn = mobile
+    ? `<button type="button" class="portfolio-done-back" onclick="backPortfolioDoneList()"><i class="ti ti-arrow-left"></i> Saved beats</button>`
+    : '';
   panel.hidden = false;
-  panel.innerHTML = html;
+  panel.innerHTML = backBtn + previewHTML;
   applyCratePreviewAudio(beat || null);
 }
 
 function selectPortfolioDoneBeat(id) {
+  if (isPortfolioDoneMobileFlow()) {
+    if (_portfolioDonePreviewOpen && _portfolioDoneSelectedId === id) return;
+    _portfolioDoneSelectedId = id;
+    _portfolioDonePreviewOpen = true;
+    syncPortfolioDonePreviewMode();
+    renderPortfolioDonePreview();
+    return;
+  }
   if (_portfolioDoneSelectedId === id) return;
   _portfolioDoneSelectedId = id;
+  renderPortfolioDoneList();
+  renderPortfolioDonePreview();
+}
+
+function backPortfolioDoneList() {
+  _portfolioDonePreviewOpen = false;
+  _portfolioDoneSelectedId = null;
+  if (_audioPanel === 'crate') stopTrack();
+  _previewLoadedId = null;
+  syncPortfolioDonePreviewMode();
   renderPortfolioDoneList();
   renderPortfolioDonePreview();
 }
@@ -217,9 +278,22 @@ function selectPortfolioDoneBeat(id) {
 function initPortfolioDoneView() {
   const saved = getPortfolioSavedBeats();
   if (!saved.length) return;
-  _portfolioDoneSelectedId = saved[0].id;
+  const mobile = isPortfolioDoneMobileFlow();
+  _portfolioDonePreviewOpen = false;
+  _portfolioDoneSelectedId = mobile ? null : saved[0].id;
+  syncPortfolioDonePreviewMode();
   renderPortfolioDoneList();
   renderPortfolioDonePreview();
+}
+
+function portfolioDoneProducerCtaHTML() {
+  return `<div class="portfolio-done-producer">
+    <p class="portfolio-done-producer-title">Want your own swipe page?</p>
+    <p class="portfolio-done-producer-sub">Free for producers — one link in your bio.</p>
+    <button type="button" class="portfolio-done-producer-btn" onclick="openProducerSignup()">
+      <i class="ti ti-link"></i> Get your page free
+    </button>
+  </div>`;
 }
 
 function buildPortfolioDoneHTML() {
@@ -245,6 +319,7 @@ function buildPortfolioDoneHTML() {
   const guestHint = !currentUser && saved.length
     ? `<p class="portfolio-done-guest">Your saves stay on this device — bookmark this page to listen again.</p>`
     : '';
+  const producerCta = portfolioDoneProducerCtaHTML();
   const doneFoot = (guestHint || replayBtn)
     ? `<div class="portfolio-done-foot">${guestHint}${replayBtn}</div>`
     : '';
@@ -260,7 +335,10 @@ function buildPortfolioDoneHTML() {
           </div>
           ${doneFoot}
         </div>
-        <aside class="portfolio-done-preview-panel" id="portfolioDonePreviewPanel" aria-label="Beat preview"></aside>
+        <div class="portfolio-done-side">
+          <aside class="portfolio-done-preview-panel" id="portfolioDonePreviewPanel" aria-label="Beat preview"></aside>
+          ${producerCta}
+        </div>
       </div>
     </div>`;
   }
@@ -268,13 +346,18 @@ function buildPortfolioDoneHTML() {
   return `<div class="portfolio-surface"><div class="portfolio-done portfolio-done--simple">
     <div class="portfolio-done-head"><i class="ti ti-check"></i>All caught up</div>
     <div class="portfolio-done-sub">You swiped through every beat from ${_portfolioProducer ? escHtml(_portfolioProducer) : 'this producer'}.</div>
-    ${replayBtn ? `<div class="portfolio-done-foot">${replayBtn}</div>` : ''}
+    <div class="portfolio-done-foot">${replayBtn}${producerCta}</div>
   </div></div>`;
 }
 
 function setPortfolioDoneMode(on) {
   document.getElementById('portfolioPageInner')?.classList.toggle('page-inner--swipe-done', !!on);
   document.body.classList.toggle('portfolio-swipe-done', !!on);
+  if (!on) {
+    _portfolioDonePreviewOpen = false;
+    _portfolioDoneSelectedId = null;
+    document.body.classList.remove('portfolio-done-preview-open');
+  }
   const sidePanel = document.getElementById('portfolioSidePanel');
   if (on) {
     if (sidePanel) {
@@ -317,7 +400,6 @@ function flyOutPortfolioCard(dir, onReplaced) {
   if (reduced || !flyEl || !wrap) {
     purgeOrphanSwipeNodes();
     onReplaced();
-    _portfolioSwipeLock = false;
     return;
   }
 
@@ -340,20 +422,14 @@ function flyOutPortfolioCard(dir, onReplaced) {
   clone.style.width = flyRect.width + 'px';
 
   wrap.appendChild(clone);
+  flyEl.style.visibility = 'hidden';
   void clone.offsetWidth;
 
   const flyClass = dir === 'left' ? 'fly-left' : 'fly-right';
-  const startFly = () => clone.classList.add(flyClass);
-  if (isMobileUI()) {
-    onReplaced();
-    void clone.offsetWidth;
-    requestAnimationFrame(() => requestAnimationFrame(startFly));
-  } else {
-    requestAnimationFrame(() => {
-      startFly();
-      setTimeout(onReplaced, 48);
-    });
-  }
+  requestAnimationFrame(() => {
+    clone.classList.add(flyClass);
+    setTimeout(onReplaced, 48);
+  });
 
   let done = false;
   const finish = () => {
@@ -361,7 +437,6 @@ function flyOutPortfolioCard(dir, onReplaced) {
     done = true;
     clone.style.willChange = '';
     clone.remove();
-    _portfolioSwipeLock = false;
   };
   clone.addEventListener('transitionend', e => {
     if (e.target !== clone || e.propertyName !== 'transform') return;
@@ -679,7 +754,7 @@ function renderPortfolioSidePanel(producerName, profile) {
       ${storeBtn}
       <div class="portfolio-side-divider" aria-hidden="true"></div>
       <p class="portfolio-side-brand">Powered by <strong>BeatSwipe</strong></p>
-      <button type="button" class="portfolio-side-cta" onclick="goTo('landScreen','navHome')">Get your own page</button>
+      <button type="button" class="portfolio-side-cta" onclick="openProducerSignup()">Get your own page</button>
     </div>`;
 }
 
@@ -825,7 +900,7 @@ function showPortfolioNotFound(slug) {
   const header = document.getElementById('portfolioHeader');
   if (header) header.innerHTML = `<div class="portfolio-name" style="flex:1">Producer not found</div>`;
   const slot = document.getElementById('portfolioCardSlot');
-  if (slot) slot.innerHTML = `<div class="empty-card"><i class="ti ti-user-off"></i>No producer "<span style="color:var(--text)">${escHtml(slug)}</span>" yet.<br><span style="font-size:12px;color:var(--text-3)"><a onclick="goTo('landScreen','navHome')" style="color:var(--accent-mid);cursor:pointer">Get your own page</a> — add beats on My Page to go live.</span></div>`;
+  if (slot) slot.innerHTML = `<div class="empty-card"><i class="ti ti-user-off"></i>No producer "<span style="color:var(--text)">${escHtml(slug)}</span>" yet.<br><span style="font-size:12px;color:var(--text-3)"><a onclick="openProducerSignup()" style="color:var(--accent-mid);cursor:pointer">Get your own page</a> — add beats on My Page to go live.</span></div>`;
   updatePortfolioMeta(slug, { bio: 'Producer portfolio page on BeatSwipe.' }, portfolioSlugFromName(slug));
 }
 

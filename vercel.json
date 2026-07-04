@@ -1,6 +1,18 @@
 {
   "rewrites": [
-    { "source": "/p/:slug*", "destination": "/index.html" },
-    { "source": "/P/:slug*", "destination": "/index.html" }
+    {
+      "source": "/p/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(bot|crawler|spider|facebookexternalhit|Facebot|Twitterbot|LinkedInBot|Slackbot|Discordbot|WhatsApp|TelegramBot|Pinterest).*"
+        }
+      ],
+      "destination": "/api/portfolio-og?slug=:slug"
+    },
+    { "source": "/sitemap.xml", "destination": "/api/sitemap" },
+    { "source": "/p/:slug", "destination": "/index.html" },
+    { "source": "/P/:slug", "destination": "/index.html" }
   ]
 }
