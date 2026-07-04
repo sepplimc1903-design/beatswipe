@@ -782,7 +782,7 @@
 
         <h3>3. Data we collect</h3>
         <ul>
-          <li><strong>Account:</strong> email address, password (stored hashed by our auth provider — we never see your plain password)</li>
+          <li><strong>Account:</strong> email address and password (stored hashed by our auth provider — we never see your plain password), or Google sign-in (name, email, profile photo from Google)</li>
           <li><strong>Profile (producers):</strong> producer name, bio, avatar image, social links (Instagram, BeatStars, SoundCloud, YouTube)</li>
           <li><strong>Favorites:</strong> beats you save to your account</li>
           <li><strong>Beat uploads:</strong> metadata (title, genre, BPM, buy links) and MP3 preview files you submit</li>
@@ -805,6 +805,7 @@
         <p>We use trusted providers to run BeatSwipe. Each processes data only on our instructions:</p>
         <ul>
           <li><strong>Supabase</strong> — authentication, beat catalogue, database, file storage (<a href="https://supabase.com/privacy" target="_blank" rel="noopener">Privacy Policy</a>)</li>
+          <li><strong>Google</strong> — optional sign-in only (<a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Privacy Policy</a>)</li>
           <li><strong>Vercel</strong> — website hosting (<a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener">Privacy Policy</a>)</li>
           <li><strong>jsDelivr</strong> — open-source script delivery for the optional QR code feature (<a href="https://www.jsdelivr.com/privacy-policy-jsdelivr-net" target="_blank" rel="noopener">Privacy Policy</a>)</li>
         </ul>

@@ -713,7 +713,8 @@ async function initApp() {
   await loadBeats();
   resetDiscoverCategory();
   if (currentUser) {
-    await syncCrateFromDB();
+    const mergedGuestCrate = await mergePendingGuestCrate();
+    if (!mergedGuestCrate) await syncCrateFromDB();
     restoreSkippedState();
     restoreSwipeState();
   } else {
@@ -2371,7 +2372,49 @@ const supa = supabase.createClient(SUPA_URL, SUPA_KEY, {
 });
 
 function getAuthRedirectUrl() {
-  return `${window.location.origin}/`;
+  try {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('code');
+    url.searchParams.delete('type');
+    url.searchParams.delete('error');
+    url.searchParams.delete('error_description');
+    url.hash = '';
+    return url.toString();
+  } catch (e) {
+    return `${window.location.origin}/`;
+  }
+}
+
+function stashGuestCrateForAuthRedirect() {
+  if (currentUser || !crate.length) return;
+  _pendingGuestCrateMerge = [...crate];
+  try {
+    sessionStorage.setItem('bs_pending_crate_merge', JSON.stringify(crate.map(b => b.id)));
+  } catch (e) {}
+}
+
+async function mergePendingGuestCrate() {
+  let guestBeats = _pendingGuestCrateMerge;
+  _pendingGuestCrateMerge = null;
+  if (!guestBeats?.length) {
+    try {
+      const raw = sessionStorage.getItem('bs_pending_crate_merge');
+      if (raw) {
+        const ids = JSON.parse(raw);
+        const pool = _beatsCache || [];
+        guestBeats = ids.map(id => pool.find(b => b.id === id)).filter(Boolean);
+        if (guestBeats.length) sessionStorage.removeItem('bs_pending_crate_merge');
+      }
+    } catch (e) {}
+  } else {
+    try { sessionStorage.removeItem('bs_pending_crate_merge'); } catch (e) {}
+  }
+  if (!guestBeats?.length || !currentUser) return false;
+  await syncCrateFromDB();
+  guestBeats.forEach(b => { if (!crate.find(i => i.id === b.id)) crate.push(b); });
+  for (const b of guestBeats) await saveBeatToDB(b);
+  renderCrate();
+  return true;
 }
 let currentUser = null;
 let _passwordRecoveryActive = false;
@@ -2411,11 +2454,17 @@ async function resolveAuthCallbackFromUrl() {
   if (query.get('code')) {
     const { data, error } = await supa.auth.exchangeCodeForSession(query.get('code'));
     if (error) {
-      showToast('Reset link expired or invalid — request a new one.', 'error');
+      showToast(
+        _authRecoveryFromUrl
+          ? 'Reset link expired or invalid — request a new one.'
+          : 'Sign-in failed — please try again.',
+        'error'
+      );
       clearAuthCallbackFromUrl();
       return;
     }
     session = data?.session || null;
+    if (!_authRecoveryFromUrl) clearAuthCallbackFromUrl();
   } else if (hash.get('access_token') && hash.get('refresh_token')) {
     const { data, error } = await supa.auth.setSession({
       access_token: hash.get('access_token'),
@@ -2468,12 +2517,9 @@ supa.auth.onAuthStateChange(async (event, session) => {
   }
   updateDesktopTopbarAuth();
   if (currentUser) {
-    if (event === 'SIGNED_IN' && _pendingGuestCrateMerge?.length) {
-      const guestCrate = _pendingGuestCrateMerge;
-      _pendingGuestCrateMerge = null;
-      await syncCrateFromDB();
-      guestCrate.forEach(b => { if (!crate.find(i => i.id === b.id)) crate.push(b); });
-      for (const b of guestCrate) await saveBeatToDB(b);
+    if (event === 'SIGNED_IN') {
+      const merged = await mergePendingGuestCrate();
+      if (!merged) await syncCrateFromDB();
     } else if (event !== 'TOKEN_REFRESHED') {
       await syncCrateFromDB();
     }
@@ -2790,6 +2836,10 @@ function renderProfile() {
             <button class="profile-tab ${authMode==='login'?'active':''}" onclick="setAuthMode('login')">Sign in</button>
             <button class="profile-tab ${authMode==='signup'?'active':''}" onclick="setAuthMode('signup')">Sign up</button>
           </div>
+          <button type="button" class="auth-google-btn" onclick="handleGoogleAuth()" id="authGoogleBtn">
+            <i class="ti ti-brand-google"></i> Continue with Google
+          </button>
+          <div class="auth-divider" aria-hidden="true"><span>or</span></div>
           <div class="auth-field">
             <input type="email" id="authEmail" placeholder="your@email.com" style="width:100%">
           </div>
@@ -2807,8 +2857,8 @@ function renderProfile() {
               I accept the <a onclick="event.stopPropagation();openInfoModal('privacyModal')">Privacy Policy</a> and agree that my email address will be stored.
             </label>
           </div>` : ''}
-          <button class="auth-btn" onclick="handleAuth()" id="authBtn">
-            <i class="ti ti-arrow-right"></i> ${authMode === 'login' ? 'Sign in' : 'Create account'}
+          <button class="auth-btn auth-btn--secondary" onclick="handleAuth()" id="authBtn">
+            <i class="ti ti-arrow-right"></i> ${authMode === 'login' ? 'Sign in with email' : 'Create account with email'}
           </button>
           <div class="auth-msg" id="authMsg"></div>
           `}
@@ -2854,7 +2904,7 @@ async function handleAuth() {
   }
   if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Loading...'; }
 
-  if (!currentUser && crate.length) _pendingGuestCrateMerge = [...crate];
+  stashGuestCrateForAuthRedirect();
 
   let error;
   if (authMode === 'login') {
@@ -2866,10 +2916,32 @@ async function handleAuth() {
   if (error) {
     _pendingGuestCrateMerge = null;
     if (msg) { msg.className = 'auth-msg error'; msg.textContent = error.message; }
-    if (btn) { btn.disabled = false; btn.innerHTML = `<i class="ti ti-arrow-right"></i> ${authMode === 'login' ? 'Sign in' : 'Create account'}`; }
+    if (btn) { btn.disabled = false; btn.innerHTML = `<i class="ti ti-arrow-right"></i> ${authMode === 'login' ? 'Sign in with email' : 'Create account with email'}`; }
   } else if (authMode === 'signup') {
     if (msg) { msg.className = 'auth-msg success'; msg.textContent = 'Check your email to confirm your account!'; }
-    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-arrow-right"></i> Create account'; }
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-arrow-right"></i> Create account with email'; }
+  }
+}
+
+async function handleGoogleAuth() {
+  const msg = document.getElementById('authMsg');
+  if (authMode === 'signup') {
+    const dsgvo = document.getElementById('authDsgvo');
+    if (!dsgvo?.checked) {
+      if (msg) { msg.className = 'auth-msg error'; msg.textContent = 'Please accept the Privacy Policy to continue.'; }
+      return;
+    }
+  }
+  const btn = document.getElementById('authGoogleBtn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Redirecting…'; }
+  stashGuestCrateForAuthRedirect();
+  const { error } = await supa.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: getAuthRedirectUrl() }
+  });
+  if (error) {
+    if (msg) { msg.className = 'auth-msg error'; msg.textContent = error.message; }
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-brand-google"></i> Continue with Google'; }
   }
 }
 
