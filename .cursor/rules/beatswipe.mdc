@@ -12,8 +12,10 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 ## Marketing
 
 - **Never** say „Tinder" (brand)
-- Slogan: „Discover Beats. Save What Hits."
+- **Brand URL immer** `beatswipe.app` — nie nur „BeatSwipe" ohne TLD (Verwechslung mit **beatswipe.net**)
+- Slogan: **TBD** (alt „Discover Beats. Save What Hits." — Luca findet schlecht; noch nicht ersetzt)
 - Product: „Your swipe page for the bio" / „Free swipe portfolio for producers"
+- **Konkurrenz:** `beatswipe.net` live seit 25.06.2026 — TikTok-Feed, free downloads, collab; **anderes Produkt** als unsere Producer-`/p/`-Pages. Kontakt dort: `legal@beatswipe.com`. Wir: AT/EU, `hellobeatswipe@gmail.com`, `@beatswipe.app`
 
 ## Product (Phase 1)
 
@@ -88,21 +90,24 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 - **QR code:** `openPortfolioQR()` in `portfolio.js` — CDN `cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js` (**nicht** `qrcode@1.5.4/build/…` — 404)
 - **Moderation:** `api/moderate-beats.js` + `moderate.js`; Admin-Emails via `BEATSWIPE_ADMIN_EMAILS` (Default: `svetina.luca@gmail.com`, `hellobeatswipe@gmail.com`); Profile → Settings → Moderation
 - **Legal:** Impressum + Privacy in Modals; Links auf Landing (Footer mobile+desktop), `/p/` Footer, Cookie-Banner, Profile Settings; `openLegalModal()` mit Tabs — **z-index 450** (über Cookie-Banner 350); Landing-Footer mobile: `#landScreen .site-footer` nicht global `display:none`
+- **Landing hero demo:** Discover-like card (waveform + skip/save) — **keine** SKIP/SAVE-Stempel; `initHeroDemoCard()` in `app.js`. Topbar black-fade wie andere Seiten via `body:not(.portfolio-active) .bg-desktop::before` (site-scroll inkl. Landing)
+- **Landing bg:** `portfolio-ambient` **nicht** global auf Laptop — nur `portfolio-active` / `/p/` boot
 
 ## Aktuell (2026-07-04)
 
-- **Live** `a06a522`: Moderation UI, Producer stats, QR, Discover cat-bar glass, Admin-Fix
-- **Deploy pending:** Legal Notice (Luca Svetina, Graz), Legal-Modal-Tabs, Landing mobile Footer, Cookie/Modal z-index
-- **Stats:** `portfolio-events.sql` in Supabase ✅ (Luca); `/api/track`, `/api/stats`, My Page views/saves/buys
-- **Moderation:** Profile → Settings → Approve/Reject pending beats
-- **Preview Swipe-Glow:** Luca ok
+- **Live** `a06a522`: Moderation, Producer stats, QR, Legal modals (laut Rules — ggf. schon deployed)
+- **Local uncommitted:** Landing overhaul (hero, glass stats, step icons, CTA banner, bg/topbar fixes) — `index.html`, `styles.css`, `app.js`
+- **Brand:** `beatswipe.net` Konkurrent entdeckt (gleicher Name, anderes Produkt); Marken-/Domain-Strategie offen
+- **Marketing assets:** `marketing/insta-posts/` — Announcement-Drafts; finaler IG-Post + neuer Slogan noch offen
+- **Stats / Moderation:** `portfolio-events.sql` ✅; Profile → Settings → Moderation
 
 ## Nächster Schritt
 
-1. **Deploy** Legal-Fixes pushen → Hard-Refresh testen (Landing Footer mobile, Cookie → Legal tabs)
-2. **Test live:** `/p/clyriax` stats; QR Save; Moderation approve flow
-3. **Optional:** `AIRTABLE_TOKEN` aus Vercel entfernen (legacy)
-4. **Producer onboarding:** 2–3 fremde Producer mit Link in Bio (Phase-1-Ziel)
+1. **Deploy** Landing-Overhaul (wenn Luca sagt) → Laptop + Handy hard-refresh
+2. **Brand:** `beatswipe.com` sichern; EU/AT-Marke „BeatSwipe" prüfen; überall nur `beatswipe.app` kommunizieren
+3. **Slogan** festlegen → dann IG-Announcement + ggf. Footer/OG anpassen
+4. **Test live:** `/p/clyriax` stats, QR, Moderation flow
+5. **Producer onboarding:** 2–3 fremde Producer mit Link in Bio (Phase-1-Ziel)
 
 ## Rules pflegen (Agent)
 

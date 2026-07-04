@@ -255,16 +255,16 @@
     <div class="land-scroll">
       <div class="land-site-wrap">
       <div class="hero">
-        <div class="reveal-on-scroll">
-          <div class="hero-badge">Free swipe portfolio for producers</div>
-          <div class="hero-title">Your swipe page for the <span>bio</span></div>
-          <div class="hero-sub">One link in your bio. Fans swipe your beats — skip, save, buy from your store.</div>
+        <div class="hero-copy reveal-on-scroll">
+          <div class="hero-badge"><span class="hero-badge-dot" aria-hidden="true"></span>Free swipe portfolio for producers</div>
+          <h1 class="hero-title">Your swipe page for the <span>bio</span></h1>
+          <p class="hero-sub">One link in your bio. Fans swipe your beats — skip, save, buy from your store.</p>
           <div class="hero-btns" id="producer-start">
             <button class="btn-primary" onclick="openProducerSignup()"><i class="ti ti-upload"></i> Get your free page</button>
             <button class="btn-secondary" onclick="goTo('discoverScreen','navDiscover')"><i class="ti ti-headphones"></i> Discover beats</button>
           </div>
           <a class="hero-live-card" href="/p/clyriax">
-            <div class="hero-live-card-icon"><i class="ti ti-external-link"></i></div>
+            <div class="hero-live-card-icon"><i class="ti ti-bolt"></i></div>
             <div class="hero-live-card-body">
               <div class="hero-live-card-title">See a live page</div>
               <div class="hero-live-card-url">beatswipe.app/p/clyriax</div>
@@ -274,10 +274,10 @@
           </a>
         </div>
         <div class="hero-visual reveal-on-scroll reveal-delay-1">
-          <div class="hero-preview hero-preview--discover">
+          <div class="hero-preview">
             <div class="hero-card-demo">
               <div class="card-stage">
-                <div class="card-glow hero-card-glow" id="heroCardGlow" style="--glow-color:#7C3AED"></div>
+                <div class="card-glow hero-card-glow" id="heroCardGlow"></div>
                 <div class="beat-card hero-beat-card" id="heroBeatCard">
                   <div class="card-head">
                     <div class="cover-box">
@@ -298,44 +298,7 @@
                   </div>
                   <div class="player-area">
                     <div class="waveform-wrap">
-                      <div class="waveform" id="heroWaveform">
-                        <div class="wbar" style="height:12px;opacity:0.55"></div>
-                        <div class="wbar" style="height:17px;opacity:0.55"></div>
-                        <div class="wbar" style="height:8px;opacity:0.55"></div>
-                        <div class="wbar" style="height:15px;opacity:0.55"></div>
-                        <div class="wbar" style="height:11px;opacity:0.55"></div>
-                        <div class="wbar" style="height:16px;opacity:0.55"></div>
-                        <div class="wbar" style="height:9px;opacity:0.55"></div>
-                        <div class="wbar" style="height:14px;opacity:0.55"></div>
-                        <div class="wbar" style="height:10px;opacity:0.55"></div>
-                        <div class="wbar" style="height:17px;opacity:0.55"></div>
-                        <div class="wbar" style="height:13px;opacity:0.55"></div>
-                        <div class="wbar" style="height:7px;opacity:0.55"></div>
-                        <div class="wbar" style="height:15px;opacity:0.55"></div>
-                        <div class="wbar" style="height:11px;opacity:0.55"></div>
-                        <div class="wbar" style="height:16px;opacity:0.55"></div>
-                        <div class="wbar" style="height:9px;opacity:0.55"></div>
-                        <div class="wbar" style="height:14px;opacity:0.55"></div>
-                        <div class="wbar" style="height:12px;opacity:0.55"></div>
-                        <div class="wbar" style="height:17px;opacity:0.55"></div>
-                        <div class="wbar" style="height:8px;opacity:0.55"></div>
-                        <div class="wbar" style="height:15px;opacity:0.55"></div>
-                        <div class="wbar" style="height:10px;opacity:0.55"></div>
-                        <div class="wbar" style="height:16px;opacity:0.55"></div>
-                        <div class="wbar" style="height:13px;opacity:0.55"></div>
-                        <div class="wbar" style="height:7px;opacity:0.55"></div>
-                        <div class="wbar" style="height:14px;opacity:0.55"></div>
-                        <div class="wbar" style="height:11px;opacity:0.55"></div>
-                        <div class="wbar" style="height:17px;opacity:0.55"></div>
-                        <div class="wbar" style="height:9px;opacity:0.55"></div>
-                        <div class="wbar" style="height:15px;opacity:0.55"></div>
-                        <div class="wbar" style="height:12px;opacity:0.55"></div>
-                        <div class="wbar" style="height:16px;opacity:0.55"></div>
-                        <div class="wbar" style="height:10px;opacity:0.55"></div>
-                        <div class="wbar" style="height:14px;opacity:0.55"></div>
-                        <div class="wbar" style="height:8px;opacity:0.55"></div>
-                        <div class="wbar" style="height:17px;opacity:0.55"></div>
-                      </div>
+                      <div class="waveform" id="heroWaveform"></div>
                     </div>
                     <div class="player-controls">
                       <button class="play-btn" type="button" tabindex="-1" aria-hidden="true">
@@ -343,7 +306,7 @@
                       </button>
                       <div class="progress-wrap">
                         <div class="progress-bar">
-                          <div class="progress-fill" style="width:34%"></div>
+                          <div class="progress-fill" id="heroProgressFill" style="width:34%"></div>
                         </div>
                         <div class="time-row">
                           <span class="time-lbl">0:42</span>
@@ -356,14 +319,30 @@
                 </div>
               </div>
             </div>
-            <div class="hero-preview-caption">Discover Beats. Save What Hits.</div>
+            <div class="hero-demo-actions" aria-hidden="true">
+              <button class="act-btn btn-skip" type="button" tabindex="-1"><i class="ti ti-x"></i></button>
+              <button class="act-btn btn-save" type="button" tabindex="-1"><i class="ti ti-heart-filled"></i></button>
+            </div>
+            <p class="hero-preview-caption">Discover Beats. Save What Hits.</p>
           </div>
         </div>
       </div>
       <div class="stats-row reveal-on-scroll">
-        <div class="stat-cell"><div class="stat-num" id="statBeats">–</div><div class="stat-lbl">Beats</div></div>
-        <div class="stat-cell"><div class="stat-num" id="statProducers">–</div><div class="stat-lbl">Producers</div></div>
-        <div class="stat-cell"><div class="stat-num">Free</div><div class="stat-lbl">Always</div></div>
+        <div class="stat-cell">
+          <i class="ti ti-music stat-icon" aria-hidden="true"></i>
+          <div class="stat-num" id="statBeats">–</div>
+          <div class="stat-lbl">Beats</div>
+        </div>
+        <div class="stat-cell">
+          <i class="ti ti-users stat-icon" aria-hidden="true"></i>
+          <div class="stat-num" id="statProducers">–</div>
+          <div class="stat-lbl">Producers</div>
+        </div>
+        <div class="stat-cell">
+          <i class="ti ti-infinity stat-icon" aria-hidden="true"></i>
+          <div class="stat-num">Free</div>
+          <div class="stat-lbl">Always</div>
+        </div>
       </div>
       <div class="beats-load-banner" id="beatsLoadBanner" hidden>
         <i class="ti ti-alert-circle"></i>
@@ -376,22 +355,25 @@
       </div>
       <div class="land-steps">
         <div class="land-step reveal-on-scroll">
-          <div class="land-step-num">01</div>
+          <div class="land-step-icon"><i class="ti ti-upload"></i></div>
           <div class="land-step-body">
+            <div class="land-step-num">01</div>
             <div class="land-step-title">Upload your beats</div>
             <div class="land-step-desc">Add short preview clips on My Page — YouTube, SoundCloud, or MP3 (~30–60s). Link your store for the full beat.</div>
           </div>
         </div>
         <div class="land-step reveal-on-scroll reveal-delay-1">
-          <div class="land-step-num">02</div>
+          <div class="land-step-icon"><i class="ti ti-link"></i></div>
           <div class="land-step-body">
+            <div class="land-step-num">02</div>
             <div class="land-step-title">Share your link</div>
             <div class="land-step-desc">beatswipe.app/p/yourname in your Instagram bio. One tap for fans.</div>
           </div>
         </div>
         <div class="land-step reveal-on-scroll reveal-delay-2">
-          <div class="land-step-num">03</div>
+          <div class="land-step-icon"><i class="ti ti-arrows-left-right"></i></div>
           <div class="land-step-body">
+            <div class="land-step-num">03</div>
             <div class="land-step-title">Fans swipe &amp; buy</div>
             <div class="land-step-desc">Skip left, save right. Buy links go to your store — we take no cut.</div>
           </div>
@@ -429,8 +411,16 @@
         </div>
       </div>
       <div class="cta-strip reveal-on-scroll">
-        <button class="btn-primary" onclick="openProducerSignup()"><i class="ti ti-upload"></i> Get your free page</button>
-        <div class="cta-label">Free forever · No cut on sales</div>
+        <div class="cta-banner">
+          <div class="cta-banner-glow" aria-hidden="true"></div>
+          <div class="cta-banner-inner">
+            <div class="cta-banner-copy">
+              <div class="cta-banner-title">Ready for your bio link?</div>
+              <div class="cta-banner-sub">Free forever · No cut on sales</div>
+            </div>
+            <button class="btn-primary cta-banner-btn" onclick="openProducerSignup()"><i class="ti ti-upload"></i> Get your free page</button>
+          </div>
+        </div>
       </div>
       <footer class="site-footer reveal-on-scroll">
         <span>BeatSwipe · Discover Beats. Save What Hits.</span>

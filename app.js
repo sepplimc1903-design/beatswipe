@@ -370,8 +370,16 @@ function bootLandingReveal() {
 }
 
 let _heroWaveTimer = null;
+function buildHeroWaveBars() {
+  const wf = document.getElementById('heroWaveform');
+  if (!wf) return;
+  wf.innerHTML = Array(36).fill(0).map(() =>
+    `<div class="wbar" style="height:${Math.round(Math.random() * 14 + 3)}px;opacity:0.55"></div>`
+  ).join('');
+}
 function initHeroDemoCard() {
   stopHeroDemoCard();
+  buildHeroWaveBars();
   const wf = document.getElementById('heroWaveform');
   const card = document.getElementById('heroBeatCard');
   const glow = document.getElementById('heroCardGlow');
