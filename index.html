@@ -725,6 +725,10 @@
         <div class="modal-title">Legal Notice</div>
         <button class="modal-close" onclick="closeInfoModal('impressumModal')"><i class="ti ti-x" style="font-size:14px"></i></button>
       </div>
+      <div class="legal-modal-tabs" role="tablist" aria-label="Legal documents">
+        <button type="button" class="legal-modal-tab active" data-legal-modal="impressumModal" onclick="openLegalModal('impressumModal')">Legal Notice</button>
+        <button type="button" class="legal-modal-tab" data-legal-modal="privacyModal" onclick="openLegalModal('privacyModal')">Privacy Policy</button>
+      </div>
       <div class="info-modal-body">
         <p class="legal-updated">Last updated: July 2026</p>
         <h3>Information pursuant to § 5 ECG (Austria)</h3>
@@ -766,6 +770,10 @@
       <div class="modal-head">
         <div class="modal-title">Privacy Policy</div>
         <button class="modal-close" onclick="closeInfoModal('privacyModal')"><i class="ti ti-x" style="font-size:14px"></i></button>
+      </div>
+      <div class="legal-modal-tabs" role="tablist" aria-label="Legal documents">
+        <button type="button" class="legal-modal-tab" data-legal-modal="impressumModal" onclick="openLegalModal('impressumModal')">Legal Notice</button>
+        <button type="button" class="legal-modal-tab active" data-legal-modal="privacyModal" onclick="openLegalModal('privacyModal')">Privacy Policy</button>
       </div>
       <div class="info-modal-body">
         <p class="legal-updated">Last updated: July 2026 · GDPR / Austrian DSG</p>
@@ -1040,7 +1048,9 @@
     <div class="cookie-inner">
       <div class="cookie-text">
         We only use essential storage (login session). No tracking or advertising cookies.
-        <a onclick="openInfoModal('impressumModal')">Legal Notice</a> · <a onclick="openInfoModal('privacyModal')">Privacy Policy</a>
+        <a onclick="openLegalModal('impressumModal')">Legal Notice</a>
+        ·
+        <a onclick="openLegalModal('privacyModal')">Privacy Policy</a>
       </div>
       <div class="cookie-btns">
         <button class="cookie-decline" onclick="closeCookie(false)">Essential only</button>

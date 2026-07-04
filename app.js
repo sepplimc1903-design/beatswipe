@@ -1905,8 +1905,34 @@ function toggleFaq(btn) {
 }
 
 // ─── INFO MODALS ──────────────────────────────────────────────────────────
-function openInfoModal(id) { document.getElementById(id).classList.add('open'); }
-function closeInfoModal(id) { document.getElementById(id).classList.remove('open'); }
+const LEGAL_MODAL_IDS = ['impressumModal', 'privacyModal'];
+
+function openLegalModal(id) {
+  if (!LEGAL_MODAL_IDS.includes(id)) return;
+  LEGAL_MODAL_IDS.forEach(mid => {
+    document.getElementById(mid)?.classList.toggle('open', mid === id);
+  });
+  syncLegalModalTabs(id);
+}
+
+function syncLegalModalTabs(activeId) {
+  document.querySelectorAll('.legal-modal-tab').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.legalModal === activeId);
+  });
+}
+
+function openInfoModal(id) {
+  if (LEGAL_MODAL_IDS.includes(id)) {
+    openLegalModal(id);
+    return;
+  }
+  document.getElementById(id)?.classList.add('open');
+}
+
+function closeInfoModal(id) {
+  document.getElementById(id)?.classList.remove('open');
+}
+
 function closeInfoIfBackdrop(e, id) { if (e.target === document.getElementById(id)) closeInfoModal(id); }
 
 // ─── EMOJI POP ────────────────────────────────────────────────────────────

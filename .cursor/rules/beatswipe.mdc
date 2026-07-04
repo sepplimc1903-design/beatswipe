@@ -32,9 +32,10 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 | `mypage.js` | My Page upload, dashboard, beat edit/order |
 | `portfolio.js` | `/p/` portfolio |
 | `styles.css` | All CSS |
-| `api/*.js` | beats, pending-beats, manage-beat, submit-beat, crate, delete-account, portfolio-meta, sitemap |
+| `api/*.js` | beats, pending-beats, manage-beat, submit-beat, crate, delete-account, portfolio-meta, sitemap, track, stats, moderate-beats |
+| `moderate.js` | Admin beat moderation UI (Luca only) |
 
-**Script order:** `/app.js` → `/mypage.js` → `/portfolio.js` → init inline in `index.html`
+**Script order:** `/app.js` → `/mypage.js` → `/portfolio.js` → `/moderate.js` → init inline in `index.html`
 
 **Asset paths:** always root-absolute (`/styles.css`, `/app.js`, …) — relative breaks on `/p/slug` rewrites.
 
@@ -53,7 +54,7 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 
 ## Tech stack (short)
 
-- **Beats:** Supabase `beats` — `api/beats.js`, `pending-beats.js`, `manage-beat.js`, `submit-beat.js`; Review in Supabase Table Editor (`beat_status` enum)
+- **Beats:** Supabase `beats` — `api/beats.js`, `pending-beats.js`, `manage-beat.js`, `submit-beat.js`; Review via **Moderation UI** (`api/moderate-beats.js`, Profile → Settings) oder Supabase Table Editor
 - Auth/profiles: Supabase (RLS on). Favorites: `api/crate.js` + service role
 - Submit: `/api/submit-beat` → Supabase (`mypage.js`); MP3 previews: Storage bucket `beats`
 - Newsletter: Make.com webhook in `app.js` (nur Landing)
@@ -83,24 +84,25 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 - **Profile laptop:** zentriert (`--w-page`); Bio-Link-Sidebar rechts daneben (Flex, kein `fixed`/Overlap) ab 1100px
 - **Vercel static:** kein `public/`-Ordner (sonst 404 auf `index.html` in `vercel dev`); kein `middleware.js` — Bot-OG via `vercel.json` Rewrite
 - **Producer funnel:** `openProducerSignup()` in `app.js` — eingeloggt → `submitScreen`; Gast ohne Invite → Landing `#producer-start` scroll (`bs_producer_intent`); Gast mit Invite → Signup → nach `SIGNED_IN` My Page (`bs_producer_signup_intent`). Alle „Get your page“-CTAs nutzen das (Done, Footer, Side-Panel, Landing, My Page guest).
+- **Producer stats:** `trackPortfolioEvent()` in `app.js`; Preview zählt nicht; View dedup `sessionStorage bs_pv_${slug}`; Buy via `data-portfolio-buy` auf `/p/`
+- **QR code:** `openPortfolioQR()` in `portfolio.js` — CDN `cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js` (**nicht** `qrcode@1.5.4/build/…` — 404)
+- **Moderation:** `api/moderate-beats.js` + `moderate.js`; Admin-Emails via `BEATSWIPE_ADMIN_EMAILS` (Default: `svetina.luca@gmail.com`, `hellobeatswipe@gmail.com`); Profile → Settings → Moderation
+- **Legal:** Impressum + Privacy in Modals; Links auf Landing (Footer mobile+desktop), `/p/` Footer, Cookie-Banner, Profile Settings; `openLegalModal()` mit Tabs — **z-index 450** (über Cookie-Banner 350); Landing-Footer mobile: `#landScreen .site-footer` nicht global `display:none`
 
 ## Aktuell (2026-07-04)
 
-- **Beats auf Supabase:** Upload, Pending, Discover, `/p/`, My Page edit/delete
-- **Delete account:** Profile → Settings → `POST /api/delete-account` (Crates, Beats+Storage, Profile, Auth)
-- **Favorites / Profile:** Buy-Links ok; Handy-Scroll ok; Laptop Profile zentriert + Bio-Link rechts daneben
-- **`/p/`:** Done Split; Mobile Swipe-Button-Perf (Fly vor `renderPortfolioCard`); Pull-to-refresh; Preview Back
-- **Laptop BG:** Aurora-Wash wie `/p/` + Hotbar-Fade (non-portfolio)
-- **Producer Funnel + Done-CTA:** `openProducerSignup()`
-- **SEO (Code, und deployed):** `robots.txt`, `/sitemap.xml` → `/api/sitemap`, `/api/portfolio-meta`, `/api/portfolio-og` + Bot-Rewrite in `vercel.json`, JSON-LD Landing + `/p/` — **Luca:** Erklärung im nächsten Chat
-- **Noch nicht deployed** — Workspace only bis Luca push sagt
+- **Live** `a06a522`: Moderation UI, Producer stats, QR, Discover cat-bar glass, Admin-Fix
+- **Deploy pending:** Legal Notice (Luca Svetina, Graz), Legal-Modal-Tabs, Landing mobile Footer, Cookie/Modal z-index
+- **Stats:** `portfolio-events.sql` in Supabase ✅ (Luca); `/api/track`, `/api/stats`, My Page views/saves/buys
+- **Moderation:** Profile → Settings → Approve/Reject pending beats
+- **Preview Swipe-Glow:** Luca ok
 
 ## Nächster Schritt
 
-1. **Deploy** wenn ready — Delete account, SEO, Profile-Layout, `/p/` Swipe-Perf, Laptop BG, Done, Funnel, Preview Back, Pull-to-refresh
-2. **Nächster Chat:** SEO Luca erklären (was live ist, was Crawler sehen, optional SSR/Impressum)
-3. **Preview Swipe-Glow** — `getGlow()` scopen
-4. **Aufräumen:** Impressum `[Your full legal name]`; `AIRTABLE_TOKEN` Vercel
+1. **Deploy** Legal-Fixes pushen → Hard-Refresh testen (Landing Footer mobile, Cookie → Legal tabs)
+2. **Test live:** `/p/clyriax` stats; QR Save; Moderation approve flow
+3. **Optional:** `AIRTABLE_TOKEN` aus Vercel entfernen (legacy)
+4. **Producer onboarding:** 2–3 fremde Producer mit Link in Bio (Phase-1-Ziel)
 
 ## Rules pflegen (Agent)
 
