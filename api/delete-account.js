@@ -102,7 +102,13 @@ export default async function handler(req, res) {
       headers: serviceHeaders('return=minimal')
     });
 
-    if (producer) await removeProducerBeats(producer);
+    if (producer) {
+      await removeProducerBeats(producer);
+      await fetch(`${base}/rest/v1/portfolio_events?producer=eq.${encodeURIComponent(producer)}`, {
+        method: 'DELETE',
+        headers: serviceHeaders('return=minimal')
+      });
+    }
 
     await deleteStorageObject('avatars', `${user.id}.jpg`);
     await deleteStorageObject('avatars', `${user.id}.png`);

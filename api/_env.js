@@ -46,3 +46,14 @@ export function getSupabaseAnonKey() {
   return process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY
     || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlwcndrbHhvbGdybHlzd3F3a3pyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NDE5MjUsImV4cCI6MjA5NjIxNzkyNX0.Or_pWAg1QuJ3TSVLdC8LKzp1PsYwTxcAfy_YcSAU2ZA';
 }
+
+export function getAdminEmails() {
+  ensureLocalEnv();
+  const raw = process.env.BEATSWIPE_ADMIN_EMAILS || 'hellobeatswipe@gmail.com';
+  return raw.split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+}
+
+export function isAdminEmail(email) {
+  if (!email) return false;
+  return getAdminEmails().includes(String(email).trim().toLowerCase());
+}

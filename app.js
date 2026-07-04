@@ -1,4 +1,17 @@
 /* BeatSwipe app core — discover, auth, favorites, profile, nav, swipe */
+
+function trackPortfolioEvent(producer, type, beatId) {
+  if (!producer || !type) return;
+  const payload = { producer, type };
+  if (beatId != null && beatId !== '') payload.beatId = String(beatId);
+  fetch('/api/track', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+    keepalive: true
+  }).catch(() => {});
+}
+
 function escHtml(s) {
   return String(s ?? '')
     .replace(/&/g, '&amp;')
@@ -245,6 +258,7 @@ function applyGoTo(screenId, navId) {
   document.body.classList.toggle('crate-active', screenId === 'crateScreen');
   document.body.classList.toggle('mypage-active', screenId === 'submitScreen');
   document.body.classList.toggle('profile-active', screenId === 'profileScreen');
+  document.body.classList.toggle('moderate-active', screenId === 'moderateScreen');
   document.body.classList.toggle('portfolio-active', screenId === 'portfolioScreen');
   document.body.classList.toggle('site-scroll', isDesktop() && screenId !== 'discoverScreen');
   if (isDesktop() && screenId !== 'discoverScreen' && screenId !== 'portfolioScreen') {
@@ -263,6 +277,9 @@ function applyGoTo(screenId, navId) {
   if (screenId === 'crateScreen' || screenId === 'submitScreen') _listEnterNext = true;
   if (screenId === 'crateScreen') renderCrate();
   if (screenId === 'profileScreen') renderProfile();
+  if (screenId === 'moderateScreen') {
+    void loadModerateQueue().then(() => renderModerateScreen());
+  }
   if (screenId === 'submitScreen') void renderMyPage();
   if (screenId === 'landScreen') {
     initScrollReveal();
@@ -1955,6 +1972,7 @@ function doSwipe(dir, opts = {}) {
         _lastSavedBeatId = item.id;
         if (currentUser) queueSaveBeatToDB(item);
         else showMobileSyncHint(incrementGuestSaveCount());
+        trackPortfolioEvent(_portfolioProducer, 'save', item.id);
       }
       _portfolioSkipped = _portfolioSkipped.filter(id => id !== item.id);
     } else {
@@ -2058,12 +2076,13 @@ function buildCratePreviewHTML(d, opts = {}) {
   const action = beatBuyAction(d);
   const btnCls = prominent ? 'crate-buy-btn crate-buy-btn--prominent' : 'crate-action-btn';
   const ghostCls = prominent ? 'crate-buy-btn crate-buy-btn--ghost' : 'crate-action-btn crate-action-btn--ghost';
+  const trackBuy = opts.trackBuy ? ` data-portfolio-buy="1" data-beat-id="${escHtml(String(d.id))}"` : '';
   let buyBtn = '';
   if (action) {
     const label = prominent && action.html.includes('Buy')
       ? '<i class="ti ti-shopping-cart"></i> Buy this beat'
       : action.html;
-    buyBtn = `<button type="button" class="${btnCls}" onclick="window.open('${action.link.replace(/'/g, "\\'")}','_blank')">${label}</button>`;
+    buyBtn = `<button type="button" class="${btnCls}"${trackBuy} onclick="window.open('${action.link.replace(/'/g, "\\'")}','_blank')">${label}</button>`;
   } else {
     buyBtn = `<button type="button" class="${ghostCls}" onclick="openProducerProfile('${prodEsc}')"><i class="ti ti-user"></i> Contact producer</button>`;
   }
@@ -2388,6 +2407,7 @@ supa.auth.onAuthStateChange(async (event, session) => {
   if (event === 'SIGNED_OUT') {
     currentUser = null;
     _userProfile = null;
+    if (typeof resetModeratorState === 'function') resetModeratorState();
     _cratePendingSaves.clear();
     crate = [];
     resetGuestSwipeState();
@@ -2519,6 +2539,7 @@ async function loadUserProfile() {
   } catch(e) {
     _userProfile = {};
   }
+  if (typeof checkModeratorAccess === 'function') await checkModeratorAccess();
   renderProfile();
 }
 
@@ -2580,6 +2601,7 @@ function renderProfile() {
             <button type="button" class="btn-primary profile-hero-btn-main" onclick="copyPortfolioLink(event)"><i class="ti ti-link"></i> Copy bio link</button>
             <div class="profile-hero-actions-row">
               <button type="button" class="btn-secondary" onclick="goTo('submitScreen','navSubmit')"><i class="ti ti-layout-grid"></i> My Page</button>
+              <button type="button" class="btn-secondary" onclick="openPortfolioQR()"><i class="ti ti-qrcode"></i> QR code</button>
               <button type="button" class="btn-secondary" onclick="previewMyPage()"><i class="ti ti-eye"></i> Preview</button>
             </div>
           </div>`}` : `
@@ -2654,6 +2676,17 @@ function renderProfile() {
       </div>
 
       <div class="profile-tab-content ${activeTab==='settings'?'active':''}" id="ptSettings">
+        ${typeof isModerator === 'function' && isModerator() ? `
+        <button type="button" class="profile-settings-card profile-stat-card profile-stat-card--clickable profile-stat-card--moderate" onclick="openModerateScreen()">
+          <div class="profile-stat-body">
+            <div class="profile-stat-top">
+              <span class="profile-stat-label">Moderation</span>
+              <span class="crate-sync-badge">${_moderatePendingCount ? 'pending' : 'clear'}</span>
+            </div>
+            <div class="profile-stat-value" id="moderatePendingCount">${_moderatePendingCount ? `${_moderatePendingCount} pending` : 'Queue clear'}</div>
+          </div>
+          <i class="ti ti-chevron-right profile-stat-chevron"></i>
+        </button>` : ''}
         <button type="button" class="profile-settings-card profile-stat-card profile-stat-card--clickable" onclick="goTo('crateScreen','navCrate')">
           <div class="profile-stat-body">
             <div class="profile-stat-top">
@@ -2707,6 +2740,7 @@ function renderProfile() {
     captureProfileFormSnapshot();
     bindProfileFormWatch();
     renderProfileSidePanel();
+    if (_userProfile?.producer_name) void refreshMyPageStats();
   } else {
     _profileFormSnapshot = null;
     wrap.innerHTML = `
@@ -2961,6 +2995,7 @@ async function signOut() {
 
   currentUser = null;
   _userProfile = null;
+  if (typeof resetModeratorState === 'function') resetModeratorState();
   _myPendingBeatsCache = null;
   _myPendingBeatsCacheAt = 0;
   _pendingGuestCrateMerge = null;

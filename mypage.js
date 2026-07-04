@@ -1151,6 +1151,56 @@ function getMyPageUrl() {
   return 'https://beatswipe.app/p/' + portfolioSlugFromName(name);
 }
 
+let _myPageStats = null;
+
+function fmtMyPageStat(n) {
+  const v = Number(n) || 0;
+  if (v >= 10000) return Math.round(v / 1000) + 'k';
+  return String(v);
+}
+
+function buildMyPageStatsHTML(stats) {
+  if (!stats) return '';
+  const total = (stats.views || 0) + (stats.saves || 0) + (stats.buys || 0);
+  if (total < 1) {
+    return `<div class="my-page-stats my-page-stats--empty">
+      <div class="my-page-stats-label">Page stats</div>
+      <p class="my-page-stats-empty">Stats appear once fans visit your link.</p>
+    </div>`;
+  }
+  return `<div class="my-page-stats">
+    <div class="my-page-stats-label">Page stats</div>
+    <div class="my-page-stats-grid">
+      <div class="my-page-stat"><div class="my-page-stat-num">${fmtMyPageStat(stats.views)}</div><div class="my-page-stat-lbl">Views</div></div>
+      <div class="my-page-stat"><div class="my-page-stat-num">${fmtMyPageStat(stats.saves)}</div><div class="my-page-stat-lbl">Saves</div></div>
+      <div class="my-page-stat"><div class="my-page-stat-num">${fmtMyPageStat(stats.buys)}</div><div class="my-page-stat-lbl">Buy clicks</div></div>
+    </div>
+  </div>`;
+}
+
+async function fetchMyPageStats() {
+  if (!currentUser) return null;
+  const token = await getAccessToken();
+  if (!token) return null;
+  try {
+    const res = await fetch('/api/stats', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (_) {
+    return null;
+  }
+}
+
+async function refreshMyPageStats() {
+  if (!currentUser || !isMyPageOnboarded()) return;
+  _myPageStats = await fetchMyPageStats();
+  document.querySelectorAll('[data-my-page-stats]').forEach(el => {
+    el.innerHTML = buildMyPageStatsHTML(_myPageStats);
+  });
+}
+
 function myPageDesktopSide() {
   return typeof isDesktop === 'function' && isDesktop() && window.matchMedia('(min-width: 1100px)').matches;
 }
@@ -1164,8 +1214,10 @@ function buildMyPageLinkBoxHTML() {
         <div class="my-page-link-url">${escHtml(url.replace('https://', ''))}</div>
         <div class="my-page-link-actions">
           <button type="button" class="btn-primary" onclick="copyPortfolioLink(event)"><i class="ti ti-link"></i> Copy link</button>
+          <button type="button" class="btn-secondary" onclick="openPortfolioQR()"><i class="ti ti-qrcode"></i> QR code</button>
           <button type="button" class="btn-secondary" onclick="previewMyPage()"><i class="ti ti-eye"></i> Preview</button>
         </div>
+        <div data-my-page-stats>${buildMyPageStatsHTML(_myPageStats)}</div>
       </div>`;
 }
 
@@ -1203,6 +1255,8 @@ function renderMyPageSidePanel() {
       ${linkHTML}
       <p class="my-page-side-tip">Fans swipe your beats from this link. Add at least 3 before sharing in your bio.</p>
     </div>`;
+  const statsHost = panel.querySelector('[data-my-page-stats]');
+  if (statsHost && _myPageStats) statsHost.innerHTML = buildMyPageStatsHTML(_myPageStats);
 }
 
 function showMyPageAddBeat() {
@@ -1477,6 +1531,7 @@ function renderMyPageOnboarding(stagger) {
         <div class="my-page-link-url">${escHtml(url.replace('https://', ''))}</div>
         <div class="my-page-link-actions">
           <button type="button" class="btn-primary" onclick="copyPortfolioLink(event)"><i class="ti ti-link"></i> Copy link</button>
+          <button type="button" class="btn-secondary" onclick="openPortfolioQR()"><i class="ti ti-qrcode"></i> QR code</button>
           <button type="button" class="btn-secondary" onclick="previewMyPage()"><i class="ti ti-eye"></i> Preview</button>
         </div>
       </div>` : ''}
@@ -1527,4 +1582,5 @@ async function renderMyPage() {
   updateMyPageLeftRail();
   renderMyPageSidePanel();
   void refreshMyPendingBeats().then(() => rerenderMyPageIfActive());
+  void refreshMyPageStats();
 }

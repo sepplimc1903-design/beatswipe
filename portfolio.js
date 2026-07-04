@@ -218,7 +218,7 @@ function renderPortfolioDoneList() {
     const action = beatBuyAction(d);
     const id = String(d.id).replace(/'/g, "\\'");
     const actionHTML = !mobile && action
-      ? `<button class="crate-action-btn" onclick="event.stopPropagation();window.open('${action.link.replace(/'/g, "\\'")}','_blank')">${action.html}</button>`
+      ? `<button class="crate-action-btn" data-portfolio-buy="1" data-beat-id="${escHtml(String(d.id))}" onclick="event.stopPropagation();window.open('${action.link.replace(/'/g, "\\'")}','_blank')">${action.html}</button>`
       : (mobile ? '<i class="ti ti-chevron-right portfolio-done-chevron"></i>' : '');
     return `<div class="crate-card${sel}" onclick="selectPortfolioDoneBeat('${id}')">
       <div class="mini-cover"><i class="ti ti-music"></i></div>
@@ -241,7 +241,7 @@ function renderPortfolioDonePreview() {
     return;
   }
   const beat = getPortfolioSavedBeats().find(b => b.id === _portfolioDoneSelectedId);
-  const previewHTML = beat ? buildCratePreviewHTML(beat, { prominentBuy: true }) : buildCratePreviewHTML(null);
+  const previewHTML = beat ? buildCratePreviewHTML(beat, { prominentBuy: true, trackBuy: true }) : buildCratePreviewHTML(null);
   const backBtn = mobile
     ? `<button type="button" class="portfolio-done-back" onclick="backPortfolioDoneList()"><i class="ti ti-arrow-left"></i> Saved beats</button>`
     : '';
@@ -503,6 +503,7 @@ function buildBeatCardHTML(d, opts) {
   const scEmbedSrc = useSC ? `https://w.soundcloud.com/player/?url=${encodeURIComponent(d.mp3)}&color=%237C3AED&auto_play=${_audioUnlocked ? 'true' : 'false'}&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false` : '';
   const buyLink = resolveBeatBuyLink(d);
   const buyUrl = buyLink || ((useYT || useSC) ? d.mp3 : '');
+  const buyTrack = buyLink ? ` data-portfolio-buy="1" data-beat-id="${escHtml(String(d.id))}"` : '';
   const playerHTML = useYT ? `
     <div class="yt-wrap">
       <iframe id="ytFrame" data-src="${embedSrc}" src="about:blank" tabindex="-1"
@@ -514,7 +515,7 @@ function buildBeatCardHTML(d, opts) {
     </div>
     <div class="yt-footer">
       <span class="yt-hint"><i class="ti ti-brand-youtube" style="font-size:13px;color:#FF0000;vertical-align:middle;margin-right:3px"></i>Tap to preview</span>
-      ${buyUrl ? `<a href="${buyUrl}" target="_blank" rel="noopener" class="yt-link">Buy <i class="ti ti-external-link" style="font-size:11px"></i></a>` : ''}
+      ${buyUrl ? `<a href="${buyUrl}" target="_blank" rel="noopener" class="yt-link"${buyTrack}>Buy <i class="ti ti-external-link" style="font-size:11px"></i></a>` : ''}
     </div>` : useSC ? `
     <div style="border-radius:14px;overflow:hidden;border:0.5px solid var(--border)">
       <iframe
@@ -525,7 +526,7 @@ function buildBeatCardHTML(d, opts) {
     </div>
     <div class="yt-footer">
       <span class="yt-hint"><i class="ti ti-brand-soundcloud" style="font-size:13px;color:#FF5500;vertical-align:middle;margin-right:3px"></i>SoundCloud preview</span>
-      ${buyUrl ? `<a href="${buyUrl}" target="_blank" rel="noopener" class="yt-link">Buy <i class="ti ti-external-link" style="font-size:11px"></i></a>` : ''}
+      ${buyUrl ? `<a href="${buyUrl}" target="_blank" rel="noopener" class="yt-link"${buyTrack}>Buy <i class="ti ti-external-link" style="font-size:11px"></i></a>` : ''}
     </div>` : `
     <div class="player-area">
       <div class="waveform-wrap" onclick="togglePlay()">
@@ -545,7 +546,7 @@ function buildBeatCardHTML(d, opts) {
             <span class="time-lbl" id="timeDur">--:--</span>
           </div>
         </div>
-        ${buyUrl ? `<a href="${buyUrl}" target="_blank" rel="noopener" class="buy-link"><i class="ti ti-shopping-cart" style="font-size:15px"></i>Buy</a>` : ''}
+        ${buyUrl ? `<a href="${buyUrl}" target="_blank" rel="noopener" class="buy-link"${buyTrack}><i class="ti ti-shopping-cart" style="font-size:15px"></i>Buy</a>` : ''}
       </div>
     </div>`;
   const producerLine = hideProducer ? '' : `<div class="track-by" style="cursor:pointer;color:var(--accent-mid)" onclick="openProducerProfile('${d.producer.replace(/'/g,"\\'")}')">by ${d.producer} <i class="ti ti-arrow-right" style="font-size:10px"></i></div>`;
@@ -952,6 +953,16 @@ async function openPortfolio(producerName, opts) {
     else history.pushState(state, '', url);
   }
   updatePortfolioMeta(producerName, profile, slug);
+  if (!opts.preview && opts.fromRoute) trackPortfolioView(producerName);
+}
+
+function trackPortfolioView(producerName) {
+  const slug = portfolioSlugFromName(producerName);
+  try {
+    if (sessionStorage.getItem('bs_pv_' + slug)) return;
+    sessionStorage.setItem('bs_pv_' + slug, '1');
+  } catch (_) {}
+  trackPortfolioEvent(producerName, 'view');
 }
 
 function openProducerProfile(producerName) {
@@ -1018,6 +1029,100 @@ function copyPortfolioLink(ev) {
     prompt('Copy your portfolio link:', url);
   }
 }
+
+let _qrScriptPromise = null;
+function loadQRCodeScript() {
+  if (window.QRCode) return Promise.resolve();
+  if (_qrScriptPromise) return _qrScriptPromise;
+  _qrScriptPromise = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js';
+    s.async = true;
+    s.onload = () => {
+      if (window.QRCode?.toCanvas) resolve();
+      else { _qrScriptPromise = null; reject(new Error('QR library unavailable')); }
+    };
+    s.onerror = () => { _qrScriptPromise = null; reject(new Error('QR library failed to load')); };
+    document.head.appendChild(s);
+  });
+  return _qrScriptPromise;
+}
+
+function getProducerPortfolioUrl() {
+  const name = _userProfile?.producer_name?.trim();
+  if (!name) return '';
+  return 'https://beatswipe.app/p/' + portfolioSlugFromName(name);
+}
+
+async function openPortfolioQR() {
+  const url = typeof getMyPageUrl === 'function' ? getMyPageUrl() : getProducerPortfolioUrl();
+  if (!url) {
+    showToast('Set your producer name in Profile first.', 'error');
+    return;
+  }
+  const modal = document.getElementById('portfolioQrModal');
+  const canvas = document.getElementById('portfolioQrCanvas');
+  const urlEl = document.getElementById('portfolioQrUrl');
+  if (!modal || !canvas) return;
+  if (urlEl) urlEl.textContent = url.replace('https://', '');
+  modal.classList.add('open');
+  document.body.classList.add('modal-open');
+  try {
+    await loadQRCodeScript();
+    const qr = window.QRCode;
+    if (!qr?.toCanvas) throw new Error('QR library unavailable');
+    await qr.toCanvas(canvas, url, {
+      width: 220,
+      margin: 2,
+      color: { dark: '#ffffff', light: '#050508' }
+    });
+  } catch (_) {
+    showToast('Could not generate QR code.', 'error');
+    closePortfolioQR();
+  }
+}
+
+function closePortfolioQR() {
+  const modal = document.getElementById('portfolioQrModal');
+  if (modal) modal.classList.remove('open');
+  document.body.classList.remove('modal-open');
+}
+
+function closePortfolioQrIfBackdrop(e) {
+  if (e.target?.id === 'portfolioQrModal') closePortfolioQR();
+}
+
+async function downloadPortfolioQR() {
+  const canvas = document.getElementById('portfolioQrCanvas');
+  if (!canvas) return;
+  try {
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+    if (!blob) throw new Error('export failed');
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const slug = portfolioSlugFromName(_userProfile?.producer_name || 'beatswipe');
+    a.href = url;
+    a.download = `beatswipe-${slug}-qr.png`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('QR code saved!', 'success');
+  } catch (_) {
+    showToast('Could not save QR code.', 'error');
+  }
+}
+
+function initPortfolioBuyTracking() {
+  const screen = document.getElementById('portfolioScreen');
+  if (!screen || screen._buyTrackBound) return;
+  screen._buyTrackBound = true;
+  screen.addEventListener('click', e => {
+    if (!_portfolioMode || _portfolioPreview || !_portfolioProducer) return;
+    const el = e.target.closest('[data-portfolio-buy]');
+    if (!el) return;
+    trackPortfolioEvent(_portfolioProducer, 'buy_click', el.dataset.beatId || null);
+  }, true);
+}
+initPortfolioBuyTracking();
 
 let _portfolioLayoutTimer;
 window.addEventListener('resize', () => {

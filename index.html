@@ -690,6 +690,18 @@
     </div>
   </div>
 
+  <!-- MODERATION (admin only) -->
+  <div class="screen" id="moderateScreen">
+    <div class="page-inner page-inner--wide">
+      <button type="button" class="my-page-back" onclick="goTo('profileScreen','navProfile')"><i class="ti ti-arrow-left"></i> Back to Profile</button>
+      <div class="site-page-head">
+        <h1 class="site-page-title">Beat moderation</h1>
+        <p class="site-page-desc">Review pending submissions — approve to publish on Discover and portfolios.</p>
+      </div>
+      <div id="moderateWrap"></div>
+    </div>
+  </div>
+
   <!-- BOTTOM NAV -->
   <div class="nav-bar">
     <div class="nav-indicator" id="navIndicator" aria-hidden="true"></div>
@@ -751,7 +763,8 @@
         </p>
 
         <h3>2. Overview</h3>
-        <p>We process personal data only as needed to operate BeatSwipe — account login, producer profiles, saved favorites, beat uploads, and optional newsletter emails. We do not sell your data and do not use advertising or analytics trackers.</p>
+        <p>We process personal data only as needed to operate BeatSwipe — account login, producer profiles, saved favorites, beat uploads, and optional newsletter emails. We do not sell your data and do not use third-party advertising or analytics trackers.</p>
+        <p>Producers can see aggregate counts of portfolio page views, saves, and buy-link clicks on their own page — stored by BeatSwipe only, not shared with ad networks.</p>
 
         <h3>3. Data we collect</h3>
         <ul>
@@ -1098,11 +1111,32 @@
   </div>
 
   <div class="bs-toast-wrap" id="bsToastWrap" aria-live="polite" role="status"></div>
+
+  <div class="info-modal-backdrop" id="portfolioQrModal" onclick="closePortfolioQrIfBackdrop(event)">
+    <div class="info-modal-sheet portfolio-qr-sheet" onclick="event.stopPropagation()">
+      <div class="modal-handle"></div>
+      <div class="modal-head">
+        <div class="modal-title">Bio link QR code</div>
+        <button type="button" class="modal-close" onclick="closePortfolioQR()"><i class="ti ti-x" style="font-size:14px"></i></button>
+      </div>
+      <div class="portfolio-qr-body">
+        <p class="portfolio-qr-desc">Scan to open your swipe page — great for flyers, merch, or studio screens.</p>
+        <div class="portfolio-qr-frame"><canvas id="portfolioQrCanvas" width="220" height="220" aria-label="Portfolio QR code"></canvas></div>
+        <div class="portfolio-qr-url" id="portfolioQrUrl"></div>
+        <div class="portfolio-qr-actions">
+          <button type="button" class="btn-primary" onclick="downloadPortfolioQR()"><i class="ti ti-download"></i> Save image</button>
+          <button type="button" class="btn-secondary" onclick="copyPortfolioLink(event)"><i class="ti ti-link"></i> Copy link</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <button type="button" id="swipeKbdFocus" class="swipe-kbd-focus" tabindex="-1" aria-hidden="true"></button>
 
 <script src="/app.js"></script>
 <script src="/mypage.js"></script>
 <script src="/portfolio.js"></script>
+<script src="/moderate.js"></script>
 <script>
 // ─── LIVE STATS ────────────────────────────────────────────────────────────
 let _statsCountUpDone = false;
