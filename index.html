@@ -57,6 +57,39 @@
   </div>
   <div class="discover-ambient" aria-hidden="true">
     <div class="discover-ambient-glow"></div>
+    <aside class="discover-left-rail" id="discoverLeftRail" aria-label="Discover panel">
+      <div class="dlr-block">
+        <div class="dlr-heading">Shortcuts</div>
+        <div class="dlr-kbd">
+          <div class="dlr-kbd-row"><kbd>←</kbd><span>skip</span></div>
+          <div class="dlr-kbd-row"><kbd>→</kbd><span>save</span></div>
+          <div class="dlr-kbd-row"><kbd>Space</kbd><span>play</span></div>
+        </div>
+        <p class="dlr-kbd-note">Click card to swipe · in player, ← → seek</p>
+      </div>
+      <div class="dlr-block">
+        <div class="dlr-heading">Category</div>
+        <div class="dlr-cat-pill" id="dlrCatLbl">Beats</div>
+      </div>
+      <div class="dlr-block">
+        <div class="dlr-heading">Session</div>
+        <div class="dlr-stats">
+          <div class="dlr-stat">
+            <span class="dlr-stat-val" id="dlrSkipped">0</span>
+            <span class="dlr-stat-lbl">skipped</span>
+          </div>
+          <div class="dlr-stat">
+            <span class="dlr-stat-val dlr-stat-val--accent" id="dlrSaved">0</span>
+            <span class="dlr-stat-lbl">saved</span>
+          </div>
+        </div>
+      </div>
+      <div class="dlr-block">
+        <div class="dlr-heading">Genre</div>
+        <div class="dlr-filter-pill" id="dlrFilterLbl">All genres</div>
+        <button type="button" class="dlr-filter-btn" onclick="openFilterModal()"><i class="ti ti-adjustments-horizontal"></i> Change</button>
+      </div>
+    </aside>
     <div class="discover-kbd-hints discover-kbd-hints--left">
       <div class="discover-kbd-hint"><kbd>←</kbd> skip</div>
       <div class="discover-kbd-hint"><kbd>→</kbd> save</div>
@@ -65,6 +98,54 @@
     <div class="discover-side-hint discover-side-hint--skip"><i class="ti ti-x"></i><span>skip</span></div>
     <div class="discover-side-hint discover-side-hint--save"><i class="ti ti-flame"></i><span>save</span></div>
   </div>
+  <aside class="favorites-left-rail" id="favoritesLeftRail" aria-label="Favorites panel">
+    <div class="dlr-block">
+      <div class="dlr-heading">Saved</div>
+      <div class="dlr-stats">
+        <div class="dlr-stat">
+          <span class="dlr-stat-val dlr-stat-val--accent" id="flrCount">0</span>
+          <span class="dlr-stat-lbl">beats</span>
+        </div>
+      </div>
+    </div>
+    <div class="dlr-block">
+      <div class="dlr-heading">Tips</div>
+      <p class="flr-tip">Click a beat to preview. License directly from the producer — BeatSwipe takes no cut.</p>
+    </div>
+    <div class="dlr-block">
+      <button type="button" class="flr-cta-btn" onclick="goTo('discoverScreen','navDiscover')">
+        <i class="ti ti-flame"></i> Discover more
+      </button>
+    </div>
+  </aside>
+  <aside class="mypage-left-rail" id="mypageLeftRail" aria-label="My Page panel">
+    <div class="dlr-block">
+      <div class="dlr-heading">Portfolio</div>
+      <div class="dlr-stats">
+        <div class="dlr-stat">
+          <span class="dlr-stat-val dlr-stat-val--accent" id="mlrLive">0</span>
+          <span class="dlr-stat-lbl">live</span>
+        </div>
+        <div class="dlr-stat">
+          <span class="dlr-stat-val" id="mlrPending">0</span>
+          <span class="dlr-stat-lbl">pending</span>
+        </div>
+      </div>
+    </div>
+    <div class="dlr-block">
+      <div class="dlr-heading">Status</div>
+      <div class="dlr-cat-pill" id="mlrStep">Sign in</div>
+    </div>
+    <div class="dlr-block">
+      <div class="dlr-heading">Tips</div>
+      <p class="flr-tip">Upload short previews (~30–60s), not full masters. Review usually within 48h.</p>
+    </div>
+    <div class="dlr-block">
+      <button type="button" class="flr-cta-btn" onclick="goTo('profileScreen','navProfile')">
+        <i class="ti ti-user"></i> Edit profile
+      </button>
+    </div>
+  </aside>
 </div>
 
 <header class="desktop-topbar" id="desktopTopbar">
@@ -367,7 +448,12 @@
   <!-- MY PAGE (producer dashboard) -->
   <div class="screen" id="submitScreen">
     <div class="page-inner page-inner--wide">
-    <div id="myPageMain"></div>
+    <div class="my-page-layout">
+      <div class="my-page-main-col">
+        <div id="myPageMain"></div>
+      </div>
+      <aside class="my-page-side-panel" id="myPageSidePanel" aria-label="Page actions" hidden></aside>
+    </div>
     <div id="myPageAddBeat" style="display:none">
     <div class="submit-header" style="padding-top:0">
       <button type="button" class="my-page-back" onclick="hideMyPageAddBeat()"><i class="ti ti-arrow-left"></i> Back to My Page</button>
@@ -511,8 +597,13 @@
       <h1 class="site-page-title">Profile</h1>
       <p class="site-page-desc">What fans see on your <strong>/p/</strong> bio link — avatar, name, bio, and socials.</p>
     </div>
-    <div class="profile-wrap" id="profileWrap">
-      <!-- filled by JS -->
+    <div class="profile-layout">
+      <div class="profile-main-col">
+        <div class="profile-wrap" id="profileWrap">
+          <!-- filled by JS -->
+        </div>
+      </div>
+      <aside class="profile-side-panel" id="profileSidePanel" aria-label="Bio link" hidden></aside>
     </div>
     </div>
   </div>
@@ -923,6 +1014,7 @@
   </div>
 
   <div class="bs-toast-wrap" id="bsToastWrap" aria-live="polite" role="status"></div>
+  <button type="button" id="swipeKbdFocus" class="swipe-kbd-focus" tabindex="-1" aria-hidden="true"></button>
 
 <script src="/app.js"></script>
 <script src="/mypage.js"></script>

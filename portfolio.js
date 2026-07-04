@@ -374,7 +374,7 @@ function buildBeatCardHTML(d, opts) {
   const buyUrl = hasBuy ? d.buy : (useYT || useSC ? d.mp3 : d.buy);
   const playerHTML = useYT ? `
     <div class="yt-wrap">
-      <iframe id="ytFrame" data-src="${embedSrc}" src="about:blank"
+      <iframe id="ytFrame" data-src="${embedSrc}" src="about:blank" tabindex="-1"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowfullscreen></iframe>
       <div class="yt-overlay" id="ytOverlay" onclick="startVideo()">
@@ -547,7 +547,7 @@ function showPortfolioLoadingState(slug) {
   document.documentElement.classList.remove('portfolio-route-boot');
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('portfolioScreen')?.classList.add('active');
-  document.body.classList.remove('discover-active', 'site-scroll');
+  document.body.classList.remove('discover-active', 'crate-active', 'mypage-active', 'profile-active', 'site-scroll');
   document.body.classList.add('portfolio-active');
   const header = document.getElementById('portfolioHeader');
   if (header) header.innerHTML = portfolioHeaderSkeletonHTML(slugToDisplayName(slug));
@@ -646,7 +646,7 @@ function renderPortfolioCard() {
         });
       }, 600);
       loadTrack(mp3, 'portfolio');
-      maybeAutoplayPreview(false, false);
+      tryAutoplayFromGesture();
     };
     if (isMobileUI()) setTimeout(startMp3, 120);
     else startMp3();
@@ -659,7 +659,9 @@ function renderPortfolioCard() {
       card.addEventListener('animationend', () => card.classList.remove('card-enter-portfolio'), { once: true });
     }
   }
-  if (!isMobileUI() || useYT || useSC) maybeAutoplayPreview(useYT, useSC);
+  maybeAutoplayPreview(useYT, useSC);
+  if (_audioUnlocked) tryAutoplayFromGesture();
+  if (isDesktop()) requestAnimationFrame(() => refocusSwipeShortcuts());
 }
 
 document.addEventListener('touchend', e => {
@@ -685,7 +687,7 @@ function showPortfolioNotFound(slug) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('portfolioScreen')?.classList.add('active');
   document.body.classList.add('portfolio-active');
-  document.body.classList.remove('discover-active', 'site-scroll');
+  document.body.classList.remove('discover-active', 'crate-active', 'mypage-active', 'profile-active', 'site-scroll');
   const header = document.getElementById('portfolioHeader');
   if (header) header.innerHTML = `<div class="portfolio-name" style="flex:1">Producer not found</div>`;
   const slot = document.getElementById('portfolioCardSlot');
@@ -725,7 +727,7 @@ async function openPortfolio(producerName, opts) {
   stopTrack();
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active', 'screen-fade-out', 'screen-entering'));
   document.getElementById('portfolioScreen')?.classList.add('active');
-  document.body.classList.remove('discover-active', 'site-scroll');
+  document.body.classList.remove('discover-active', 'crate-active', 'mypage-active', 'profile-active', 'site-scroll');
   document.body.classList.add('portfolio-active');
 
   const color = beats[0]?.color || 'var(--accent)';

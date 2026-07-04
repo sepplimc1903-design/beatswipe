@@ -731,6 +731,8 @@ function rerenderMyPageIfActive() {
   } else {
     main.innerHTML = renderMyPageDashboard();
   }
+  updateMyPageLeftRail();
+  renderMyPageSidePanel();
 }
 
 function addMyPendingBeat(title) {
@@ -1149,11 +1151,66 @@ function getMyPageUrl() {
   return 'https://beatswipe.app/p/' + portfolioSlugFromName(name);
 }
 
+function myPageDesktopSide() {
+  return typeof isDesktop === 'function' && isDesktop() && window.matchMedia('(min-width: 1100px)').matches;
+}
+
+function buildMyPageLinkBoxHTML() {
+  const url = getMyPageUrl();
+  if (!url) return '';
+  return `
+      <div class="my-page-link-box">
+        <div class="my-page-link-label">Your bio link</div>
+        <div class="my-page-link-url">${escHtml(url.replace('https://', ''))}</div>
+        <div class="my-page-link-actions">
+          <button type="button" class="btn-primary" onclick="copyPortfolioLink(event)"><i class="ti ti-link"></i> Copy link</button>
+          <button type="button" class="btn-secondary" onclick="previewMyPage()"><i class="ti ti-eye"></i> Preview</button>
+        </div>
+      </div>`;
+}
+
+function updateMyPageLeftRail() {
+  if (!document.body.classList.contains('mypage-active')) return;
+  const liveEl = document.getElementById('mlrLive');
+  const pendingEl = document.getElementById('mlrPending');
+  const stepEl = document.getElementById('mlrStep');
+  if (liveEl) liveEl.textContent = String(getMyLiveBeats().length);
+  if (pendingEl) pendingEl.textContent = String(getMyPendingBeats().length);
+  if (stepEl) {
+    if (!currentUser) stepEl.textContent = 'Sign in';
+    else if (!isMyPageOnboarded()) stepEl.textContent = `Step ${_myPageObStep + 1} of 3`;
+    else stepEl.textContent = 'Live';
+  }
+}
+
+function renderMyPageSidePanel() {
+  const panel = document.getElementById('myPageSidePanel');
+  if (!panel) return;
+  if (!myPageDesktopSide() || document.body.classList.contains('mypage-add-open') || !currentUser || !isMyPageOnboarded()) {
+    panel.hidden = true;
+    panel.innerHTML = '';
+    return;
+  }
+  const linkHTML = buildMyPageLinkBoxHTML();
+  if (!linkHTML) {
+    panel.hidden = true;
+    panel.innerHTML = '';
+    return;
+  }
+  panel.hidden = false;
+  panel.innerHTML = `
+    <div class="my-page-side-card">
+      ${linkHTML}
+      <p class="my-page-side-tip">Fans swipe your beats from this link. Add at least 3 before sharing in your bio.</p>
+    </div>`;
+}
+
 function showMyPageAddBeat() {
   const main = document.getElementById('myPageMain');
   const add = document.getElementById('myPageAddBeat');
   if (main) main.style.display = 'none';
   if (add) add.style.display = 'flex';
+  document.body.classList.add('mypage-add-open');
   const prodEl = document.getElementById('f-producer');
   if (prodEl) prodEl.value = _userProfile?.producer_name || '';
   const successMsg = document.getElementById('successMsg');
@@ -1179,6 +1236,7 @@ function hideMyPageAddBeat() {
   const add = document.getElementById('myPageAddBeat');
   if (add) add.style.display = 'none';
   if (main) main.style.display = 'block';
+  document.body.classList.remove('mypage-add-open');
   renderMyPage();
 }
 
@@ -1335,6 +1393,7 @@ function renderMyPageBeatRows(opts) {
 function renderMyPageDashboard(stagger) {
   const url = getMyPageUrl();
   const liveCount = getMyLiveBeats().length;
+  const linkInMain = url && !myPageDesktopSide();
 
   return `
     <div class="site-page-head">
@@ -1342,15 +1401,7 @@ function renderMyPageDashboard(stagger) {
       <p class="site-page-desc">Manage your swipe portfolio and bio link.</p>
     </div>
     <div class="submit-scroll">
-      ${url ? `
-      <div class="my-page-link-box">
-        <div class="my-page-link-label">Your bio link</div>
-        <div class="my-page-link-url">${escHtml(url.replace('https://', ''))}</div>
-        <div class="my-page-link-actions">
-          <button type="button" class="btn-primary" onclick="copyPortfolioLink(event)"><i class="ti ti-link"></i> Copy link</button>
-          <button type="button" class="btn-secondary" onclick="previewMyPage()"><i class="ti ti-eye"></i> Preview</button>
-        </div>
-      </div>` : ''}
+      ${linkInMain ? buildMyPageLinkBoxHTML() : ''}
       ${liveCount < 3 ? `<div class="my-page-hint"><strong>Tip:</strong> Add at least 3 beats before sharing your link in your bio.</div>` : ''}
       ${renderMyPageBeatRows({ stagger })}
       <button type="button" class="submit-btn" onclick="showMyPageAddBeat()"><i class="ti ti-plus"></i> Add new beat</button>
@@ -1457,6 +1508,8 @@ async function renderMyPage() {
           <i class="ti ti-user"></i> Sign in / Create account
         </button>
       </div>`;
+    updateMyPageLeftRail();
+    renderMyPageSidePanel();
     return;
   }
 
@@ -1471,5 +1524,7 @@ async function renderMyPage() {
   }
 
   ensureMyPageBeatDrag();
+  updateMyPageLeftRail();
+  renderMyPageSidePanel();
   void refreshMyPendingBeats().then(() => rerenderMyPageIfActive());
 }

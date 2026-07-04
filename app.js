@@ -209,6 +209,9 @@ function applyGoTo(screenId, navId) {
   next.classList.add('active');
   playScreenEnterAnim(next);
   document.body.classList.toggle('discover-active', screenId === 'discoverScreen');
+  document.body.classList.toggle('crate-active', screenId === 'crateScreen');
+  document.body.classList.toggle('mypage-active', screenId === 'submitScreen');
+  document.body.classList.toggle('profile-active', screenId === 'profileScreen');
   document.body.classList.toggle('portfolio-active', screenId === 'portfolioScreen');
   document.body.classList.toggle('site-scroll', isDesktop() && screenId !== 'discoverScreen');
   if (isDesktop() && screenId !== 'discoverScreen' && screenId !== 'portfolioScreen') {
@@ -220,6 +223,7 @@ function applyGoTo(screenId, navId) {
     renderDiscoverHint();
     renderCard();
     renderDesktopCrate();
+    updateDiscoverLeftRail();
     maybeShowSyncOnDiscoverReturn();
     positionCatIndicator();
   }
@@ -736,7 +740,8 @@ function unlockAudio() {
 }
 
 function unlockAudioTouch() {
-  if (!_audioUnlocked) _audioUnlocked = true;
+  _audioUnlocked = true;
+  tryAutoplayFromGesture();
 }
 
 function isDiscoverScreenActive() {
@@ -837,13 +842,13 @@ function autoplayCurrentBeat() {
 }
 
 function maybeAutoplayPreview(useYT, useSC) {
-  if (!_audioUnlocked) return;
   if (!isAutoplayScreenActive()) return;
   if (useYT) {
     startVideo();
   } else if (useSC) {
     startSoundCloudAutoplay();
   } else if (audio) {
+    if (!_audioUnlocked) return;
     playMp3Preview();
   }
 }
@@ -933,6 +938,8 @@ function loadTrack(mp3Url, panel) {
   pauseTrackForCardSwap();
   if (!audio) {
     audio = new Audio();
+    audio.setAttribute('playsinline', '');
+    audio.setAttribute('webkit-playsinline', '');
     audio.addEventListener('timeupdate', onTimeUpdate);
     audio.addEventListener('ended', onEnded);
     audio.addEventListener('loadedmetadata', () => {
@@ -1079,19 +1086,38 @@ function getYtId(url) {
 }
 
 function getYtEmbedBase(ytId) {
-  return `https://www.youtube.com/embed/${ytId}?rel=0&modestbranding=1&enablejsapi=1&playsinline=1&iv_load_policy=3`;
+  const origin = encodeURIComponent(location.origin);
+  return `https://www.youtube.com/embed/${ytId}?rel=0&modestbranding=1&enablejsapi=1&playsinline=1&iv_load_policy=3&origin=${origin}`;
+}
+
+function isIOS() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+function refocusSwipeShortcuts() {
+  if (!isDesktop()) return;
+  const el = document.getElementById('swipeKbdFocus');
+  if (el) el.focus({ preventScroll: true });
 }
 
 function startVideo() {
+  _audioUnlocked = true;
   const overlay = queryPlayerEl('ytOverlay');
   const frame   = queryPlayerEl('ytFrame');
   if (!overlay || !frame) return;
   const base = frame.getAttribute('data-src');
   if (!base || base === 'about:blank') return;
   if (isYtPreviewActive()) return;
-  frame.src = base + '&autoplay=1';
-  overlay.style.opacity = '0';
-  overlay.style.pointerEvents = 'none';
+  const autoplaySrc = base + '&autoplay=1';
+  if (frame.src && frame.src !== 'about:blank' && frame.src.includes('autoplay=1') && _audioUnlocked) {
+    frame.src = 'about:blank';
+  }
+  frame.src = autoplaySrc;
+  if (_audioUnlocked || !isIOS()) {
+    overlay.style.opacity = '0';
+    overlay.style.pointerEvents = 'none';
+  }
 }
 
 function stopEmbedPreview(scope) {
@@ -1144,6 +1170,7 @@ function renderCard(opts) {
     } else {
       wrap.innerHTML = `<div class="empty-card"><i class="ti ti-music-off"></i>All caught up!<br>Switch category or check back later.${replayBtn}</div>`;
     }
+    updateDiscoverLeftRail();
     return;
   }
 
@@ -1161,7 +1188,7 @@ function renderCard(opts) {
 
   const playerHTML = useYT ? `
     <div class="yt-wrap">
-      <iframe id="ytFrame" data-src="${embedSrc}" src="about:blank"
+      <iframe id="ytFrame" data-src="${embedSrc}" src="about:blank" tabindex="-1"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowfullscreen></iframe>
       <div class="yt-overlay" id="ytOverlay" onclick="startVideo()">
@@ -1256,7 +1283,28 @@ function renderCard(opts) {
   const runPreview = () => maybeAutoplayPreview(useYT, useSC);
   if (deferAudio) setTimeout(runPreview, 140);
   else runPreview();
+  updateDiscoverLeftRail();
+  if (isDesktop()) requestAnimationFrame(() => refocusSwipeShortcuts());
 }
+
+// Desktop — refocus for ← → swipe keys after click outside YouTube player
+(function initDesktopSwipeFocus() {
+  const SWIPE_FOCUS_SKIP = '.yt-wrap, .yt-overlay, .desktop-topbar, .discover-left-rail, .desktop-crate, .discover-toolbar, .portfolio-toolbar, .action-row, .portfolio-action-row, input, textarea, select, button, a';
+  const SWIPE_FOCUS_CARD = '.beat-card, #portfolioCardSlot, #cardWrap, #portfolioCardWrap';
+
+  document.addEventListener('mousedown', e => {
+    if (!isDesktop()) return;
+    if (!document.body.classList.contains('discover-active') && !document.body.classList.contains('portfolio-active')) return;
+    if (e.target.closest(SWIPE_FOCUS_SKIP)) return;
+    if (e.target.closest(SWIPE_FOCUS_CARD)) refocusSwipeShortcuts();
+  }, true);
+
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape' || !isDesktop()) return;
+    if (!document.body.classList.contains('discover-active') && !document.body.classList.contains('portfolio-active')) return;
+    refocusSwipeShortcuts();
+  });
+})();
 
 // ─── iOS :active + touch press feedback ───────────────────────────────────
 (function initTouchFeedback() {
@@ -1561,6 +1609,8 @@ function renderCard(opts) {
   function onStart(x, y, fromTouch) {
     const card = getCard();
     if (!card || isLocked) return;
+    _audioUnlocked = true;
+    tryAutoplayFromGesture();
     cancelSpring();
     resetVelocity();
     gestureIsTouch = !!fromTouch;
@@ -1814,7 +1864,7 @@ function doSwipe(dir, opts = {}) {
     pauseTrackForCardSwap();
     const onReplaced = () => {
       renderPortfolioCard();
-      if (!isMobileUI()) tryAutoplayFromGesture();
+      tryAutoplayFromGesture();
       _portfolioSwipeLock = false;
     };
     if (opts.skipFly) {
@@ -1995,6 +2045,8 @@ function updateCrateCountUI() {
   }
   const sub = document.getElementById('dcSub');
   if (sub) sub.textContent = crate.length + ' beat' + (crate.length === 1 ? '' : 's') + ' in Favorites';
+  const flrCount = document.getElementById('flrCount');
+  if (flrCount) flrCount.textContent = String(crate.length);
 }
 
 function renderCrate() {
@@ -2075,6 +2127,7 @@ function renderDesktopCrate(stagger) {
   if (sub) sub.textContent = crate.length + ' beat' + (crate.length === 1 ? '' : 's') + ' in Favorites';
   if (!crate.length) {
     body.innerHTML = `<div class="dc-empty"><i class="ti ti-shopping-cart"></i>Swipe right on beats<br>to save them here</div>`;
+    updateDiscoverLeftRail();
     return;
   }
   body.innerHTML = crate.map((d, idx) => {
@@ -2108,6 +2161,7 @@ function renderDesktopCrate(stagger) {
     const savedId = _lastSavedBeatId;
     setTimeout(() => { if (_lastSavedBeatId === savedId) _lastSavedBeatId = null; }, 400);
   }
+  updateDiscoverLeftRail();
 }
 
 async function removeBeatFromCrate(beatId) {
@@ -2391,6 +2445,32 @@ function getAvatarHTML() {
   return `<div class="profile-hero-avatar-clip">${inner}</div>`;
 }
 
+function profileDesktopSide() {
+  return isDesktop() && window.matchMedia('(min-width: 1100px)').matches;
+}
+
+function renderProfileSidePanel() {
+  const panel = document.getElementById('profileSidePanel');
+  if (!panel) return;
+  if (!profileDesktopSide() || !currentUser || !_userProfile?.producer_name) {
+    panel.hidden = true;
+    panel.innerHTML = '';
+    return;
+  }
+  const linkHTML = typeof buildMyPageLinkBoxHTML === 'function' ? buildMyPageLinkBoxHTML() : '';
+  if (!linkHTML) {
+    panel.hidden = true;
+    panel.innerHTML = '';
+    return;
+  }
+  panel.hidden = false;
+  panel.innerHTML = `
+    <div class="profile-side-card">
+      ${linkHTML}
+      <p class="profile-side-tip">Share this link in your Instagram bio so fans can swipe your beats.</p>
+    </div>`;
+}
+
 function renderProfile() {
   const wrap = document.getElementById('profileWrap');
   if (!wrap) return;
@@ -2402,18 +2482,19 @@ function renderProfile() {
     const displayName = p.producer_name || currentUser.email.split('@')[0];
     const slug = p.producer_name ? portfolioSlugFromName(p.producer_name) : '';
     const heroLink = slug ? `beatswipe.app/p/${escHtml(slug)}` : '';
+    const sidebarLink = profileDesktopSide() && p.producer_name;
     const heroActions = p.producer_name ? `
           <div class="profile-hero-link-row">
             <span class="profile-live-badge"><i class="ti ti-circle-filled"></i> Live</span>
             <span class="profile-hero-link">${heroLink}</span>
           </div>
-          <div class="profile-hero-actions">
+          ${sidebarLink ? '' : `<div class="profile-hero-actions">
             <button type="button" class="btn-primary profile-hero-btn-main" onclick="copyPortfolioLink(event)"><i class="ti ti-link"></i> Copy bio link</button>
             <div class="profile-hero-actions-row">
               <button type="button" class="btn-secondary" onclick="goTo('submitScreen','navSubmit')"><i class="ti ti-layout-grid"></i> My Page</button>
               <button type="button" class="btn-secondary" onclick="previewMyPage()"><i class="ti ti-eye"></i> Preview</button>
             </div>
-          </div>` : `
+          </div>`}` : `
           <div class="profile-hero-hint"><i class="ti ti-info-circle"></i> Set your producer name below to unlock your bio link.</div>`;
     wrap.innerHTML = `
       <div class="profile-hero profile-glass">
@@ -2536,6 +2617,7 @@ function renderProfile() {
     updateDesktopTopbarAuth();
     captureProfileFormSnapshot();
     bindProfileFormWatch();
+    renderProfileSidePanel();
   } else {
     _profileFormSnapshot = null;
     wrap.innerHTML = `
@@ -2611,6 +2693,7 @@ function renderProfile() {
       </div>
     `;
     updateDesktopTopbarAuth();
+    renderProfileSidePanel();
   }
 }
 
@@ -3301,6 +3384,19 @@ function initSheetDragDismiss({ backdrop, sheet, onClose, dismissThreshold = 96,
   });
 })();
 
+function updateDiscoverLeftRail() {
+  if (!isDesktop() || !isDiscoverScreenActive()) return;
+  const catNames = { full: 'Beats', loops: 'Loops', drums: 'Drum Kits', samples: 'Samples' };
+  const catLbl = document.getElementById('dlrCatLbl');
+  const skippedEl = document.getElementById('dlrSkipped');
+  const savedEl = document.getElementById('dlrSaved');
+  const filterLbl = document.getElementById('dlrFilterLbl');
+  if (catLbl) catLbl.textContent = catNames[cat] || 'Beats';
+  if (skippedEl) skippedEl.textContent = String(skippedIds[cat]?.length || 0);
+  if (savedEl) savedEl.textContent = String(crate.length);
+  if (filterLbl) filterLbl.textContent = activeGenre === 'all' ? 'All genres' : activeGenre;
+}
+
 function updateFilterBtnStyle() {
   const btn = document.getElementById('filterIconBtn');
   if (!btn) return;
@@ -3357,6 +3453,7 @@ function applyFilter() {
   saveGenreFilter();
   Object.keys(catIdx).forEach(k => catIdx[k] = 0);
   saveSwipeState();
+  updateDiscoverLeftRail();
   goTo('discoverScreen', 'navDiscover');
 }
 

@@ -72,20 +72,26 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 - **Preview portfolio:** `{ preview: true }` — no crate saves
 - **Portfolio card-glow:** hidden in idle (`opacity: 0`); purple/orange only while swiping — never beat `--glow-color` on `/p/`
 - **Local dev env:** `vercel dev` lädt `.env.local` nicht zuverlässig in APIs — `api/_env.js` liest `.env.local` als Fallback; Production nutzt Vercel `SUPABASE_SERVICE_ROLE_KEY`
+- **iOS autoplay:** Playback nur in User-Geste — `unlockAudioTouch` + `onStart` (swipe) → `tryAutoplayFromGesture()`; YT via `startVideo()` (`about:blank` → `&autoplay=1`); MP3 braucht `_audioUnlocked`. YT-Overlay auf iOS bis Geste sichtbar (`isIOS()`). Kein Autoplay beim allerersten Page-Load ohne Touch (Apple-Limit). Helpers: `app.js` — `maybeAutoplayPreview`, `startVideo`, `isIOS`
+- **Discover desktop layout:** `--w-discover` 480px (Card capped) — Ränder via Sidebars füllen, nicht Card auf 720px strecken. Tokens: `--discover-left`, `--sidebar-w`. Left rail `#discoverLeftRail` / `updateDiscoverLeftRail()`; `desktop-crate` ab 1100px. Swipe-overflow `visible` beibehalten.
+- **YT desktop keyboard:** iframe cross-origin — `←`/`→` steuern YouTube wenn Player Fokus hat. **Nicht** `pointer-events:none` auf iframe (blockiert Scrub). Fokus-Modell: Klick auf Card → Skip/Save-Tasten; Klick in Player → Seek. `refocusSwipeShortcuts()` + `initDesktopSwipeFocus()` nach Swipe/neuer Card.
+- **Laptop page body classes:** `discover-active` / `crate-active` / `mypage-active` / `profile-active` — je Screen in `applyGoTo()`; nur einer aktiv. Left rails in `index.html` (`discover-left-rail`, `favorites-left-rail`, `mypage-left-rail`). Profile: kein left rail, Bio-Link-Sidebar ab 1100px. Portfolio entfernt alle + `site-scroll`. Sidebars meist ab 1100px.
 
-## Aktuell (2026-06-22)
+## Aktuell (2026-07-04)
 
-- **Beats auf Supabase:** deployed — Upload, Pending, Discover, `/p/`, My Page edit/delete; Airtable + Make-Beat-Webhook aus Code
-- **Review:** Supabase Table Editor → `status` Dropdown (`pending` / `approved` / `rejected` / `removed`)
+- **Beats auf Supabase:** deployed — Upload, Pending, Discover, `/p/`, My Page edit/delete
+- **Review:** Supabase Table Editor → `status` (`pending` / `approved` / `rejected` / `removed`)
 - **Favorites:** Supabase `crates`. **Skipped** → nur `localStorage`, nicht cross-device
-- **SQL:** `supabase/beats.sql` + optional `beats-status-enum.sql` (bereits in Prod-DB)
+- **Laptop layout:** Discover 3-Zonen (`discover-active`). **Favorites** (`crate-active`): left rail + Liste + Preview ab 1100px. **My Page** (`mypage-active`): left rail + Dashboard + Bio-Link-Sidebar ab 1100px; Add-Beat Vollbreite (`mypage-add-open`). **Profile** (`profile-active`): zentriertes Formular + Bio-Link-Sidebar ab 1100px (kein left rail). Skip/Save Discover: frosted glass.
+- **YT keyboard:** Discover/Portfolio — Scrubbing + Pfeiltasten Skip/Save per Fokus-Wechsel (`refocusSwipeShortcuts`, `initDesktopSwipeFocus`).
+- **iOS autoplay:** YT + MP3 nach erstem Touch/Swipe (`unlockAudioTouch`, `tryAutoplayFromGesture`).
 
 ## Nächster Schritt
 
-1. **Live testen:** beatswipe.app — Upload → approve → Discover + `/p/`
-2. **Aufräumen:** `AIRTABLE_TOKEN` auf Vercel entfernen; Make Beat-Szenario abschalten
-3. **Legal:** Privacy-Texte (Airtable für Beats raus); Account delete in-app
-4. Später: In-app Approve-UI, Skip-Sync cross-device
+1. **Laptop layout `/p/` Portfolio** — gleiches Prinzip: sinnvolle Breite, ggf. Sidebar ab 1100px. Home ausnehmen.
+2. **Live testen:** beatswipe.app — Discover/Favorites/My Page/Profile Desktop + iOS autoplay `/p/clyriax`
+3. **Aufräumen:** `AIRTABLE_TOKEN` Vercel; Make Beat-Szenario abschalten
+4. Später: Legal, In-app Approve-UI, Skip-Sync cross-device
 
 ## Rules pflegen (Agent)
 
