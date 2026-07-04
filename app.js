@@ -2271,7 +2271,7 @@ function renderDesktopCrate(stagger) {
   if (!body) return;
   if (sub) sub.textContent = crate.length + ' beat' + (crate.length === 1 ? '' : 's') + ' in Favorites';
   if (!crate.length) {
-    body.innerHTML = `<div class="dc-empty"><i class="ti ti-shopping-cart"></i>Swipe right on beats<br>to save them here</div>`;
+    body.innerHTML = `<div class="dc-empty"><div class="dc-empty-icon"><i class="ti ti-flame"></i></div>Swipe right on beats<br>to save them here</div>`;
     updateDiscoverLeftRail();
     return;
   }

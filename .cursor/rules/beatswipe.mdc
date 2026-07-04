@@ -78,7 +78,7 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 - **iOS autoplay:** Playback nur in User-Geste — `unlockAudioTouch` + `onStart` (swipe) → `tryAutoplayFromGesture()`; YT via `startVideo()` (`about:blank` → `&autoplay=1`); MP3 braucht `_audioUnlocked`. YT-Overlay auf iOS bis Geste sichtbar (`isIOS()`). Kein Autoplay beim allerersten Page-Load ohne Touch (Apple-Limit). Helpers: `app.js` — `maybeAutoplayPreview`, `startVideo`, `isIOS`
 - **Discover desktop layout:** `--w-discover` 480px (Card capped) — Ränder via Sidebars füllen, nicht Card auf 720px strecken. Tokens: `--discover-left`, `--sidebar-w`. Left rail `#discoverLeftRail` / `updateDiscoverLeftRail()`; `desktop-crate` ab 1100px. Swipe-overflow `visible` beibehalten.
 - **YT desktop keyboard:** iframe cross-origin — `←`/`→` steuern YouTube wenn Player Fokus hat. **Nicht** `pointer-events:none` auf iframe (blockiert Scrub). Fokus-Modell: Klick auf Card → Skip/Save-Tasten; Klick in Player → Seek. `refocusSwipeShortcuts()` + `initDesktopSwipeFocus()` nach Swipe/neuer Card.
-- **Laptop page body classes:** `discover-active` / `crate-active` / `mypage-active` / `profile-active` — je Screen in `applyGoTo()`; nur einer aktiv. Left rails in `index.html`. **Profile ≥1100px:** kein left rail; `--w-page` zentriert via `margin-left: calc((100vw - var(--w-page))/2)`; Bio-Link `.profile-side-panel` Flex rechts daneben — **nicht** `position:fixed` (Overlap). Portfolio entfernt alle + `site-scroll`. Sidebars meist ab 1100px.
+- **Laptop page body classes:** `discover-active` / `crate-active` / `mypage-active` / `profile-active` — je Screen in `applyGoTo()`; nur einer aktiv. Left rails in `index.html`. **Profile ≥1100px:** kein left rail; `.profile-layout` + Sidebar als **CSS-Grid** zentriert (`grid-template-columns: minmax(0,var(--w-page)) 300px`), ganzer Block via `page-inner--wide { max-width: min(w-page+348px,100%); margin-inline:auto }` — **nicht** Hauptspalte allein zentrieren und Sidebar daneben "mitschleppen" (alte Flex+`margin-left: calc((100vw - var(--w-page))/2)`-Formel ignorierte Sidebar-Breite, saß dauerhaft 174px zu weit rechts). Portfolio entfernt alle + `site-scroll`. Sidebars meist ab 1100px.
 - **Left rails mobile:** alle vier Rails global `display: none` (`discover-`, `favorites-`, `mypage-`, `portfolio-left-rail`) — sonst Laptop-Sidebar-Text im Hintergrund sichtbar
 - **Favorites Buy:** `getCrateBeats()` merged mit Live-Beats (`_beatsCache`); Buttons via `beatBuyAction()` / `resolveBeatBuyLink()` — **nicht** `d.buy.startsWith('http')` (ohne `https://` ging nicht)
 - **Profile mobile scroll:** `body.profile-active #profileScreen .page-inner--wide` → `overflow-y: auto`; `.profile-wrap` / tabs `overflow: visible` — sonst kein Scroll auf Handy
@@ -92,22 +92,22 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 - **Legal:** Impressum + Privacy in Modals; Links auf Landing (Footer mobile+desktop), `/p/` Footer, Cookie-Banner, Profile Settings; `openLegalModal()` mit Tabs — **z-index 450** (über Cookie-Banner 350); Landing-Footer mobile: `#landScreen .site-footer` nicht global `display:none`
 - **Landing hero demo:** Discover-like card (waveform + skip/save) — **keine** SKIP/SAVE-Stempel; `initHeroDemoCard()` in `app.js`. Topbar black-fade wie andere Seiten via `body:not(.portfolio-active) .bg-desktop::before` (site-scroll inkl. Landing)
 - **Landing bg:** `portfolio-ambient` **nicht** global auf Laptop — nur `portfolio-active` / `/p/` boot
+- **`.site-page-head` / `.land-section-head` unsichtbar am Laptop:** alte Regel `.site-page-head, .hero-visual, .land-section-head { display:none; }` stand **ohne** Media Query nach den 900px-„show"-Regeln → gewann immer (gleiche Spezifität, später im File). Fix: in `@media (max-width: 899px)` verschoben. Bei neuen globalen `display:none`-Defaults immer prüfen, ob sie **vor** den Desktop-Overrides stehen oder selbst media-gated sind.
+- **Sidebar-Höhe uneinheitlich (Profile/Favorites vs. My Page):** Profile/Favorites rendern `.site-page-head` **außerhalb** vom Grid (Sidebar startet auf Höhe vom ersten Content), My Page rendert den Titel **innerhalb** der Hauptspalte per JS (`mypage.js`, mehrere `render...()`-Funktionen) → Sidebar sonst auf Höhe vom Titel-Text statt Content. Fix: `renderMyPageSidePanel()` misst `#myPageMain .site-page-head` Höhe zur Laufzeit und setzt sie als `margin-top` auf `#myPageSidePanel`.
 
-## Aktuell (2026-07-04)
+## Aktuell (2026-07-05)
 
-- **Live** `a06a522`: Moderation, Producer stats, QR, Legal modals (laut Rules — ggf. schon deployed)
-- **Local uncommitted:** Landing overhaul (hero, glass stats, step icons, CTA banner, bg/topbar fixes) — `index.html`, `styles.css`, `app.js`
-- **Brand:** `beatswipe.net` Konkurrent entdeckt (gleicher Name, anderes Produkt); Marken-/Domain-Strategie offen
-- **Marketing assets:** `marketing/insta-posts/` — Announcement-Drafts; finaler IG-Post + neuer Slogan noch offen
-- **Stats / Moderation:** `portfolio-events.sql` ✅; Profile → Settings → Moderation
+- **Live** (frisch gepusht): Konsistenz-Pass Laptop (Titel-Cascade-Bug, Profile-Sidebar-Grid-Zentrierung, My-Page-Sidebar-Höhe, Button-Radius) + Discover-Laptop-Redesign (Left-Rail-Restrukturierung, Ambient-Glow reaktiviert, `.dc-empty`-Icon) + Save-Icon/Button-Politur (Landing-Hero-Card-Save-Button war Herz statt Feuer wie überall sonst → jetzt `ti-flame` konsistent; Discover-Swipe-Buttons am Laptop 68px→80px, weiter nach oben gerückt, SKIP/SAVE-Text über den Buttons entfernt). Alles per Playwright Laptop+Handy verifiziert.
+- **Konsistenz-Pass Laptop:** weitere Kandidaten noch nicht geprüft: Moderation-Screen-Header. Größere Idee (noch nicht umgesetzt, erst absprechen): persistente Icon-Sidebar statt Topbar + Screen-eigener Left-Rails.
+- **Brand:** `beatswipe.net` Konkurrent (gleiches Produkt-Umfeld anders positioniert); `beatswipe.com` vergeben/geparkt (~2k, aktuell zu teuer) — Name vorerst behalten, Domain/Marke beobachten
+- **Marketing assets:** `marketing/insta-posts/` + `marketing/insta-triptych/` — Announcement-Drafts, weiterhin lokal/uncommitted; finaler IG-Post + neuer Slogan noch offen
 
 ## Nächster Schritt
 
-1. **Deploy** Landing-Overhaul (wenn Luca sagt) → Laptop + Handy hard-refresh
-2. **Brand:** `beatswipe.com` sichern; EU/AT-Marke „BeatSwipe" prüfen; überall nur `beatswipe.app` kommunizieren
+1. **Deploy verifizieren:** nach Vercel-Build `/p/clyriax`, Discover Laptop+Handy, Profile/My-Page-Sidebar hard-refresh testen
+2. **Konsistenz-Pass Laptop weiterführen:** Moderation-Screen-Header prüfen; ggf. Icon-Sidebar-Idee mit Luca absprechen
 3. **Slogan** festlegen → dann IG-Announcement + ggf. Footer/OG anpassen
-4. **Test live:** `/p/clyriax` stats, QR, Moderation flow
-5. **Producer onboarding:** 2–3 fremde Producer mit Link in Bio (Phase-1-Ziel)
+4. **Producer onboarding:** 2–3 fremde Producer mit Link in Bio (Phase-1-Ziel)
 
 ## Rules pflegen (Agent)
 

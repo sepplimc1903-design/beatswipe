@@ -1241,12 +1241,14 @@ function renderMyPageSidePanel() {
   if (!myPageDesktopSide() || document.body.classList.contains('mypage-add-open') || !currentUser || !isMyPageOnboarded()) {
     panel.hidden = true;
     panel.innerHTML = '';
+    panel.style.marginTop = '';
     return;
   }
   const linkHTML = buildMyPageLinkBoxHTML();
   if (!linkHTML) {
     panel.hidden = true;
     panel.innerHTML = '';
+    panel.style.marginTop = '';
     return;
   }
   panel.hidden = false;
@@ -1257,6 +1259,11 @@ function renderMyPageSidePanel() {
     </div>`;
   const statsHost = panel.querySelector('[data-my-page-stats]');
   if (statsHost && _myPageStats) statsHost.innerHTML = buildMyPageStatsHTML(_myPageStats);
+  // My Page renders its title inside the main column (unlike Profile/Favorites, where the
+  // shared page head sits above the two-column row) — offset the sidebar by the head's
+  // height so it starts level with the actual content, not the title text.
+  const head = document.querySelector('#myPageMain .site-page-head');
+  panel.style.marginTop = head ? head.offsetHeight + 'px' : '';
 }
 
 function showMyPageAddBeat() {

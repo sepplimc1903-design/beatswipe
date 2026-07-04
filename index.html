@@ -107,21 +107,7 @@
   <div class="discover-ambient" aria-hidden="true">
     <div class="discover-ambient-glow"></div>
     <aside class="discover-left-rail" id="discoverLeftRail" aria-label="Discover panel">
-      <div class="dlr-block">
-        <div class="dlr-heading">Shortcuts</div>
-        <div class="dlr-kbd">
-          <div class="dlr-kbd-row"><kbd>←</kbd><span>skip</span></div>
-          <div class="dlr-kbd-row"><kbd>→</kbd><span>save</span></div>
-          <div class="dlr-kbd-row"><kbd>Space</kbd><span>play</span></div>
-        </div>
-        <p class="dlr-kbd-note">Click card to swipe · in player, ← → seek</p>
-      </div>
-      <div class="dlr-block">
-        <div class="dlr-heading">Category</div>
-        <div class="dlr-cat-pill" id="dlrCatLbl">Beats</div>
-      </div>
-      <div class="dlr-block">
-        <div class="dlr-heading">Session</div>
+      <div class="dlr-block dlr-block--session">
         <div class="dlr-stats">
           <div class="dlr-stat">
             <span class="dlr-stat-val" id="dlrSkipped">0</span>
@@ -134,9 +120,21 @@
         </div>
       </div>
       <div class="dlr-block">
-        <div class="dlr-heading">Genre</div>
-        <div class="dlr-filter-pill" id="dlrFilterLbl">All genres</div>
+        <div class="dlr-heading">Filters</div>
+        <div class="dlr-filter-row">
+          <div class="dlr-cat-pill" id="dlrCatLbl">Beats</div>
+          <div class="dlr-filter-pill" id="dlrFilterLbl">All genres</div>
+        </div>
         <button type="button" class="dlr-filter-btn" onclick="openFilterModal()"><i class="ti ti-adjustments-horizontal"></i> Change</button>
+      </div>
+      <div class="dlr-block dlr-block--kbd">
+        <div class="dlr-heading">Shortcuts</div>
+        <div class="dlr-kbd">
+          <div class="dlr-kbd-row"><kbd>←</kbd><span>skip</span></div>
+          <div class="dlr-kbd-row"><kbd>→</kbd><span>save</span></div>
+          <div class="dlr-kbd-row"><kbd>Space</kbd><span>play</span></div>
+        </div>
+        <p class="dlr-kbd-note">Click card to swipe · in player, ← → seek</p>
       </div>
     </aside>
     <div class="discover-kbd-hints discover-kbd-hints--left">
@@ -321,7 +319,7 @@
             </div>
             <div class="hero-demo-actions" aria-hidden="true">
               <button class="act-btn btn-skip" type="button" tabindex="-1"><i class="ti ti-x"></i></button>
-              <button class="act-btn btn-save" type="button" tabindex="-1"><i class="ti ti-heart-filled"></i></button>
+              <button class="act-btn btn-save" type="button" tabindex="-1"><i class="ti ti-flame"></i></button>
             </div>
             <p class="hero-preview-caption">Discover Beats. Save What Hits.</p>
           </div>

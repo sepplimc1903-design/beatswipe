@@ -481,13 +481,13 @@
     /* ── DESKTOP FAVORITES SIDEBAR (1100px+, Discover only) ── */
     /* Sidebar fixed to viewport right; Discover column uses --w-discover */
     .dc-header {
-      padding: var(--py) var(--px) 12px; border-bottom: 0.5px solid var(--border);
+      padding: 40px var(--px) 20px;
       flex-shrink: 0;
     }
-    .dc-title { font-size: 15px; font-weight: 700; margin-bottom: 2px; }
-    .dc-sub { font-size: 11px; color: var(--text-3); }
+    .dc-title { font-size: 16px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
+    .dc-sub { font-size: 12px; color: var(--text-3); }
     .dc-body {
-      flex: 1; overflow-y: auto; padding: 12px var(--px);
+      flex: 1; overflow-y: auto; padding: 4px var(--px) 20px;
       display: flex; flex-direction: column; gap: 8px;
       -webkit-overflow-scrolling: touch; min-height: 0;
       scrollbar-width: thin; scrollbar-color: var(--border) transparent;
@@ -495,10 +495,16 @@
     .dc-empty {
       flex: 1; display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      color: var(--text-3); font-size: 12px; text-align: center;
-      padding: 20px; gap: 10px; line-height: 1.6;
+      color: var(--text-3); font-size: 12.5px; text-align: center;
+      padding: 20px; gap: 16px; line-height: 1.6;
     }
-    .dc-empty i { font-size: 28px; color: var(--border-2); }
+    .dc-empty-icon {
+      width: 52px; height: 52px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(124,58,237,0.1);
+      border: 0.5px solid rgba(124,58,237,0.18);
+    }
+    .dc-empty i { font-size: 20px; color: var(--accent-mid); opacity: 0.8; }
     .dc-card {
       background: var(--bg-2); border-radius: 12px;
       border: 0.5px solid var(--border); padding: 10px;
@@ -732,7 +738,16 @@
         z-index: 0;
       }
       body.discover-active .discover-ambient-glow {
-        display: none;
+        display: block;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: min(78vw, 980px);
+        height: min(70vh, 760px);
+        transform: translate(-50%, -50%);
+        background: radial-gradient(ellipse at center, rgba(124,58,237,0.14) 0%, rgba(124,58,237,0.05) 46%, transparent 74%);
+        filter: blur(10px);
+        pointer-events: none;
       }
       .discover-side-hint {
         position: absolute;
@@ -872,11 +887,11 @@
       .play-btn { box-shadow: 0 2px 12px rgba(124,58,237,0.22); }
       body.discover-active #discoverScreen .btn-skip,
       body.discover-active #discoverScreen .btn-save {
-        width: 68px;
-        height: 68px;
+        width: 80px;
+        height: 80px;
       }
-      body.discover-active #discoverScreen .btn-skip i { font-size: 28px; }
-      body.discover-active #discoverScreen .btn-save i { font-size: 30px; }
+      body.discover-active #discoverScreen .btn-skip i { font-size: 34px; }
+      body.discover-active #discoverScreen .btn-save i { font-size: 36px; }
       .yt-play-icon { box-shadow: 0 4px 16px rgba(124,58,237,0.26); }
       body:not(.portfolio-active) .desktop-topbar {
         background: transparent;
@@ -891,7 +906,6 @@
       .dtb-initial { border-color: rgba(255,255,255,0.18); }
       .producer-row:hover { border-color: var(--border-2); }
       input:focus, select:focus, textarea:focus { box-shadow: 0 0 0 3px rgba(124,58,237,0.12); }
-      body.discover-active .desktop-crate { border-left-color: rgba(255,255,255,0.06); }
       /* Step 2 — de-nested surfaces, spacing, calmer chrome */
       .beat-card {
         background: rgba(255,255,255,0.03);
@@ -926,6 +940,25 @@
         border: 0.5px solid rgba(167,139,250,0.32);
         box-shadow: 0 1px 12px rgba(124,58,237,0.14), inset 0 1px 0 rgba(255,255,255,0.08);
       }
+      #discoverScreen .discover-search-input {
+        border-radius: 100px;
+        background: rgba(255,255,255,0.03);
+        border-color: rgba(255,255,255,0.07);
+        padding-top: 11px;
+        padding-bottom: 11px;
+      }
+      #discoverScreen .discover-search-input:focus {
+        background: rgba(255,255,255,0.05);
+      }
+      #discoverScreen .discover-sync-hint {
+        background: rgba(255,255,255,0.03);
+        border: none;
+        border-radius: 100px;
+        padding: 9px 8px 9px 16px;
+      }
+      #discoverScreen .discover-sync-hint-btn {
+        border-radius: 100px;
+      }
       #discoverScreen .cat-pill.active {
         background: none;
         border: none;
@@ -933,10 +966,9 @@
       }
       #discoverScreen .cat-pill:hover:not(.active) { color: var(--text); background: none; }
       .discover-toolbar { padding-bottom: 16px; gap: 14px; }
-      .page-inner--swipe .action-row { padding: 16px 0 28px; gap: 36px; }
+      .page-inner--swipe .action-row { padding: 16px 0 48px; gap: 40px; }
       body.discover-active .desktop-crate { background: rgba(255,255,255,0.02); }
-      .dc-header { border-bottom-color: rgba(255,255,255,0.05); padding-bottom: 16px; }
-      .dc-body { padding: 8px 20px 16px; gap: 2px; }
+      .dc-body { padding: 4px 20px 16px; gap: 2px; }
       .dc-card {
         background: transparent;
         border: none;
@@ -1230,21 +1262,25 @@
       body.discover-active .discover-left-rail {
         display: flex;
         flex-direction: column;
-        gap: 22px;
+        gap: 32px;
         position: fixed;
         top: var(--topbar-h);
         left: 0;
         bottom: 0;
         width: var(--discover-left);
         z-index: 4;
-        padding: 28px 16px 28px 24px;
+        padding: 40px 20px 28px 28px;
         box-sizing: border-box;
         pointer-events: auto;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
-        border-right: 0.5px solid rgba(255,255,255,0.06);
       }
-      .dlr-block { display: flex; flex-direction: column; gap: 8px; }
+      .dlr-block { display: flex; flex-direction: column; gap: 10px; }
+      .dlr-block--session { gap: 4px; }
+      .dlr-block--kbd {
+        padding-top: 24px;
+        border-top: 0.5px solid rgba(255,255,255,0.06);
+      }
       .dlr-heading {
         font-size: 10px; font-weight: 600; letter-spacing: 1.6px;
         text-transform: uppercase; color: var(--text-3);
@@ -1258,28 +1294,36 @@
         display: inline-flex; align-items: center; justify-content: center;
         min-width: 26px; height: 24px; padding: 0 7px;
         border-radius: 6px;
-        background: rgba(255,255,255,0.07);
-        border: 0.5px solid rgba(255,255,255,0.12);
+        background: rgba(255,255,255,0.06);
+        border: 0.5px solid rgba(255,255,255,0.1);
         font-family: inherit; font-size: 11px; font-weight: 600;
         color: var(--text);
         flex-shrink: 0;
+      }
+      .dlr-filter-row {
+        display: flex; flex-wrap: wrap; gap: 6px;
       }
       .dlr-cat-pill,
       .dlr-filter-pill {
         display: inline-flex; align-items: center;
         padding: 6px 12px; border-radius: 100px;
-        background: rgba(255,255,255,0.05);
-        border: 0.5px solid rgba(255,255,255,0.1);
-        font-size: 12px; font-weight: 600; color: var(--text);
+        background: rgba(124,58,237,0.12);
+        border: 0.5px solid rgba(124,58,237,0.22);
+        font-size: 12px; font-weight: 600; color: var(--accent-mid);
         width: fit-content; max-width: 100%;
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       }
-      .dlr-filter-pill { color: var(--text-2); font-weight: 500; }
-      .dlr-stats { display: flex; gap: 20px; }
-      .dlr-stat { display: flex; flex-direction: column; gap: 2px; }
+      .dlr-filter-pill {
+        color: var(--text-2); font-weight: 500;
+        background: rgba(255,255,255,0.05);
+        border-color: rgba(255,255,255,0.1);
+      }
+      .dlr-stats { display: flex; gap: 28px; }
+      .dlr-stat { display: flex; flex-direction: column; gap: 3px; }
       .dlr-stat-val {
-        font-size: 22px; font-weight: 700; letter-spacing: -0.03em;
+        font-size: 30px; font-weight: 700; letter-spacing: -0.04em;
         color: var(--text); line-height: 1;
+        font-variant-numeric: tabular-nums;
       }
       .dlr-stat-val--accent { color: var(--accent-mid); }
       .dlr-stat-lbl { font-size: 11px; color: var(--text-3); }
@@ -1307,7 +1351,7 @@
       body.discover-active .beat-card.fly-right { transform: translateX(200%) rotate(14deg); }
       #discoverScreen .action-row {
         flex-shrink: 0;
-        padding-bottom: 28px;
+        padding-bottom: 48px;
       }
       @media (min-width: 1100px) {
         body.discover-active .desktop-right {
@@ -1323,8 +1367,7 @@
           width: var(--sidebar-w);
           z-index: 5;
           overflow: hidden;
-          background: rgba(255,255,255,0.025);
-          border-left: 0.5px solid rgba(255,255,255,0.07);
+          background: linear-gradient(90deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.018) 100%);
         }
       }
       @media (min-width: 1281px) {
@@ -1594,23 +1637,23 @@
         border-radius: 18px;
       }
       @media (min-width: 1100px) {
+        /* Same whole-block centering as Favorites/My Page: the grid (main + gap + sidebar)
+           is centered as ONE unit, not the main column alone — otherwise the block sits
+           174px right of true center (half of gap + sidebar width). */
         body.profile-active #profileScreen .page-inner--wide:has(.profile-side-panel:not([hidden])) {
-          width: auto;
-          max-width: none;
-          margin-left: max(var(--px), calc((100vw - var(--w-page)) / 2));
-          margin-right: var(--px);
+          width: 100%;
+          max-width: min(calc(var(--w-page) + 48px + 300px), 100%);
+          margin-inline: auto;
         }
         body.profile-active .profile-layout:has(.profile-side-panel:not([hidden])) {
-          display: flex;
-          flex-direction: row;
-          align-items: flex-start;
+          display: grid;
+          grid-template-columns: minmax(0, var(--w-page)) 300px;
           gap: 48px;
-          width: fit-content;
+          align-items: start;
         }
         body.profile-active .profile-main-col {
-          width: var(--w-page);
+          width: 100%;
           max-width: 100%;
-          flex: 0 0 var(--w-page);
           min-width: 0;
           margin-inline: 0;
         }
@@ -1625,8 +1668,7 @@
           display: block;
           position: sticky;
           top: calc(var(--topbar-h) + 24px);
-          width: 300px;
-          flex: 0 0 300px;
+          width: 100%;
         }
       }
       @keyframes cratePreviewEnter {
@@ -1880,7 +1922,7 @@
       }
       body.site-scroll .submit-btn,
       body.site-scroll .save-profile-btn {
-        border-radius: 12px;
+        border-radius: 14px;
         font-weight: 600;
       }
       /* Laptop / compact desktop — single-column landing + compact mockup */
@@ -2418,7 +2460,7 @@
     .yt-link { font-size: 11px; color: var(--text-3); text-decoration: none; display: flex; align-items: center; gap: 4px; transition: color 0.2s; }
     .yt-link:hover { color: var(--accent-mid); }
 
-    .swipe-hint { display: flex; justify-content: center; gap: 28px; padding: 6px 0 2px; flex-shrink: 0; }
+    .swipe-hint { display: none; justify-content: center; gap: 28px; padding: 6px 0 2px; flex-shrink: 0; }
     .hint { font-size: 11px; color: var(--text-3); display: flex; align-items: center; gap: 4px; }
     .action-row { display: flex; align-items: center; justify-content: center; gap: 36px; padding: 12px var(--px) 20px; flex-shrink: 0; }
     .act-btn {
@@ -4305,10 +4347,10 @@
     }
 
     /* Website chrome — desktop-only (shown @ 900px+) */
-    .site-page-head,
-    .hero-visual,
-    .land-section-head { display: none; }
     @media (max-width: 899px) {
+      .site-page-head,
+      .hero-visual,
+      .land-section-head { display: none; }
       #landScreen .site-footer {
         display: flex;
         flex-direction: column;
@@ -4479,7 +4521,6 @@
         align-items: center;
       }
       #discoverScreen .discover-toolbar-top .wordmark { display: none; }
-      #discoverScreen .swipe-hint { display: none; }
       #discoverScreen .discover-toolbar {
         gap: 8px;
         padding: var(--py) var(--px) 6px;
