@@ -128,6 +128,7 @@
     /* Discover ambient — side atmosphere on wide desktop */
     .discover-ambient { display: none; pointer-events: none; }
     .discover-left-rail { display: none; }
+    .portfolio-left-rail { display: none; }
 
     /* Portfolio /p/ — drifting aurora */
     .portfolio-ambient {
@@ -925,11 +926,11 @@
       .play-btn { box-shadow: 0 2px 12px rgba(124,58,237,0.22); }
       body.discover-active #discoverScreen .btn-skip,
       body.discover-active #discoverScreen .btn-save {
-        width: 62px;
-        height: 62px;
+        width: 68px;
+        height: 68px;
       }
-      body.discover-active #discoverScreen .btn-skip i { font-size: 26px; }
-      body.discover-active #discoverScreen .btn-save i { font-size: 28px; }
+      body.discover-active #discoverScreen .btn-skip i { font-size: 28px; }
+      body.discover-active #discoverScreen .btn-save i { font-size: 30px; }
       .yt-play-icon { box-shadow: 0 4px 16px rgba(124,58,237,0.26); }
       body:not(.portfolio-active) .desktop-topbar {
         background: transparent;
@@ -2320,7 +2321,7 @@
 
     .swipe-hint { display: flex; justify-content: center; gap: 28px; padding: 6px 0 2px; flex-shrink: 0; }
     .hint { font-size: 11px; color: var(--text-3); display: flex; align-items: center; gap: 4px; }
-    .action-row { display: flex; align-items: center; justify-content: center; gap: 32px; padding: 12px var(--px) 20px; flex-shrink: 0; }
+    .action-row { display: flex; align-items: center; justify-content: center; gap: 36px; padding: 12px var(--px) 20px; flex-shrink: 0; }
     .act-btn {
       border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
@@ -2333,7 +2334,7 @@
       outline-offset: 3px;
     }
     .btn-skip {
-      width: 58px; height: 58px;
+      width: 64px; height: 64px;
       background: rgba(255,255,255,0.07);
       backdrop-filter: blur(20px) saturate(160%);
       -webkit-backdrop-filter: blur(20px) saturate(160%);
@@ -2341,16 +2342,16 @@
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 2px 8px rgba(0,0,0,0.2), 0 8px 24px rgba(0,0,0,0.14);
     }
     .btn-skip i {
-      font-size: 24px;
+      font-size: 26px;
       color: #ff6961;
     }
     .btn-save {
-      width: 58px; height: 58px;
+      width: 64px; height: 64px;
       background: linear-gradient(180deg, #8B5CF6 0%, var(--accent) 100%);
       border: none !important;
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 2px 8px rgba(0,0,0,0.14), 0 8px 28px rgba(124,58,237,0.36);
     }
-    .btn-save i { font-size: 26px; color: #fff; }
+    .btn-save i { font-size: 28px; color: #fff; }
     @media (hover: hover) {
       .btn-skip:hover {
         background: rgba(255,255,255,0.1);
@@ -2758,8 +2759,44 @@
     }
     #portfolioPageInner {
       display: grid;
-      grid-template-rows: auto minmax(0, 1fr) auto auto;
+      grid-template-rows: auto minmax(0, 1fr) auto auto auto;
       height: 100%;
+    }
+    #portfolioPageInner.page-inner--swipe-done .portfolio-kbd-row {
+      display: none;
+    }
+    .portfolio-kbd-row {
+      display: none;
+      flex-shrink: 0;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 18px 22px;
+      padding: 2px 0 4px;
+      font-size: 11px;
+      color: var(--text-3);
+      user-select: none;
+    }
+    .portfolio-kbd-hint {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .portfolio-kbd-hint kbd {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 24px;
+      height: 22px;
+      padding: 0 6px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.06);
+      border: 0.5px solid rgba(255,255,255,0.1);
+      font-family: inherit;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-2);
     }
     #portfolioPageInner.page-inner--swipe-done .portfolio-action-row {
       display: none;
@@ -2785,10 +2822,14 @@
       overflow: hidden;
     }
     #portfolioPageInner.page-inner--swipe-done .portfolio-card-slot {
-      justify-content: center;
-      padding-bottom: 96px;
+      justify-content: flex-start;
+      padding-top: 12px;
+      padding-bottom: 24px;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
+    }
+    #portfolioPageInner.page-inner--swipe-done .portfolio-surface {
+      width: 100%;
     }
     #portfolioCardWrap .card-stage,
     #portfolioCardWrap .portfolio-surface,
@@ -3042,6 +3083,107 @@
       cursor: pointer;
     }
     .portfolio-foot a:hover { text-decoration: underline; }
+    .portfolio-side-panel { display: none; }
+    .portfolio-side-panel[hidden] { display: none !important; }
+    .portfolio-side-card {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      width: 100%;
+    }
+    .portfolio-side-head {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      text-align: center;
+    }
+    .portfolio-side-avatar,
+    .portfolio-side-avatar-fallback {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      object-fit: cover;
+    }
+    .portfolio-side-avatar-fallback {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 700;
+      border: 1.5px solid;
+    }
+    .portfolio-side-name {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      color: var(--text);
+      line-height: 1.2;
+    }
+    .portfolio-side-bio {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.55;
+      color: var(--text-2);
+      text-align: center;
+    }
+    .portfolio-side-card .portfolio-socials {
+      justify-content: center;
+    }
+    .portfolio-side-store {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: 12px;
+      background: rgba(124,58,237,0.16);
+      border: 0.5px solid rgba(124,58,237,0.32);
+      color: var(--accent-mid);
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+    .portfolio-side-store:hover {
+      background: rgba(124,58,237,0.24);
+      border-color: rgba(124,58,237,0.45);
+    }
+    .portfolio-side-store i { font-size: 15px; }
+    .portfolio-side-divider {
+      height: 0.5px;
+      background: rgba(255,255,255,0.08);
+      margin: 4px 0;
+    }
+    .portfolio-side-brand {
+      margin: 0;
+      font-size: 11px;
+      color: var(--text-3);
+      text-align: center;
+    }
+    .portfolio-side-brand strong { color: var(--text-2); font-weight: 600; }
+    .portfolio-side-cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.05);
+      border: 0.5px solid rgba(255,255,255,0.1);
+      color: var(--text-2);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+    .portfolio-side-cta:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.16);
+      color: var(--text);
+    }
     .portfolio-done {
       width: 100%;
       box-sizing: border-box;
@@ -3063,61 +3205,135 @@
       line-height: 1.5;
       text-align: center;
     }
+    .portfolio-done-layout {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+      min-width: 0;
+    }
+    .portfolio-done-main {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-width: 0;
+    }
+    .portfolio-done-list-panel {
+      min-width: 0;
+      background: rgba(255,255,255,0.025);
+      border: 0.5px solid rgba(255,255,255,0.07);
+      border-radius: 18px;
+      overflow: hidden;
+      padding: 10px;
+      box-sizing: border-box;
+    }
     .portfolio-done-list {
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      margin-bottom: 16px;
+      gap: 4px;
       text-align: left;
+      min-width: 0;
+      min-height: 0;
+      max-height: min(52vh, 440px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
-    .portfolio-done-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px 14px;
-      background: var(--bg-3);
-      border: none;
-      border-radius: 14px;
+    body.portfolio-swipe-done .portfolio-done-list .crate-card {
+      cursor: pointer;
+      border-radius: 10px;
+      padding: 12px;
+      border-bottom: none;
+      width: 100%;
+      box-sizing: border-box;
     }
-    .portfolio-done-meta { flex: 1; min-width: 0; }
-    .portfolio-done-title {
-      font-size: 14px;
-      font-weight: 600;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+    body.portfolio-swipe-done .portfolio-done-list .crate-card--selected {
+      background: rgba(124,58,237,0.12);
     }
-    .portfolio-done-tags { font-size: 11px; color: var(--text-3); margin-top: 2px; }
-    .portfolio-done-buy {
-      flex-shrink: 0;
-      padding: 8px 14px;
-      border-radius: 100px;
-      background: var(--accent);
-      color: #fff;
+    body.portfolio-swipe-done .portfolio-done-list .crate-card:hover {
+      background: rgba(255,255,255,0.04);
+    }
+    body.portfolio-swipe-done .portfolio-done-list .crate-action-btn {
+      background: rgba(124,58,237,0.12);
+      padding: 7px 13px;
       font-size: 12px;
-      font-weight: 600;
-      text-decoration: none;
+    }
+    body.portfolio-swipe-done .portfolio-done-list .crate-action-btn:hover {
+      background: rgba(124,58,237,0.22);
+    }
+    .portfolio-done-preview-panel {
+      display: none;
+      min-width: 0;
+    }
+    .portfolio-done-preview-panel[hidden] {
+      display: none !important;
+    }
+    @media (min-width: 1100px) {
+      body.portfolio-swipe-done .portfolio-done-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 340px;
+        gap: 32px;
+        align-items: start;
+      }
+      body.portfolio-swipe-done .portfolio-done-list {
+        max-height: min(62vh, 560px);
+      }
+      body.portfolio-swipe-done .portfolio-done-preview-panel {
+        display: block;
+        position: sticky;
+        top: 24px;
+      }
+    }
+    @media (min-width: 600px) and (max-width: 1099px) {
+      body.portfolio-active.portfolio-swipe-done .shell {
+        width: min(720px, calc(100vw - 48px));
+        max-width: min(720px, calc(100vw - 48px));
+        flex: 0 0 auto;
+      }
     }
     .portfolio-done-guest {
       font-size: 12px;
       color: var(--text-3);
-      margin-bottom: 14px;
+      margin: 0;
       line-height: 1.45;
       text-align: center;
+      max-width: 420px;
     }
-    .portfolio-done-guest a { color: var(--accent-mid); cursor: pointer; text-decoration: none; }
+    .portfolio-done-foot {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 0;
+      padding-top: 4px;
+      width: 100%;
+      text-align: center;
+    }
+    .portfolio-done-foot:empty {
+      display: none;
+    }
     .portfolio-replay-btn {
-      margin-top: 4px;
-      padding: 12px 22px;
-      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin: 0;
+      padding: 11px 20px;
+      border-radius: 100px;
       background: var(--bg-3);
       border: 0.5px solid var(--border-2);
       color: var(--text-2);
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
-      width: 100%;
+      width: auto;
+      max-width: 100%;
+      white-space: nowrap;
       text-align: center;
+    }
+    .portfolio-replay-btn i {
+      font-size: 15px;
+      color: var(--accent-mid);
     }
     /* Portfolio mobile — one gutter column, full width, glow on page bg */
     @media (max-width: 599px) {
@@ -3154,8 +3370,16 @@
       }
       body.portfolio-active #portfolioScreen .action-row,
       body.portfolio-active .portfolio-action-row {
-        padding: 8px 0;
+        padding: 12px 0 14px;
+        gap: 48px;
       }
+      body.portfolio-active .portfolio-action-row .btn-skip,
+      body.portfolio-active .portfolio-action-row .btn-save {
+        width: 74px;
+        height: 74px;
+      }
+      body.portfolio-active .portfolio-action-row .btn-skip i { font-size: 32px; }
+      body.portfolio-active .portfolio-action-row .btn-save i { font-size: 34px; }
       body.portfolio-active .portfolio-foot {
         padding: 8px 0 calc(env(safe-area-inset-bottom, 0px) + 12px);
       }
@@ -3166,9 +3390,10 @@
         padding-top: 28px;
       }
       #portfolioPageInner.page-inner--swipe-done .portfolio-card-slot {
-        justify-content: center;
-        align-items: center;
-        padding-top: 0;
+        justify-content: flex-start;
+        align-items: stretch;
+        padding-top: 8px;
+        padding-bottom: 20px;
       }
       #portfolioCardWrap .portfolio-surface,
       #portfolioCardWrap .empty-card {
@@ -3232,6 +3457,13 @@
         overflow: hidden;
         --w-portfolio: min(400px, calc(100vw - 48px));
       }
+      body.portfolio-active .discover-kbd-hints,
+      body.portfolio-active .discover-side-hint {
+        display: none !important;
+      }
+      body.portfolio-active .portfolio-kbd-row {
+        display: flex;
+      }
       #portfolioCardWrap .yt-wrap {
         width: 100%;
         max-height: none;
@@ -3294,8 +3526,15 @@
       body.portfolio-active #portfolioScreen .action-row,
       body.portfolio-active .portfolio-action-row {
         padding: 12px 0 8px;
-        gap: 40px;
+        gap: 44px;
       }
+      body.portfolio-active .portfolio-action-row .btn-skip,
+      body.portfolio-active .portfolio-action-row .btn-save {
+        width: 68px;
+        height: 68px;
+      }
+      body.portfolio-active .portfolio-action-row .btn-skip i { font-size: 28px; }
+      body.portfolio-active .portfolio-action-row .btn-save i { font-size: 30px; }
       body.portfolio-active .portfolio-foot {
         padding: 10px 0 calc(env(safe-area-inset-bottom, 0px) + 20px);
       }
@@ -3305,9 +3544,10 @@
         overflow: visible;
       }
       #portfolioPageInner.page-inner--swipe-done .portfolio-card-slot {
-        justify-content: center;
-        padding-top: 0;
-        padding-bottom: 96px;
+        justify-content: flex-start;
+        align-items: stretch;
+        padding-top: 8px;
+        padding-bottom: 28px;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
       }
@@ -3332,7 +3572,7 @@
         height: 52px;
       }
       .portfolio-name { font-size: 20px; }
-      .portfolio-done {
+      .portfolio-surface .portfolio-done--simple {
         padding: 28px 26px;
         background: rgba(17,17,19,0.36);
         backdrop-filter: blur(22px) saturate(1.22);
@@ -3379,40 +3619,6 @@
       }
       body.portfolio-active .discover-ambient-glow {
         display: none;
-      }
-      body.portfolio-active .discover-side-hint {
-        font-size: 11px;
-        letter-spacing: 2px;
-        opacity: 0.42;
-        gap: 12px;
-        transition: opacity 0.18s ease, visibility 0.18s ease;
-      }
-      body.portfolio-active.swipe-card-dragging .discover-side-hint,
-      body.portfolio-active:has(#portfolioCardWrap .portfolio-surface.dragging) .discover-side-hint,
-      body.portfolio-active:has(#portfolioCardWrap .portfolio-surface.fly-left) .discover-side-hint,
-      body.portfolio-active:has(#portfolioCardWrap .portfolio-surface.fly-right) .discover-side-hint,
-      body.portfolio-active:has(#portfolioCardWrap .portfolio-surface.portfolio-fly-clone) .discover-side-hint {
-        opacity: 0 !important;
-        visibility: hidden;
-      }
-      body.portfolio-active #portfolioCardWrap .portfolio-surface.dragging,
-      body.portfolio-active #portfolioCardWrap .portfolio-surface.fly-left,
-      body.portfolio-active #portfolioCardWrap .portfolio-surface.fly-right,
-      body.portfolio-active #portfolioCardWrap .portfolio-surface.portfolio-fly-clone {
-        background: rgba(17,17,19,0.82);
-        backdrop-filter: blur(20px) saturate(1.1);
-        -webkit-backdrop-filter: blur(20px) saturate(1.1);
-      }
-      body.portfolio-active .discover-side-hint i { font-size: 26px; }
-      body.portfolio-active .discover-side-hint--skip {
-        display: flex;
-        left: max(24px, calc(50% - var(--w-portfolio) / 2 - 68px));
-        color: #f87171;
-      }
-      body.portfolio-active .discover-side-hint--save {
-        display: flex;
-        left: calc(50% + var(--w-portfolio) / 2 + 48px);
-        color: var(--accent-mid);
       }
       body.portfolio-active.portfolio-swipe-done .discover-side-hint,
       body.portfolio-active.portfolio-swipe-done .discover-kbd-hints {
@@ -3461,64 +3667,98 @@
       #portfolioCardWrap .portfolio-surface.fly-right {
         transition: transform 0.42s cubic-bezier(0.34, 1.2, 0.64, 1), opacity 0.35s ease;
       }
-      body.portfolio-active .discover-side-hint {
-        font-size: 12px;
-        opacity: 0.48;
-      }
-      body.portfolio-active .discover-side-hint i { font-size: 28px; }
-      body.portfolio-active .discover-side-hint--skip {
-        left: max(32px, calc(50% - var(--w-portfolio) / 2 - 80px));
-      }
-      body.portfolio-active .discover-side-hint--save {
-        left: calc(50% + var(--w-portfolio) / 2 + 56px);
-      }
-      /* Kbd hints — bundled column, below-card height, left of card (matches Discover) */
-      body.portfolio-active .discover-kbd-hints {
-        display: flex !important;
-        position: absolute;
-        left: max(20px, calc(50% - var(--w-portfolio) / 2 - 156px));
-        top: calc(50% + 212px);
-        bottom: auto;
-        transform: none;
-        flex-direction: column;
-        align-items: flex-end;
-        gap: 7px;
-        font-size: 12px;
-        color: var(--text-2);
-        opacity: 0.72;
-        pointer-events: none;
-        transition: opacity 0.18s ease, visibility 0.18s ease;
-      }
-      body.portfolio-active .discover-kbd-hints .discover-kbd-hint {
-        flex-direction: row-reverse;
-      }
-      body.portfolio-active .discover-kbd-hints .discover-kbd-hint kbd {
-        background: rgba(255,255,255,0.09);
-        border-color: rgba(255,255,255,0.16);
-        color: var(--text);
-      }
-      body.portfolio-active.swipe-card-dragging .discover-kbd-hints,
-      body.portfolio-active:has(#portfolioCardWrap .portfolio-surface.dragging) .discover-kbd-hints,
-      body.portfolio-active:has(#portfolioCardWrap .portfolio-surface.fly-left) .discover-kbd-hints,
-      body.portfolio-active:has(#portfolioCardWrap .portfolio-surface.fly-right) .discover-kbd-hints,
-      body.portfolio-active:has(#portfolioCardWrap .portfolio-surface.portfolio-fly-clone) .discover-kbd-hints {
-        opacity: 0 !important;
-        visibility: hidden;
+      body.portfolio-active #portfolioCardWrap .portfolio-surface.dragging,
+      body.portfolio-active #portfolioCardWrap .portfolio-surface.fly-left,
+      body.portfolio-active #portfolioCardWrap .portfolio-surface.fly-right,
+      body.portfolio-active #portfolioCardWrap .portfolio-surface.portfolio-fly-clone {
+        background: rgba(17,17,19,0.82);
+        backdrop-filter: blur(20px) saturate(1.1);
+        -webkit-backdrop-filter: blur(20px) saturate(1.1);
       }
     }
+    /* Portfolio laptop — 3-zone: left rail + swipe column + producer sidebar */
     @media (min-width: 1100px) {
-      body.portfolio-active .discover-side-hint--skip {
-        display: flex !important;
-        left: max(32px, calc(50% - var(--w-portfolio) / 2 - 72px));
+      body.portfolio-active {
+        --w-portfolio: 480px;
       }
-      body.portfolio-active .discover-side-hint--save {
-        display: flex !important;
-        left: calc(50% + var(--w-portfolio) / 2 + 40px);
+      body.portfolio-active .discover-left-rail,
+      body.portfolio-active .favorites-left-rail,
+      body.portfolio-active .mypage-left-rail,
+      body.portfolio-active .desktop-crate,
+      body.portfolio-active .discover-kbd-hints,
+      body.portfolio-active .discover-side-hint,
+      body.portfolio-active .portfolio-kbd-row,
+      body.portfolio-active .portfolio-foot {
+        display: none !important;
       }
-      body.portfolio-active .discover-kbd-hints {
-        left: max(28px, calc(50% - var(--w-portfolio) / 2 - 168px));
-        top: calc(50% + 220px);
-        gap: 8px;
+      body.portfolio-active .portfolio-left-rail {
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: var(--discover-left);
+        z-index: 4;
+        padding: 36px 16px 28px 24px;
+        box-sizing: border-box;
+        pointer-events: auto;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        border-right: 0.5px solid rgba(255,255,255,0.06);
+      }
+      body.portfolio-active .portfolio-side-panel:not([hidden]) {
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: var(--sidebar-w);
+        z-index: 5;
+        padding: 36px 20px 28px;
+        box-sizing: border-box;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        background: rgba(255,255,255,0.025);
+        border-left: 0.5px solid rgba(255,255,255,0.07);
+      }
+      body.portfolio-active .desktop-right {
+        padding-left: var(--discover-left);
+        display: flex;
+        justify-content: center;
+        align-items: stretch;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      body.portfolio-active:has(#portfolioSidePanel:not([hidden])) .desktop-right {
+        padding-right: var(--sidebar-w);
+      }
+      body.portfolio-active .shell {
+        width: var(--w-portfolio);
+        max-width: var(--w-portfolio);
+        flex: 0 0 var(--w-portfolio);
+        margin-inline: auto;
+      }
+      body.portfolio-active.portfolio-swipe-done .shell {
+        width: min(1080px, calc(100vw - var(--discover-left) - 48px));
+        max-width: min(1080px, calc(100vw - var(--discover-left) - 48px));
+        flex: 0 0 auto;
+      }
+      body.portfolio-active #portfolioPageInner,
+      body.portfolio-active .page-inner--portfolio {
+        width: 100%;
+        max-width: none;
+        margin-inline: 0;
+      }
+      body.portfolio-active .portfolio-header .portfolio-bio,
+      body.portfolio-active .portfolio-header .portfolio-socials {
+        display: none;
+      }
+      body.portfolio-active #portfolioScreen .action-row,
+      body.portfolio-active .portfolio-action-row {
+        padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 24px);
       }
     }
 
@@ -3688,6 +3928,17 @@
 
     /* ── MOBILE MICRO-INTERACTIONS (<900px) ── */
     @media (max-width: 899px) {
+      #discoverScreen .action-row .btn-skip,
+      #discoverScreen .action-row .btn-save {
+        width: 74px;
+        height: 74px;
+      }
+      #discoverScreen .action-row .btn-skip i { font-size: 32px; }
+      #discoverScreen .action-row .btn-save i { font-size: 34px; }
+      #discoverScreen .action-row {
+        gap: 48px;
+        padding-bottom: 16px;
+      }
       .act-btn.is-pressed { transform: scale(0.88) !important; }
       .cat-pill.is-pressed,
       .discover-filter-btn.is-pressed,
@@ -3761,9 +4012,13 @@
       body.portfolio-active #portfolioPageInner.page-inner--swipe-done .portfolio-card-slot {
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
+        justify-content: flex-start;
+        align-items: stretch;
+        padding-top: 0;
+      }
+      body.portfolio-active #portfolioPageInner.page-inner--swipe-done .portfolio-card-slot:has(.portfolio-done--simple) {
         justify-content: center;
         align-items: center;
-        padding-top: 0;
       }
       #discoverScreen .discover-toolbar-top .wordmark { display: none; }
       #discoverScreen .swipe-hint { display: none; }

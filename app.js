@@ -1080,6 +1080,35 @@ function isYouTube(url) {
   return url && (url.includes('youtube.com') || url.includes('youtu.be'));
 }
 
+function resolveBeatBuyLink(beat) {
+  const raw = (beat?.buy || '').trim();
+  if (!raw) return '';
+  let buy = raw;
+  if (!/^https?:\/\//i.test(buy)) {
+    if (/^[\w.-]+\.[a-z]{2,}/i.test(buy)) buy = 'https://' + buy.replace(/^https?:\/\//i, '');
+    else return '';
+  }
+  const preview = (beat?.mp3 || '').trim();
+  if (preview && buy.replace(/\/$/, '') === preview.replace(/\/$/, '')) return '';
+  return buy;
+}
+
+function beatBuyAction(beat) {
+  const buy = resolveBeatBuyLink(beat);
+  if (buy) {
+    const u = buy.toLowerCase();
+    if (u.includes('beatstars.com')) return { link: buy, html: '<i class="ti ti-external-link"></i> BeatStars' };
+    if (u.includes('splice.com')) return { link: buy, html: '<i class="ti ti-external-link"></i> Splice' };
+    if (u.includes('loopmasters.com')) return { link: buy, html: '<i class="ti ti-external-link"></i> Loopmasters' };
+    if (u.includes('instagram.com')) return { link: buy, html: '<i class="ti ti-brand-instagram"></i> Instagram' };
+    return { link: buy, html: '<i class="ti ti-external-link"></i> Buy' };
+  }
+  const mp3 = (beat?.mp3 || '').trim();
+  if (isYouTube(mp3)) return { link: mp3, html: '<i class="ti ti-brand-youtube"></i> YouTube' };
+  if (isSoundCloud(mp3)) return { link: mp3, html: '<i class="ti ti-brand-soundcloud"></i> SoundCloud' };
+  return null;
+}
+
 function getYtId(url) {
   const m = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
   return m ? m[1] : null;
@@ -1444,7 +1473,7 @@ function renderCard(opts) {
     if (!canStartSwipe()) return false;
     if (_portfolioMode) {
       if (!el.closest('#portfolioPageInner')) return false;
-      if (el.closest('.portfolio-action-row,.act-btn,.portfolio-foot a')) return false;
+      if (el.closest('.portfolio-action-row,.act-btn,.portfolio-foot a,.portfolio-kbd-row')) return false;
     } else {
       if (!el.closest('#cardWrap')) return false;
       if (el.closest('.action-row,.act-btn,.discover-toolbar,.swipe-hint')) return false;
@@ -1954,10 +1983,10 @@ function buildCratePreviewHTML(d) {
       </div>
     </div>`;
   }
-  const hasBuy = d.buy && d.buy.startsWith('http') && d.buy !== d.mp3;
+  const hasBuy = resolveBeatBuyLink(d);
   let buyBtn = '';
   if (hasBuy) {
-    buyBtn = `<button class="crate-action-btn" onclick="window.open('${d.buy}','_blank')"><i class="ti ti-external-link"></i> Get this beat</button>`;
+    buyBtn = `<button class="crate-action-btn" onclick="window.open('${hasBuy.replace(/'/g, "\\'")}','_blank')"><i class="ti ti-external-link"></i> Get this beat</button>`;
   } else if (useYT) {
     buyBtn = `<button class="crate-action-btn" onclick="window.open('${d.mp3}','_blank')"><i class="ti ti-brand-youtube"></i> YouTube</button>`;
   } else if (useSC) {

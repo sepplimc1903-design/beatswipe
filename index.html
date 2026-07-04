@@ -146,6 +146,34 @@
       </button>
     </div>
   </aside>
+  <aside class="portfolio-left-rail" id="portfolioLeftRail" aria-label="Portfolio panel">
+    <div class="dlr-block">
+      <div class="dlr-heading">Shortcuts</div>
+      <div class="dlr-kbd">
+        <div class="dlr-kbd-row"><kbd>←</kbd><span>skip</span></div>
+        <div class="dlr-kbd-row"><kbd>→</kbd><span>save</span></div>
+        <div class="dlr-kbd-row"><kbd>Space</kbd><span>play</span></div>
+      </div>
+      <p class="dlr-kbd-note">Click card to swipe · in player, ← → seek</p>
+    </div>
+    <div class="dlr-block">
+      <div class="dlr-heading">Session</div>
+      <div class="dlr-stats">
+        <div class="dlr-stat">
+          <span class="dlr-stat-val" id="plrSkipped">0</span>
+          <span class="dlr-stat-lbl">skipped</span>
+        </div>
+        <div class="dlr-stat">
+          <span class="dlr-stat-val dlr-stat-val--accent" id="plrSaved">0</span>
+          <span class="dlr-stat-lbl">saved</span>
+        </div>
+      </div>
+    </div>
+    <div class="dlr-block">
+      <div class="dlr-heading">Progress</div>
+      <div class="dlr-cat-pill" id="plrProgress">—</div>
+    </div>
+  </aside>
 </div>
 
 <header class="desktop-topbar" id="desktopTopbar">
@@ -584,6 +612,11 @@
         <button class="act-btn btn-skip" onclick="doSwipe('left')" aria-label="Skip"><i class="ti ti-x"></i></button>
         <button class="act-btn btn-save" onclick="doSwipe('right')" aria-label="Save"><i class="ti ti-flame"></i></button>
       </div>
+      <div class="portfolio-kbd-row" aria-hidden="true">
+        <span class="portfolio-kbd-hint"><kbd>←</kbd> skip</span>
+        <span class="portfolio-kbd-hint"><kbd>→</kbd> save</span>
+        <span class="portfolio-kbd-hint"><kbd>Space</kbd> play</span>
+      </div>
       <div class="portfolio-foot">
         Powered by <span style="color:var(--text-2)">BeatSwipe</span> · <a onclick="goTo('landScreen','navHome')">Get your own page</a>
       </div>
@@ -959,6 +992,8 @@
     </div>
     <div class="dc-body" id="dcBody"></div>
   </aside>
+
+  <aside class="portfolio-side-panel" id="portfolioSidePanel" aria-label="Producer" hidden></aside>
 
   </div><!-- /desktop-right -->
   </div><!-- /desktop-layout -->

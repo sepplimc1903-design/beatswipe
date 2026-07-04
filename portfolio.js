@@ -167,67 +167,123 @@ function getPortfolioList() {
 }
 
 function getPortfolioSavedBeats() {
-  const ids = new Set(_portfolioBeats.map(b => b.id));
-  return crate.filter(b => ids.has(b.id));
+  const beatMap = new Map(_portfolioBeats.map(b => [b.id, b]));
+  return crate
+    .filter(b => beatMap.has(b.id))
+    .map(b => ({ ...b, ...beatMap.get(b.id) }));
+}
+
+let _portfolioDoneSelectedId = null;
+
+function renderPortfolioDoneList() {
+  const list = document.getElementById('portfolioDoneList');
+  if (!list) return;
+  const saved = getPortfolioSavedBeats();
+  list.innerHTML = saved.map(d => {
+    const sel = d.id === _portfolioDoneSelectedId ? ' crate-card--selected' : '';
+    const action = beatBuyAction(d);
+    const id = String(d.id).replace(/'/g, "\\'");
+    const actionHTML = action
+      ? `<button class="crate-action-btn" onclick="event.stopPropagation();window.open('${action.link.replace(/'/g, "\\'")}','_blank')">${action.html}</button>`
+      : '';
+    return `<div class="crate-card${sel}" onclick="selectPortfolioDoneBeat('${id}')">
+      <div class="mini-cover"><i class="ti ti-music"></i></div>
+      <div class="crate-info">
+        <div class="crate-name">${escHtml(d.title)}</div>
+        <div class="crate-meta">${escHtml(d.bpm)} · ${escHtml(d.genre)} · ${escHtml(d.type)}</div>
+      </div>
+      ${actionHTML ? `<div class="crate-actions">${actionHTML}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function renderPortfolioDonePreview() {
+  const panel = document.getElementById('portfolioDonePreviewPanel');
+  if (!panel) return;
+  const beat = getPortfolioSavedBeats().find(b => b.id === _portfolioDoneSelectedId);
+  const html = beat ? buildCratePreviewHTML(beat) : buildCratePreviewHTML(null);
+  panel.hidden = false;
+  panel.innerHTML = html;
+  applyCratePreviewAudio(beat || null);
+}
+
+function selectPortfolioDoneBeat(id) {
+  if (_portfolioDoneSelectedId === id) return;
+  _portfolioDoneSelectedId = id;
+  renderPortfolioDoneList();
+  renderPortfolioDonePreview();
+}
+
+function initPortfolioDoneView() {
+  const saved = getPortfolioSavedBeats();
+  if (!saved.length) return;
+  _portfolioDoneSelectedId = saved[0].id;
+  renderPortfolioDoneList();
+  renderPortfolioDonePreview();
 }
 
 function buildPortfolioDoneHTML() {
+  _portfolioDoneSelectedId = null;
   if (_portfolioPreview) {
     const skipped = _portfolioSkipped.length;
     const replayBtn = skipped > 0 ? `
       <button type="button" class="portfolio-replay-btn" onclick="replayPortfolioSkipped()">
-        <i class="ti ti-refresh" style="font-size:15px;color:var(--accent-mid);vertical-align:-2px;margin-right:6px"></i>Replay ${skipped} skipped beat${skipped === 1 ? '' : 's'}
+        <i class="ti ti-refresh"></i>Replay ${skipped} skipped beat${skipped === 1 ? '' : 's'}
       </button>` : '';
-    return `<div class="portfolio-surface"><div class="portfolio-done">
+    return `<div class="portfolio-surface"><div class="portfolio-done portfolio-done--simple">
       <div class="portfolio-done-head"><i class="ti ti-check"></i>Preview complete</div>
       <div class="portfolio-done-sub">This is what fans see from your bio link. Saves here are not stored.</div>
-      ${replayBtn}
+      ${replayBtn ? `<div class="portfolio-done-foot">${replayBtn}</div>` : ''}
     </div></div>`;
   }
   const saved = getPortfolioSavedBeats();
   const skipped = _portfolioSkipped.length;
   const replayBtn = skipped > 0 ? `
     <button type="button" class="portfolio-replay-btn" onclick="replayPortfolioSkipped()">
-      <i class="ti ti-refresh" style="font-size:15px;color:var(--accent-mid);vertical-align:-2px;margin-right:6px"></i>Replay ${skipped} skipped beat${skipped === 1 ? '' : 's'}
+      <i class="ti ti-refresh"></i>Replay ${skipped} skipped beat${skipped === 1 ? '' : 's'}
     </button>` : '';
   const guestHint = !currentUser && saved.length
-    ? `<p class="portfolio-done-guest">Your saves stay on this device. Visit beatswipe.app to create a free account.</p>`
+    ? `<p class="portfolio-done-guest">Your saves stay on this device — bookmark this page to listen again.</p>`
+    : '';
+  const doneFoot = (guestHint || replayBtn)
+    ? `<div class="portfolio-done-foot">${guestHint}${replayBtn}</div>`
     : '';
 
   if (saved.length) {
-    const savedList = saved.map(b => {
-      const hasBuy = b.buy && b.buy.startsWith('http') && b.buy !== b.mp3;
-      const buyUrl = hasBuy ? b.buy : ((isYouTube(b.mp3) || isSoundCloud(b.mp3)) ? b.mp3 : '');
-      const buyLink = buyUrl
-        ? `<a href="${buyUrl}" target="_blank" rel="noopener" class="portfolio-done-buy">Buy</a>`
-        : '';
-      return `<div class="portfolio-done-item">
-        <div class="portfolio-done-meta">
-          <div class="portfolio-done-title">${escHtml(b.title)}</div>
-          <div class="portfolio-done-tags">${escHtml(b.bpm)} · ${escHtml(b.genre)} · ${escHtml(b.type)}</div>
-        </div>
-        ${buyLink}
-      </div>`;
-    }).join('');
-    return `<div class="portfolio-surface"><div class="portfolio-done">
+    return `<div class="portfolio-done portfolio-done--results">
       <div class="portfolio-done-head"><i class="ti ti-flame"></i>You saved ${saved.length} beat${saved.length === 1 ? '' : 's'}</div>
-      <div class="portfolio-done-sub">License directly from ${_portfolioProducer ? escHtml(_portfolioProducer) : 'the producer'}.</div>
-      <div class="portfolio-done-list">${savedList}</div>
-      ${guestHint}
-      ${replayBtn}
-    </div></div>`;
+      <div class="portfolio-done-sub">Tap a beat to preview · license from ${_portfolioProducer ? escHtml(_portfolioProducer) : 'the producer'}.</div>
+      <div class="portfolio-done-layout">
+        <div class="portfolio-done-main">
+          <div class="portfolio-done-list-panel">
+            <div class="portfolio-done-list" id="portfolioDoneList"></div>
+          </div>
+          ${doneFoot}
+        </div>
+        <aside class="portfolio-done-preview-panel" id="portfolioDonePreviewPanel" aria-label="Beat preview"></aside>
+      </div>
+    </div>`;
   }
 
-  return `<div class="portfolio-surface"><div class="portfolio-done">
+  return `<div class="portfolio-surface"><div class="portfolio-done portfolio-done--simple">
     <div class="portfolio-done-head"><i class="ti ti-check"></i>All caught up</div>
     <div class="portfolio-done-sub">You swiped through every beat from ${_portfolioProducer ? escHtml(_portfolioProducer) : 'this producer'}.</div>
-    ${replayBtn}
+    ${replayBtn ? `<div class="portfolio-done-foot">${replayBtn}</div>` : ''}
   </div></div>`;
 }
 
 function setPortfolioDoneMode(on) {
   document.getElementById('portfolioPageInner')?.classList.toggle('page-inner--swipe-done', !!on);
   document.body.classList.toggle('portfolio-swipe-done', !!on);
+  const sidePanel = document.getElementById('portfolioSidePanel');
+  if (on) {
+    if (sidePanel) {
+      sidePanel.hidden = true;
+      sidePanel.innerHTML = '';
+    }
+  } else if (_portfolioProducer) {
+    renderPortfolioSidePanel(_portfolioProducer, _portfolioProfile);
+  }
 }
 
 function getPortfolioFlyEl() {
@@ -370,8 +426,8 @@ function buildBeatCardHTML(d, opts) {
   const ytId = useYT ? getYtId(d.mp3) : null;
   const embedSrc = ytId ? getYtEmbedBase(ytId) : '';
   const scEmbedSrc = useSC ? `https://w.soundcloud.com/player/?url=${encodeURIComponent(d.mp3)}&color=%237C3AED&auto_play=${_audioUnlocked ? 'true' : 'false'}&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false` : '';
-  const hasBuy = d.buy && d.buy.startsWith('http') && d.buy !== d.mp3;
-  const buyUrl = hasBuy ? d.buy : (useYT || useSC ? d.mp3 : d.buy);
+  const buyLink = resolveBeatBuyLink(d);
+  const buyUrl = buyLink || ((useYT || useSC) ? d.mp3 : '');
   const playerHTML = useYT ? `
     <div class="yt-wrap">
       <iframe id="ytFrame" data-src="${embedSrc}" src="about:blank" tabindex="-1"
@@ -556,6 +612,77 @@ function showPortfolioLoadingState(slug) {
   setPortfolioGlow('#7C3AED');
 }
 
+function portfolioDesktopLayout() {
+  return typeof isDesktop === 'function' && isDesktop() && window.matchMedia('(min-width: 1100px)').matches;
+}
+
+function getPortfolioSessionSavedCount() {
+  if (!_portfolioBeats.length) return 0;
+  const ids = new Set(_portfolioBeats.map(b => b.id));
+  return crate.filter(b => ids.has(b.id)).length;
+}
+
+function updatePortfolioLeftRail() {
+  if (!_portfolioMode || !portfolioDesktopLayout()) return;
+  const skippedEl = document.getElementById('plrSkipped');
+  const savedEl = document.getElementById('plrSaved');
+  const progressEl = document.getElementById('plrProgress');
+  if (skippedEl) skippedEl.textContent = String(_portfolioSkipped.length);
+  if (savedEl) savedEl.textContent = String(getPortfolioSessionSavedCount());
+  if (progressEl) {
+    const list = getPortfolioList();
+    const total = _portfolioBeats.length;
+    if (!total) progressEl.textContent = '—';
+    else if (!list.length) progressEl.textContent = 'Done';
+    else progressEl.textContent = `${total - list.length} / ${total} beats`;
+  }
+}
+
+function clearPortfolioDesktopPanels() {
+  const panel = document.getElementById('portfolioSidePanel');
+  if (panel) {
+    panel.hidden = true;
+    panel.innerHTML = '';
+  }
+}
+
+function renderPortfolioSidePanel(producerName, profile) {
+  const panel = document.getElementById('portfolioSidePanel');
+  if (!panel) return;
+  if (document.body.classList.contains('portfolio-swipe-done')) return;
+  if (!_portfolioMode || !portfolioDesktopLayout() || !producerName) {
+    panel.hidden = true;
+    panel.innerHTML = '';
+    return;
+  }
+  const p = profile || _portfolioProfile || {};
+  const hex = (_portfolioBeats[0]?.color && String(_portfolioBeats[0].color).startsWith('#'))
+    ? _portfolioBeats[0].color : '#7C3AED';
+  const avatarEl = p.avatar_url
+    ? `<img src="${escHtml(p.avatar_url)}" class="portfolio-side-avatar" alt="">`
+    : `<div class="portfolio-side-avatar-fallback" style="background:${hex}20;border-color:${hex}80;color:${hex}">${escHtml(portfolioInitials(producerName))}</div>`;
+  const bio = p.bio ? escHtml(p.bio) : 'Independent producer';
+  const socials = buildPortfolioSocialsHTML(p);
+  const beatstarsHref = buildSocialHref('beatstars', p.beatstars);
+  const storeBtn = beatstarsHref
+    ? `<a href="${escHtml(beatstarsHref)}" target="_blank" rel="noopener" class="portfolio-side-store"><i class="ti ti-shopping-bag"></i> Shop beats</a>`
+    : '';
+  panel.hidden = false;
+  panel.innerHTML = `
+    <div class="portfolio-side-card">
+      <div class="portfolio-side-head">
+        ${avatarEl}
+        <div class="portfolio-side-name">${escHtml(producerName)}</div>
+      </div>
+      <p class="portfolio-side-bio">${bio}</p>
+      ${socials}
+      ${storeBtn}
+      <div class="portfolio-side-divider" aria-hidden="true"></div>
+      <p class="portfolio-side-brand">Powered by <strong>BeatSwipe</strong></p>
+      <button type="button" class="portfolio-side-cta" onclick="goTo('landScreen','navHome')">Get your own page</button>
+    </div>`;
+}
+
 function updatePortfolioProgress() {
   const list = getPortfolioList();
   const total = _portfolioBeats.length;
@@ -564,17 +691,20 @@ function updatePortfolioProgress() {
   if (!total) {
     if (counter) counter.textContent = '…';
     if (fill) fill.style.width = '0%';
+    updatePortfolioLeftRail();
     return;
   }
   if (!list.length) {
     if (counter) counter.textContent = 'Done';
     if (fill) fill.style.width = '100%';
+    updatePortfolioLeftRail();
     return;
   }
   const current = total - list.length + 1;
   const done = total - list.length;
   if (counter) counter.textContent = current + ' / ' + total;
   if (fill) fill.style.width = Math.min(100, (done / total) * 100) + '%';
+  updatePortfolioLeftRail();
 }
 
 function renderPortfolioHeader(producerName, profile, color) {
@@ -598,6 +728,7 @@ function renderPortfolioHeader(producerName, profile, color) {
     </div>
     <div class="portfolio-progress"><div class="portfolio-progress-fill" id="portfolioProgressFill" style="width:0%"></div></div>`;
   updatePortfolioProgress();
+  renderPortfolioSidePanel(producerName, profile);
 }
 
 function setPortfolioGlow(color) {
@@ -625,6 +756,7 @@ function renderPortfolioCard() {
     } else {
       slot.innerHTML = buildPortfolioDoneHTML();
       spawnPortfolioConfetti();
+      requestAnimationFrame(() => initPortfolioDoneView());
     }
     return;
   }
@@ -677,6 +809,8 @@ function replayPortfolioSkipped() {
     _portfolioPreviewPassed = _portfolioPreviewPassed.filter(id => !skippedSet.has(id));
   }
   _portfolioSkipped = [];
+  _portfolioDoneSelectedId = null;
+  stopTrack();
   setPortfolioDoneMode(false);
   renderPortfolioCard();
 }
@@ -758,6 +892,7 @@ function exitPortfolioMode() {
   _portfolioProducer = null;
   document.body.classList.remove('portfolio-active', 'portfolio-swipe-done');
   document.body.style.removeProperty('--pf-glow');
+  clearPortfolioDesktopPanels();
   resetSiteMeta();
 }
 
@@ -776,6 +911,7 @@ async function handlePortfolioPopstate() {
     _portfolioPreviewPassed = [];
     _portfolioProducer = null;
     document.body.classList.remove('portfolio-active', 'portfolio-swipe-done');
+    clearPortfolioDesktopPanels();
     resetSiteMeta();
     stopTrack();
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -807,3 +943,19 @@ function copyPortfolioLink(ev) {
     prompt('Copy your portfolio link:', url);
   }
 }
+
+let _portfolioLayoutTimer;
+window.addEventListener('resize', () => {
+  if (!_portfolioMode) return;
+  clearTimeout(_portfolioLayoutTimer);
+  _portfolioLayoutTimer = setTimeout(() => {
+    if (_portfolioProducer) {
+      if (document.body.classList.contains('portfolio-swipe-done')) {
+        renderPortfolioDonePreview();
+      } else {
+        renderPortfolioSidePanel(_portfolioProducer, _portfolioProfile);
+      }
+      updatePortfolioLeftRail();
+    }
+  }, 120);
+});
