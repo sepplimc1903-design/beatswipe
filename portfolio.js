@@ -98,7 +98,7 @@ async function findProducerInProfiles(slug) {
 
 const _SITE_META = {
   title: 'BeatSwipe – Free Swipe Portfolio for Producers',
-  description: 'Your swipe page for the bio. Fans swipe through your beats, save favorites, and buy directly from you — free for producers.',
+  description: 'Your bio link. Their next beat. Free swipe portfolio for producers — fans swipe, save favorites, and buy from your store.',
   url: 'https://beatswipe.app',
   image: 'https://beatswipe.app/og-image.png'
 };

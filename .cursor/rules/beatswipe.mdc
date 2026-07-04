@@ -13,7 +13,7 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 
 - **Never** say „Tinder" (brand)
 - **Brand URL immer** `beatswipe.app` — nie nur „BeatSwipe" ohne TLD (Verwechslung mit **beatswipe.net**)
-- Slogan: **TBD** (alt „Discover Beats. Save What Hits." — Luca findet schlecht; noch nicht ersetzt)
+- Slogan: **Your bio link. Their next beat.**
 - Product: „Your swipe page for the bio" / „Free swipe portfolio for producers"
 - **Konkurrenz:** `beatswipe.net` live seit 25.06.2026 — TikTok-Feed, free downloads, collab; **anderes Produkt** als unsere Producer-`/p/`-Pages. Kontakt dort: `legal@beatswipe.com`. Wir: AT/EU, `hellobeatswipe@gmail.com`, `@beatswipe.app`
 
@@ -59,7 +59,6 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 - **Beats:** Supabase `beats` — `api/beats.js`, `pending-beats.js`, `manage-beat.js`, `submit-beat.js`; Review via **Moderation UI** (`api/moderate-beats.js`, Profile → Settings) oder Supabase Table Editor
 - Auth/profiles: Supabase (RLS on). Favorites: `api/crate.js` + service role
 - Submit: `/api/submit-beat` → Supabase (`mypage.js`); MP3 previews: Storage bucket `beats`
-- Newsletter: Make.com webhook in `app.js` (nur Landing)
 - UI: English, „Favorites" not Crate, dark-only, glass cards, neutral `.wbar` waveform
 
 ## Critical pitfalls (don’t re-break)
@@ -97,18 +96,18 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 
 ## Aktuell (2026-07-05)
 
-- **Live (frisch gepusht):** Landing-Laptop Apple-Polish (FAQ zweispaltig + Titel-Bug, Hero/CTA Hover-Glow, FAQ max-height); `/p/`+Preview-Laptop — Swipe-Buttons 80px wie Discover, Swipe-Glow zentriert in Card-Slot + Button-Glow beim Ziehen, Preview-Done behält rechte Producer-Sidebar; `/p/` CTA Hover-Polish (done/side/replay).
-- **Landing-Layout-Breakpoints (merken):** `@media (min-width:900px) and (max-width:1280px)` = kompakte **einspaltige zentrierte** Hero + 2-col Steps (`--w-site:920px`); **>1280px** = zweispaltige Hero + 3-col Steps (`--w-site:1140px`). Beides „Laptop". Offener Punkt (erst absprechen): kompakte Hero zentriert, Sektionen darunter links → evtl. angleichen.
-- **Konsistenz-Pass Laptop:** App-Screens (Discover, Favorites, My Page, Profile) haben Apple-Button-Polish noch **nicht** — nur Landing + `/p/`. Moderation-Header ungeprüft.
-- **Brand:** `beatswipe.net` Konkurrent; `beatswipe.com` geparkt (~2k, zu teuer) — Name behalten, beobachten
-- **Marketing assets:** `marketing/insta-posts/` + `marketing/insta-triptych/` lokal/uncommitted; finaler IG-Post + Slogan offen
+- **Live (frisch gepusht):** Slogan **„Your bio link. Their next beat."** — Footer, Hero-Demo, Onboarding, Meta/OG/Twitter, `portfolio.js` Fallback; Newsletter komplett entfernt (UI, Make.com-Webhook, Privacy); Profile Settings kürzer (Favorites/Legal/Account only). Davor live: Landing-/p/-Polish (FAQ, Swipe-Buttons 80px, Preview-Done-Sidebar).
+- **Slogan:** Hero-H1 bleibt *Your swipe page for the bio* (Headline ≠ Slogan). **`og-image.png` + `marketing/`** noch mit altem Text — neue Assets offen.
+- **Konsistenz-Pass Laptop:** App-Screens (Discover, Favorites, My Page, Profile) Apple-Button-Polish noch **nicht** — nur Landing + `/p/`.
+- **Brand:** `beatswipe.net` Konkurrent; `beatswipe.com` geparkt (~2k) — Name behalten.
+- **Marketing:** `marketing/` lokal/uncommitted; IG-Post mit neuem Slogan offen.
 
 ## Nächster Schritt
 
-1. **Deploy verifizieren:** `/p/clyriax`, Preview Done+Sidebar, Discover Laptop+Handy hard-refresh
-2. **Apple-Feeling App-Screens (Laptop):** Discover, Favorites, My Page, Profile, Moderation — `.btn-primary` Accent-Glow + Hover-Lift
-3. **Slogan** festlegen → IG-Announcement + Footer/OG
-4. **Producer onboarding:** 2–3 fremde Producer mit Link in Bio
+1. **Deploy verifizieren:** Landing Footer-Slogan, Profile Settings ohne Newsletter, `/p/clyriax` Laptop+Handy
+2. **Producer outreach:** 2–3 fremde Producer — Invite-Code, `/p/clyriax` als Demo, DM-Template
+3. **OG-Image + IG-Posts** mit neuem Slogan
+4. **Apple-Feeling App-Screens (Laptop):** Discover, Favorites, My Page, Profile — optional vor Outreach
 
 ## Rules pflegen (Agent)
 

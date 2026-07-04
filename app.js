@@ -462,39 +462,6 @@ function closeCookie(accepted) {
   localStorage.setItem('bs_cookie', accepted ? 'accepted' : 'essential');
 }
 
-// ─── NEWSLETTER ───────────────────────────────────────────────────────────
-async function subscribeNewsletter() {
-  const emailEl = document.getElementById('nlEmail');
-  const email = emailEl?.value.trim();
-  const btn = document.getElementById('nlBtn');
-  const msg = document.getElementById('nlMsg');
-  const nlDsgvo = document.getElementById('nlDsgvo');
-  if (!email || !email.includes('@')) {
-    if (msg) { msg.style.color = '#f87171'; msg.textContent = 'Please enter a valid email address.'; }
-    return;
-  }
-  if (!nlDsgvo?.checked) {
-    if (msg) { msg.style.color = '#f87171'; msg.textContent = 'Please accept the Privacy Policy to subscribe.'; }
-    return;
-  }
-  btn.disabled = true; btn.textContent = '...';
-  try {
-    await fetch('https://hook.eu1.make.com/m3mxvl3hs2o03itd1b6mxpj3jhbcdpax', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ Type: 'Newsletter', Email: email, Status: 'New' })
-    });
-    msg.style.color = '#4caf50'; msg.textContent = '✓ You\'re in!';
-    btn.textContent = '✓';
-    // Nur leeren wenn nicht eingeloggt (dann war es die Account-Email)
-    if (!currentUser) emailEl.value = '';
-    setTimeout(() => { btn.disabled = false; btn.textContent = 'Subscribe'; }, 4000);
-  } catch(e) {
-    msg.style.color = '#f87171'; msg.textContent = 'Something went wrong — please try again.';
-    btn.disabled = false; btn.textContent = 'Subscribe';
-  }
-}
-
 // ─── BEAT DATABASE ─────────────────────────────────────────────────────────
 // Beats werden live von Airtable geladen (nur Status = Approved)
 let db = { full: [], loops: [], drums: [], samples: [] };
@@ -2781,27 +2748,6 @@ function renderProfile() {
           <a class="legal-link" href="mailto:hellobeatswipe@gmail.com">Contact <i class="ti ti-mail"></i></a>
         </div>
 
-        <div class="profile-settings-scroll-hint"><i class="ti ti-chevron-down"></i> Scroll for newsletter &amp; account</div>
-
-        <div class="profile-settings-card profile-glass">
-          <div class="profile-settings-title"><i class="ti ti-mail"></i> New beats by email</div>
-          <div class="profile-settings-desc">Be the first to know when new beats drop.</div>
-          <div class="profile-newsletter-row">
-            <input type="email" id="nlEmail" value="${escHtml(currentUser.email)}" placeholder="your@email.com">
-            <button type="button" onclick="subscribeNewsletter()" id="nlBtn">Subscribe</button>
-          </div>
-          <div class="auth-dsgvo-row">
-            <div class="auth-dsgvo-box" onclick="toggleNlDsgvo()" id="nlDsgvoBox">
-              <i class="ti ti-check"></i>
-              <input type="checkbox" id="nlDsgvo" style="display:none">
-            </div>
-            <label class="auth-dsgvo-label" onclick="toggleNlDsgvo()">
-              I agree to receive beat updates by email per the <a onclick="event.stopPropagation();openInfoModal('privacyModal')">Privacy Policy</a>. Unsubscribe anytime via email.
-            </label>
-          </div>
-          <div class="profile-nl-msg" id="nlMsg"></div>
-        </div>
-
         <div class="profile-settings-card profile-glass profile-account-section">
           <div class="profile-account-label">Account</div>
           <button type="button" class="profile-action-btn" onclick="clearLocalData()">
@@ -2866,24 +2812,6 @@ function renderProfile() {
           </button>
           <div class="auth-msg" id="authMsg"></div>
           `}
-        </div>
-        <div class="auth-box profile-glass profile-guest-newsletter">
-          <div class="auth-title"><i class="ti ti-mail"></i> New beats by email</div>
-          <div class="auth-sub">Be the first to know when new beats drop.</div>
-          <div class="auth-field">
-            <input type="email" id="nlEmail" placeholder="your@email.com" style="width:100%">
-          </div>
-          <div class="auth-dsgvo-row">
-            <div class="auth-dsgvo-box" onclick="toggleNlDsgvo()" id="nlDsgvoBox">
-              <i class="ti ti-check"></i>
-              <input type="checkbox" id="nlDsgvo" style="display:none">
-            </div>
-            <label class="auth-dsgvo-label" onclick="toggleNlDsgvo()">
-              I agree to receive beat updates by email per the <a onclick="event.stopPropagation();openInfoModal('privacyModal')">Privacy Policy</a>. Unsubscribe anytime via email.
-            </label>
-          </div>
-          <button type="button" class="auth-btn" onclick="subscribeNewsletter()" id="nlBtn">Subscribe</button>
-          <div class="profile-nl-msg" id="nlMsg"></div>
         </div>
         <div class="legal-links">
           <a class="legal-link" onclick="openInfoModal('impressumModal')">Legal Notice <i class="ti ti-chevron-right"></i></a>

@@ -4881,13 +4881,6 @@
     .profile-guest-icon i { font-size: 28px; color: var(--accent-mid); }
     .profile-guest-title { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; margin-bottom: 6px; }
     .profile-guest-sub { font-size: 13px; color: var(--text-2); line-height: 1.5; max-width: 280px; margin: 0 auto; }
-    .profile-guest-newsletter { margin-top: 0; }
-    .profile-guest-newsletter .auth-title {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .profile-guest-newsletter .auth-title i { color: var(--accent-mid); font-size: 17px; }
     .profile-glass {
       background: rgba(255,255,255,0.03);
       border: 0.5px solid rgba(255,255,255,0.08);
@@ -5140,44 +5133,6 @@
       line-height: 1.2;
     }
     .profile-stat-icon { font-size: 22px; color: var(--text-3); }
-    .profile-settings-title {
-      font-size: 14px;
-      font-weight: 700;
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .profile-settings-title i { color: var(--accent-mid); font-size: 16px; }
-    .profile-settings-desc {
-      font-size: 12px;
-      color: var(--text-2);
-      margin-bottom: 12px;
-      line-height: 1.5;
-    }
-    .profile-newsletter-row {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 14px;
-    }
-    .profile-newsletter-row input {
-      flex: 1;
-      font-size: 13px;
-      padding: 10px 12px;
-      border-radius: 10px;
-    }
-    .profile-newsletter-row button {
-      padding: 10px 14px;
-      border-radius: 10px;
-      background: var(--accent);
-      border: none;
-      color: #fff;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-    .profile-nl-msg { font-size: 11px; margin-top: 6px; min-height: 16px; }
     .profile-account-section { display: flex; flex-direction: column; gap: 8px; }
     .profile-account-label {
       font-size: 11px;
@@ -5284,17 +5239,6 @@
       margin-inline: 0;
     }
     #ptSettings .legal-links { margin-top: 4px; }
-    .profile-settings-scroll-hint {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-      font-size: 11px;
-      color: var(--text-3);
-      padding: 2px 0 10px;
-      opacity: 0.85;
-    }
-    .profile-settings-scroll-hint i { font-size: 13px; }
     @media (max-width: 599px) {
       #ptSettings { padding-bottom: 20px; }
       #ptSettings .profile-settings-card {
@@ -5302,26 +5246,13 @@
         margin-bottom: 8px;
         border-radius: 14px;
       }
-      #ptSettings .profile-settings-title { font-size: 13px; margin-bottom: 2px; }
-      #ptSettings .profile-settings-title i { font-size: 14px; }
-      #ptSettings .profile-settings-desc { font-size: 11px; margin-bottom: 10px; }
       #ptSettings .profile-stat-value { font-size: 14px; }
       #ptSettings .profile-stat-label { font-size: 11px; }
-      #ptSettings .profile-newsletter-row { margin-bottom: 12px; }
-      #ptSettings .profile-newsletter-row input,
-      #ptSettings .profile-newsletter-row button { padding: 10px 12px; font-size: 12px; }
-      #ptSettings .auth-dsgvo-row { margin-bottom: 14px; }
-      #ptSettings .auth-dsgvo-label { font-size: 12px; line-height: 1.55; }
-      .profile-guest-scroll .auth-dsgvo-row { margin-bottom: 14px; }
-      .profile-guest-scroll .auth-dsgvo-label { font-size: 12px; line-height: 1.55; }
       #ptSettings .profile-action-btn,
       #ptSettings .logout-btn,
       #ptSettings .profile-delete-btn { padding: 10px; font-size: 13px; }
       #ptSettings .legal-link { padding: 12px 14px; font-size: 13px; }
       #ptSettings .legal-links { margin-bottom: 4px; }
-    }
-    @media (min-width: 600px) {
-      .profile-settings-scroll-hint { display: none; }
     }
     .profile-card { background: var(--bg-2); border-radius: 20px; border: 0.5px solid var(--border); padding: 20px; margin-top: 8px; display: flex; align-items: center; gap: 14px; }
     .profile-avatar { width: 52px; height: 52px; border-radius: 50%; background: var(--accent-light); border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
