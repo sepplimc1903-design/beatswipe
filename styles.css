@@ -192,22 +192,38 @@
     /* ── SHELL ── */
     .shell { width: 100%; max-width: 440px; height: 100vh; height: 100dvh; background: var(--bg); display: flex; flex-direction: column; position: relative; z-index: 1; overflow: hidden; }
 
-    /* Mobile ambient — soft linear purple wash on app pages (/p/ excluded below) */
+    /* Mobile — same aurora wash as laptop app pages (/p/ overrides below) */
     @media (max-width: 899px) {
       .shell { background: transparent; }
       .bg-desktop {
         background:
           linear-gradient(180deg,
-            rgba(124,58,237,0.18) 0%,
-            rgba(124,58,237,0.1) 18%,
-            rgba(124,58,237,0.04) 42%,
-            transparent 58%,
-            rgba(124,58,237,0.03) 78%,
-            rgba(124,58,237,0.08) 100%),
+            rgba(124,58,237,0.2) 0%,
+            rgba(124,58,237,0.11) 30%,
+            rgba(124,58,237,0.04) 58%,
+            rgba(5,5,8,1) 100%),
           #050508;
       }
       .bg-grid, .bg-noise { display: none; }
       .bg-desktop::before {
+        animation: none;
+        width: 100%; height: 100%; top: 0; left: 0; border-radius: 0;
+        background:
+          radial-gradient(ellipse 140% 58% at 50% -6%, rgba(167,139,250,0.12) 0%, transparent 74%),
+          radial-gradient(ellipse 110% 42% at 50% 102%, rgba(124,58,237,0.07) 0%, transparent 72%);
+      }
+      .bg-desktop::after { display: none; }
+      /* Portfolio /p/ — aurora wash on mobile (matches My Page preview, not beat-color page glow) */
+      body.portfolio-active .bg-desktop {
+        background:
+          linear-gradient(180deg,
+            rgba(124,58,237,0.16) 0%,
+            rgba(124,58,237,0.09) 28%,
+            rgba(124,58,237,0.03) 55%,
+            rgba(5,5,8,1) 100%),
+          #050508;
+      }
+      body.portfolio-active .bg-desktop::before {
         width: 100%;
         height: 100%;
         top: 0;
@@ -215,43 +231,15 @@
         border-radius: 0;
         animation: none;
         background:
-          radial-gradient(ellipse 110% 22% at 50% 0%, rgba(124,58,237,0.06) 0%, transparent 78%);
-      }
-      .bg-desktop::after {
-        display: block;
-        background:
-          radial-gradient(ellipse 38% 78% at 6% 44%, rgba(167,139,250,0.07) 0%, transparent 72%),
-          radial-gradient(ellipse 38% 78% at 94% 44%, rgba(124,58,237,0.07) 0%, transparent 72%),
-          radial-gradient(ellipse 120% 16% at 50% 100%, rgba(124,58,237,0.05) 0%, transparent 75%);
-      }
-      body.discover-active .bg-desktop {
-        background:
-          linear-gradient(180deg,
-            rgba(124,58,237,0.22) 0%,
-            rgba(124,58,237,0.14) 20%,
-            rgba(124,58,237,0.08) 45%,
-            rgba(124,58,237,0.04) 62%,
-            transparent 78%),
-          #050508;
-      }
-      body.discover-active .bg-desktop::before {
-        background:
-          radial-gradient(ellipse 110% 22% at 50% 0%, rgba(124,58,237,0.08) 0%, transparent 78%);
-      }
-      body.discover-active .bg-desktop::after {
-        display: block;
-        background:
-          radial-gradient(ellipse 38% 78% at 6% 50%, rgba(248,113,113,0.05) 0%, transparent 72%),
-          radial-gradient(ellipse 38% 78% at 94% 50%, rgba(124,58,237,0.08) 0%, transparent 72%),
-          radial-gradient(ellipse 120% 16% at 50% 100%, rgba(124,58,237,0.05) 0%, transparent 75%);
-      }
-      /* Portfolio /p/ — transparent shell so beat-color glow shows through */
-      body.portfolio-active .shell { background: transparent; }
-      body.portfolio-active .bg-desktop { background: var(--navy); }
-      body.portfolio-active .bg-desktop::before {
-        background: radial-gradient(ellipse 90% 58% at 50% 40%, var(--pf-glow, rgba(124,58,237,0.32)) 0%, transparent 72%);
+          radial-gradient(ellipse 130% 55% at 50% -8%, rgba(167,139,250,0.1) 0%, transparent 72%),
+          radial-gradient(ellipse 100% 40% at 50% 100%, rgba(124,58,237,0.06) 0%, transparent 70%);
       }
       body.portfolio-active .bg-desktop::after { display: none; }
+      body.portfolio-active .portfolio-ambient { display: block; }
+      body.portfolio-active .pf-ambient-layer {
+        filter: blur(56px);
+        opacity: 0.62;
+      }
     }
 
     /* ── DESKTOP LAYOUT ── */
@@ -2876,7 +2864,7 @@
     }
     .portfolio-back-btn:active { transform: scale(0.92); }
     body.portfolio-has-back .portfolio-back-btn { display: flex; }
-    @media (max-width: 599px) {
+    @media (max-width: 899px) {
       body.portfolio-has-back .portfolio-back-btn {
         margin: calc(env(safe-area-inset-top, 0px) + 8px) 0 4px 16px;
         width: 36px;
@@ -3873,10 +3861,12 @@
         max-width: 100%;
       }
     }
-    /* Portfolio mobile — one gutter column, full width, glow on page bg */
-    @media (max-width: 599px) {
+    /* Portfolio mobile — preview layout (full width, glass card, aurora bg) */
+    @media (max-width: 899px) {
       body.portfolio-active {
         display: block;
+        height: 100dvh;
+        overflow: hidden;
       }
       body.portfolio-active .desktop-layout,
       body.portfolio-active .desktop-right {
@@ -3892,8 +3882,13 @@
         height: 100dvh;
         background: transparent;
       }
+      body.portfolio-active .portfolio-kbd-row { display: none; }
       body.portfolio-active #portfolioPageInner,
       body.portfolio-active .page-inner--portfolio {
+        width: 100%;
+        max-width: none;
+        margin-inline: 0;
+        height: 100%;
         padding-inline: 16px;
         box-sizing: border-box;
       }
@@ -3985,7 +3980,7 @@
       }
     }
     /* Portfolio desktop/tablet — full-viewport immersive (no phone frame) */
-    @media (min-width: 600px) {
+    @media (min-width: 900px) {
       body.portfolio-active {
         padding: 0;
         display: block;
@@ -4555,14 +4550,23 @@
       body.portfolio-active #portfolioCardWrap .card-stage {
         overflow: visible;
       }
-      body.discover-active,
-      body.portfolio-active {
+      body.discover-active {
         display: block;
         height: auto;
         min-height: calc(100dvh + 1px);
         overflow-x: hidden;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
+      }
+      body.portfolio-active {
+        display: block;
+        height: 100dvh;
+        min-height: 100dvh;
+        overflow: hidden;
+      }
+      body.portfolio-active .desktop-layout {
+        height: 100dvh;
+        min-height: 0;
       }
       body.swipe-card-dragging .shell,
       body.swipe-card-dragging .screen,
