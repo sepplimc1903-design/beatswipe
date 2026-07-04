@@ -3095,6 +3095,20 @@
       cursor: pointer;
     }
     .portfolio-foot a:hover { text-decoration: underline; }
+    .portfolio-foot-legal {
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .portfolio-foot-legal a {
+      color: var(--text-3);
+      font-size: 10px;
+    }
+    .portfolio-foot-legal a:hover { color: var(--text-2); }
+    .portfolio-foot-legal span { color: var(--text-3); font-size: 10px; opacity: 0.5; }
     .portfolio-side-panel { display: none; }
     .portfolio-side-panel[hidden] { display: none !important; }
     .portfolio-side-card {

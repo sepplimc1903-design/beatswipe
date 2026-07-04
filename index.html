@@ -668,6 +668,11 @@
       </div>
       <div class="portfolio-foot">
         Powered by <span style="color:var(--text-2)">BeatSwipe</span> · <a onclick="openProducerSignup()">Get your own page</a>
+        <div class="portfolio-foot-legal">
+          <a onclick="openInfoModal('impressumModal')">Legal Notice</a>
+          <span aria-hidden="true">·</span>
+          <a onclick="openInfoModal('privacyModal')">Privacy</a>
+        </div>
       </div>
     </div>
   </div>
@@ -721,13 +726,13 @@
         <button class="modal-close" onclick="closeInfoModal('impressumModal')"><i class="ti ti-x" style="font-size:14px"></i></button>
       </div>
       <div class="info-modal-body">
-        <p class="legal-updated">Last updated: June 2026</p>
+        <p class="legal-updated">Last updated: July 2026</p>
         <h3>Information pursuant to § 5 ECG (Austria)</h3>
         <p>
           <strong>BeatSwipe</strong><br>
-          Operator: [Your full legal name]<br>
-          [Street and number]<br>
-          [Postal code] [City], Austria
+          Operator: Luca Svetina<br>
+          Elisabethstraße 93<br>
+          8010 Graz, Austria
         </p>
         <h3>Contact</h3>
         <p>Email: <a href="mailto:hellobeatswipe@gmail.com">hellobeatswipe@gmail.com</a><br>Instagram: <a href="https://instagram.com/beatswipe.app" target="_blank" rel="noopener">@beatswipe.app</a></p>
@@ -737,6 +742,17 @@
         <p>BeatSwipe is a discovery and showcase platform only. We are not a party to license or purchase agreements between buyers and producers. All transactions take place directly on linked third-party platforms (e.g. BeatStars, Splice). We do not guarantee the availability, quality, or legality of user-uploaded content.</p>
         <h3>Copyright &amp; content</h3>
         <p>BeatSwipe branding, design, and code are protected by copyright. Beats, samples, and preview audio remain the property of their respective producers. Producers are responsible for ensuring they have the rights to upload and distribute their content.</p>
+        <h3>Terms of use</h3>
+        <p>BeatSwipe is a free service. By creating an account or uploading content you agree to these terms:</p>
+        <ul>
+          <li>You must provide accurate information and keep your login credentials secure.</li>
+          <li>Producers retain ownership of their beats. By submitting a beat you grant BeatSwipe a non-exclusive licence to host, display, and stream the preview on beatswipe.app (including your portfolio and Discover) until you remove it or delete your account.</li>
+          <li>You may not upload illegal content, malware, full masters marketed as previews, or material you do not have the rights to share.</li>
+          <li>We may review, reject, or remove beats and suspend accounts that violate these terms or applicable law.</li>
+          <li>We may change or discontinue features with reasonable notice on the site. The service is provided “as is” without warranties beyond mandatory consumer rights under Austrian law.</li>
+        </ul>
+        <h3>Applicable law</h3>
+        <p>Austrian law applies. Mandatory consumer protection provisions of your country of residence remain unaffected where applicable.</p>
         <h3>Dispute resolution</h3>
         <p>The European Commission provides a platform for online dispute resolution (ODR): <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener">ec.europa.eu/consumers/odr</a>. We are not obliged to participate in dispute resolution proceedings before a consumer arbitration board.</p>
       </div>
@@ -752,19 +768,19 @@
         <button class="modal-close" onclick="closeInfoModal('privacyModal')"><i class="ti ti-x" style="font-size:14px"></i></button>
       </div>
       <div class="info-modal-body">
-        <p class="legal-updated">Last updated: June 2026 · GDPR / Austrian DSG</p>
+        <p class="legal-updated">Last updated: July 2026 · GDPR / Austrian DSG</p>
 
         <h3>1. Controller</h3>
         <p>
           BeatSwipe<br>
-          [Your full legal name]<br>
-          [Street and number], [Postal code] [City], Austria<br>
+          Luca Svetina<br>
+          Elisabethstraße 93, 8010 Graz, Austria<br>
           Email: <a href="mailto:hellobeatswipe@gmail.com">hellobeatswipe@gmail.com</a>
         </p>
 
         <h3>2. Overview</h3>
         <p>We process personal data only as needed to operate BeatSwipe — account login, producer profiles, saved favorites, beat uploads, and optional newsletter emails. We do not sell your data and do not use third-party advertising or analytics trackers.</p>
-        <p>Producers can see aggregate counts of portfolio page views, saves, and buy-link clicks on their own page — stored by BeatSwipe only, not shared with ad networks.</p>
+        <p>Producers see aggregate counts of portfolio page views, saves, and buy-link clicks for their own page only. These stats do not identify individual visitors and are not shared with ad networks.</p>
 
         <h3>3. Data we collect</h3>
         <ul>
@@ -775,12 +791,15 @@
           <li><strong>Newsletter:</strong> email address, if you opt in separately</li>
           <li><strong>Technical:</strong> IP address and server logs from our hosting provider (for security and operation)</li>
           <li><strong>Local storage:</strong> login session, swipe progress, cookie preference, invite flag (stored in your browser)</li>
+          <li><strong>Portfolio stats (producers only):</strong> anonymous event counts (page views, saves, buy clicks) — no fan names or emails</li>
+          <li><strong>Session storage:</strong> one page-view count per portfolio per browser session (deduplication only)</li>
         </ul>
 
         <h3>4. Purposes &amp; legal bases (Art. 6 GDPR)</h3>
         <ul>
           <li><strong>Account &amp; favorites:</strong> performance of our service (Art. 6(1)(b))</li>
           <li><strong>Producer profile &amp; uploads:</strong> performance of our service (Art. 6(1)(b))</li>
+          <li><strong>Portfolio stats:</strong> legitimate interest in giving producers basic feedback on their page (Art. 6(1)(f)) — aggregate only, no visitor profiles</li>
           <li><strong>Newsletter:</strong> your consent (Art. 6(1)(a)) — withdraw anytime</li>
           <li><strong>Sign-up:</strong> your consent to store your email (Art. 6(1)(a))</li>
           <li><strong>Security &amp; hosting logs:</strong> legitimate interest in operating a secure service (Art. 6(1)(f))</li>
@@ -792,6 +811,7 @@
           <li><strong>Supabase</strong> — authentication, beat catalogue, database, file storage (<a href="https://supabase.com/privacy" target="_blank" rel="noopener">Privacy Policy</a>)</li>
           <li><strong>Vercel</strong> — website hosting (<a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener">Privacy Policy</a>)</li>
           <li><strong>Make.com</strong> — newsletter signup automation (<a href="https://www.make.com/en/privacy-notice" target="_blank" rel="noopener">Privacy Policy</a>)</li>
+          <li><strong>jsDelivr</strong> — open-source script delivery for the optional QR code feature (<a href="https://www.jsdelivr.com/privacy-policy-jsdelivr-net" target="_blank" rel="noopener">Privacy Policy</a>)</li>
         </ul>
 
         <h3>6. Third-country transfers</h3>
@@ -803,11 +823,12 @@
           <li>Supabase login session (localStorage) — required for signed-in features</li>
           <li>Swipe progress &amp; favorites (localStorage) — improves your experience</li>
           <li>Cookie banner preference (localStorage)</li>
+          <li>Portfolio view deduplication flag (sessionStorage, one entry per portfolio per session)</li>
         </ul>
         <p>You can clear local data in your browser or via Profile → Clear local data. Signing out removes your login session. To delete your account and all associated data, use Profile → Settings → Delete account.</p>
 
         <h3>8. Embedded content &amp; external links</h3>
-        <p>Beat previews may load from YouTube or SoundCloud embeds. Clicking buy links (BeatStars, Splice, etc.) takes you to third-party sites with their own privacy policies. We have no control over data collected there.</p>
+        <p>Beat previews may load from YouTube or SoundCloud when you play or swipe a card. Those providers may receive technical data (e.g. IP address, device info) under their own policies. Buy links (BeatStars, Splice, etc.) take you to third-party sites we do not control.</p>
 
         <h3>9. Retention</h3>
         <ul>
@@ -815,6 +836,7 @@
           <li>Newsletter: until you unsubscribe</li>
           <li>Server logs: typically up to 30 days (hosting provider default)</li>
           <li>Pending beat submissions: until approved, rejected, or deleted</li>
+          <li>Portfolio stats events: retained while the producer account exists; deleted when the account is deleted</li>
         </ul>
 
         <h3>10. Your rights</h3>
@@ -1017,8 +1039,8 @@
   <div class="cookie-banner" id="cookieBanner">
     <div class="cookie-inner">
       <div class="cookie-text">
-        We only use essential cookies (login session). No tracking or advertising cookies.
-        <a onclick="openInfoModal('privacyModal')">Read Privacy Policy</a>
+        We only use essential storage (login session). No tracking or advertising cookies.
+        <a onclick="openInfoModal('impressumModal')">Legal Notice</a> · <a onclick="openInfoModal('privacyModal')">Privacy Policy</a>
       </div>
       <div class="cookie-btns">
         <button class="cookie-decline" onclick="closeCookie(false)">Essential only</button>

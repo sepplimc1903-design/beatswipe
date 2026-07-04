@@ -2704,7 +2704,13 @@ function renderProfile() {
           <i class="ti ti-chevron-right profile-stat-chevron"></i>
         </button>
 
-        <div class="profile-settings-scroll-hint"><i class="ti ti-chevron-down"></i> Scroll for account &amp; sign out</div>
+        <div class="legal-links">
+          <a class="legal-link" onclick="openInfoModal('impressumModal')">Legal Notice <i class="ti ti-chevron-right"></i></a>
+          <a class="legal-link" onclick="openInfoModal('privacyModal')">Privacy Policy <i class="ti ti-chevron-right"></i></a>
+          <a class="legal-link" href="mailto:hellobeatswipe@gmail.com">Contact <i class="ti ti-mail"></i></a>
+        </div>
+
+        <div class="profile-settings-scroll-hint"><i class="ti ti-chevron-down"></i> Scroll for newsletter &amp; account</div>
 
         <div class="profile-settings-card profile-glass">
           <div class="profile-settings-title"><i class="ti ti-mail"></i> New beats by email</div>
@@ -2732,12 +2738,6 @@ function renderProfile() {
           </button>
           <button type="button" class="logout-btn" style="margin-top:0" onclick="signOut()"><i class="ti ti-logout"></i> Sign out</button>
           <button type="button" class="profile-delete-btn" onclick="deleteAccount()"><i class="ti ti-user-x"></i> Delete account</button>
-        </div>
-
-        <div class="legal-links">
-          <a class="legal-link" onclick="openInfoModal('impressumModal')">Legal Notice <i class="ti ti-chevron-right"></i></a>
-          <a class="legal-link" onclick="openInfoModal('privacyModal')">Privacy Policy <i class="ti ti-chevron-right"></i></a>
-          <a class="legal-link" href="mailto:hellobeatswipe@gmail.com">Contact <i class="ti ti-mail"></i></a>
         </div>
       </div>
     `;
