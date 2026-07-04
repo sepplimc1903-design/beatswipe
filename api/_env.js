@@ -49,7 +49,7 @@ export function getSupabaseAnonKey() {
 
 export function getAdminEmails() {
   ensureLocalEnv();
-  const raw = process.env.BEATSWIPE_ADMIN_EMAILS || 'hellobeatswipe@gmail.com';
+  const raw = process.env.BEATSWIPE_ADMIN_EMAILS || 'svetina.luca@gmail.com,hellobeatswipe@gmail.com';
   return raw.split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
 }
 

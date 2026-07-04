@@ -276,7 +276,12 @@ function applyGoTo(screenId, navId) {
   }
   if (screenId === 'crateScreen' || screenId === 'submitScreen') _listEnterNext = true;
   if (screenId === 'crateScreen') renderCrate();
-  if (screenId === 'profileScreen') renderProfile();
+  if (screenId === 'profileScreen') {
+    void (async () => {
+      if (typeof checkModeratorAccess === 'function') await checkModeratorAccess();
+      if (document.getElementById('profileScreen')?.classList.contains('active')) renderProfile();
+    })();
+  }
   if (screenId === 'moderateScreen') {
     void loadModerateQueue().then(() => renderModerateScreen());
   }
@@ -2423,7 +2428,6 @@ supa.auth.onAuthStateChange(async (event, session) => {
     console.log('[BeatSwipe] Token auto-refreshed ✓');
     return;
   }
-  renderProfile();
   updateDesktopTopbarAuth();
   if (currentUser) {
     if (event === 'SIGNED_IN' && _pendingGuestCrateMerge?.length) {
@@ -2449,6 +2453,8 @@ supa.auth.onAuthStateChange(async (event, session) => {
         }
       } catch (e) {}
     }
+  } else {
+    renderProfile();
   }
 });
 
