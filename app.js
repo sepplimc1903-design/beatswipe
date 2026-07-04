@@ -1518,7 +1518,7 @@ function renderCard(opts) {
     const liveCard = document.getElementById('theCard');
     if (liveCard) clearPinnedCardStyles(liveCard);
 
-    document.querySelectorAll('.act-btn').forEach(b => { b.style.opacity = ''; });
+    resetActBtnChrome();
     ['labelSkip', 'labelSave'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.style.opacity = 0;
@@ -1596,6 +1596,39 @@ function renderCard(opts) {
     return null;
   }
 
+  function resetActBtnChrome() {
+    document.querySelectorAll('.act-btn').forEach(b => {
+      b.style.opacity = '';
+      b.style.boxShadow = '';
+      b.style.transform = '';
+    });
+  }
+
+  function updatePortfolioBtnGlow(dx) {
+    if (!_portfolioMode || isMobileUI()) return;
+    const pct = Math.min(Math.abs(dx) / 110, 1);
+    const btnSkip = document.querySelector('#portfolioScreen .btn-skip');
+    const btnSave = document.querySelector('#portfolioScreen .btn-save');
+    if (btnSave) {
+      if (dx > 12) {
+        btnSave.style.boxShadow = `inset 0 1px 0 rgba(255,255,255,0.22), 0 4px 14px rgba(0,0,0,0.16), 0 10px 32px rgba(124,58,237,${0.36 + pct * 0.35}), 0 0 ${16 + pct * 28}px rgba(124,58,237,${0.28 + pct * 0.42})`;
+        btnSave.style.transform = `scale(${1 + pct * 0.06})`;
+      } else {
+        btnSave.style.boxShadow = '';
+        btnSave.style.transform = '';
+      }
+    }
+    if (btnSkip) {
+      if (dx < -12) {
+        btnSkip.style.boxShadow = `inset 0 1px 0 rgba(255,255,255,0.1), 0 4px 14px rgba(0,0,0,0.16), 0 10px 28px rgba(248,113,113,${0.22 + pct * 0.28}), 0 0 ${14 + pct * 22}px rgba(248,113,113,${0.2 + pct * 0.35})`;
+        btnSkip.style.transform = `scale(${1 + pct * 0.06})`;
+      } else {
+        btnSkip.style.boxShadow = '';
+        btnSkip.style.transform = '';
+      }
+    }
+  }
+
   function updateGlow(dx) {
     const glow = getGlow();
     if (!glow) return;
@@ -1609,8 +1642,11 @@ function renderCard(opts) {
     const pct = Math.min(Math.abs(dx) / 110, 1);
     const mobile = isMobileUI();
     const scale = 1 + pct * (mobile ? 0.1 : 0.22);
-    const tx = dx * (mobile ? 0.08 : 0.14);
-    glow.style.transform = `translate(calc(-50% + ${tx}px), -50%) scale(${scale})`;
+    const portfolioDesktop = _portfolioMode && !mobile;
+    const tx = portfolioDesktop ? 0 : dx * (mobile ? 0.08 : 0.14);
+    glow.style.transform = portfolioDesktop
+      ? `translate(-50%, -50%) scale(${scale})`
+      : `translate(calc(-50% + ${tx}px), -50%) scale(${scale})`;
     glow.style.opacity = String((mobile ? 0.2 : 0.28) + pct * (mobile ? 0.18 : 0.42));
     if (dx > 12) glow.classList.add('glow-toward-save');
     else if (dx < -12) glow.classList.add('glow-toward-skip');
@@ -1701,7 +1737,7 @@ function renderCard(opts) {
     isDragging = false;
     const card = getCard();
     if (card) card.classList.remove('dragging');
-    document.querySelectorAll('.act-btn').forEach(b => b.style.opacity = '');
+    resetActBtnChrome();
     const skipLabel = document.getElementById('labelSkip');
     const saveLabel = document.getElementById('labelSave');
     if (skipLabel) skipLabel.style.opacity = 0;
@@ -1763,10 +1799,11 @@ function renderCard(opts) {
     const btnSave = document.querySelector(`${btnScope} .btn-save`);
     if (btnSkip) btnSkip.style.opacity = dx < 0 ? 0.5 + pct * 0.5 : 0.5;
     if (btnSave) btnSave.style.opacity = dx > 0 ? 0.5 + pct * 0.5 : 0.5;
+    updatePortfolioBtnGlow(dx);
   }
 
   function clearDragChrome() {
-    document.querySelectorAll('.act-btn').forEach(b => b.style.opacity = '');
+    resetActBtnChrome();
     const skipLabel = document.getElementById('labelSkip');
     const saveLabel = document.getElementById('labelSave');
     if (skipLabel) skipLabel.style.opacity = 0;

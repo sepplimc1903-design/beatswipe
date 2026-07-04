@@ -358,8 +358,9 @@ function setPortfolioDoneMode(on) {
     _portfolioDoneSelectedId = null;
     document.body.classList.remove('portfolio-done-preview-open');
   }
-  const sidePanel = document.getElementById('portfolioSidePanel');
-  if (on) {
+  const keepSidePanel = on && _portfolioPreview && portfolioDesktopLayout();
+  if (on && !keepSidePanel) {
+    const sidePanel = document.getElementById('portfolioSidePanel');
     if (sidePanel) {
       sidePanel.hidden = true;
       sidePanel.innerHTML = '';
@@ -725,7 +726,8 @@ function clearPortfolioDesktopPanels() {
 function renderPortfolioSidePanel(producerName, profile) {
   const panel = document.getElementById('portfolioSidePanel');
   if (!panel) return;
-  if (document.body.classList.contains('portfolio-swipe-done')) return;
+  const previewDone = _portfolioPreview && document.body.classList.contains('portfolio-swipe-done');
+  if (document.body.classList.contains('portfolio-swipe-done') && !previewDone) return;
   if (!_portfolioMode || !portfolioDesktopLayout() || !producerName) {
     panel.hidden = true;
     panel.innerHTML = '';
@@ -1131,6 +1133,7 @@ window.addEventListener('resize', () => {
   _portfolioLayoutTimer = setTimeout(() => {
     if (_portfolioProducer) {
       if (document.body.classList.contains('portfolio-swipe-done')) {
+        if (_portfolioPreview) renderPortfolioSidePanel(_portfolioProducer, _portfolioProfile);
         renderPortfolioDonePreview();
       } else {
         renderPortfolioSidePanel(_portfolioProducer, _portfolioProfile);

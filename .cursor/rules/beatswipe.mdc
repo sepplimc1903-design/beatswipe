@@ -92,22 +92,23 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 - **Legal:** Impressum + Privacy in Modals; Links auf Landing (Footer mobile+desktop), `/p/` Footer, Cookie-Banner, Profile Settings; `openLegalModal()` mit Tabs — **z-index 450** (über Cookie-Banner 350); Landing-Footer mobile: `#landScreen .site-footer` nicht global `display:none`
 - **Landing hero demo:** Discover-like card (waveform + skip/save) — **keine** SKIP/SAVE-Stempel; `initHeroDemoCard()` in `app.js`. Topbar black-fade wie andere Seiten via `body:not(.portfolio-active) .bg-desktop::before` (site-scroll inkl. Landing)
 - **Landing bg:** `portfolio-ambient` **nicht** global auf Laptop — nur `portfolio-active` / `/p/` boot
-- **`.site-page-head` / `.land-section-head` unsichtbar am Laptop:** alte Regel `.site-page-head, .hero-visual, .land-section-head { display:none; }` stand **ohne** Media Query nach den 900px-„show"-Regeln → gewann immer (gleiche Spezifität, später im File). Fix: in `@media (max-width: 899px)` verschoben. Bei neuen globalen `display:none`-Defaults immer prüfen, ob sie **vor** den Desktop-Overrides stehen oder selbst media-gated sind.
+- **`.site-page-head` / `.land-section-head` unsichtbar am Laptop:** alte Regel `.site-page-head, .hero-visual, .land-section-head { display:none; }` stand **ohne** Media Query nach den 900px-„show"-Regeln → gewann immer (gleiche Spezifität, später im File). Fix: in `@media (max-width: 899px)` verschoben. Bei neuen globalen `display:none`-Defaults immer prüfen, ob sie **vor** den Desktop-Overrides stehen oder selbst media-gated sind. **Umkehrfall (2026-07-05):** `.faq-title-mobile` hatte eine **globale** `display:block`-Regel (id+2 Klassen, spät im File) → schlug das media-gated Desktop-`display:none` → doppelter FAQ-Titel am Laptop. Merke: „mobile-only" sichtbare Elemente ihre `display:block`-Regel **in** die Mobile-Query legen, nicht global.
 - **Sidebar-Höhe uneinheitlich (Profile/Favorites vs. My Page):** Profile/Favorites rendern `.site-page-head` **außerhalb** vom Grid (Sidebar startet auf Höhe vom ersten Content), My Page rendert den Titel **innerhalb** der Hauptspalte per JS (`mypage.js`, mehrere `render...()`-Funktionen) → Sidebar sonst auf Höhe vom Titel-Text statt Content. Fix: `renderMyPageSidePanel()` misst `#myPageMain .site-page-head` Höhe zur Laufzeit und setzt sie als `margin-top` auf `#myPageSidePanel`.
 
 ## Aktuell (2026-07-05)
 
-- **Live** (frisch gepusht): Konsistenz-Pass Laptop (Titel-Cascade-Bug, Profile-Sidebar-Grid-Zentrierung, My-Page-Sidebar-Höhe, Button-Radius) + Discover-Laptop-Redesign (Left-Rail-Restrukturierung, Ambient-Glow reaktiviert, `.dc-empty`-Icon) + Save-Icon/Button-Politur (Landing-Hero-Card-Save-Button war Herz statt Feuer wie überall sonst → jetzt `ti-flame` konsistent; Discover-Swipe-Buttons am Laptop 68px→80px, weiter nach oben gerückt, SKIP/SAVE-Text über den Buttons entfernt). Alles per Playwright Laptop+Handy verifiziert.
-- **Konsistenz-Pass Laptop:** weitere Kandidaten noch nicht geprüft: Moderation-Screen-Header. Größere Idee (noch nicht umgesetzt, erst absprechen): persistente Icon-Sidebar statt Topbar + Screen-eigener Left-Rails.
-- **Brand:** `beatswipe.net` Konkurrent (gleiches Produkt-Umfeld anders positioniert); `beatswipe.com` vergeben/geparkt (~2k, aktuell zu teuer) — Name vorerst behalten, Domain/Marke beobachten
-- **Marketing assets:** `marketing/insta-posts/` + `marketing/insta-triptych/` — Announcement-Drafts, weiterhin lokal/uncommitted; finaler IG-Post + neuer Slogan noch offen
+- **Live (frisch gepusht):** Landing-Laptop Apple-Polish (FAQ zweispaltig + Titel-Bug, Hero/CTA Hover-Glow, FAQ max-height); `/p/`+Preview-Laptop — Swipe-Buttons 80px wie Discover, Swipe-Glow zentriert in Card-Slot + Button-Glow beim Ziehen, Preview-Done behält rechte Producer-Sidebar; `/p/` CTA Hover-Polish (done/side/replay).
+- **Landing-Layout-Breakpoints (merken):** `@media (min-width:900px) and (max-width:1280px)` = kompakte **einspaltige zentrierte** Hero + 2-col Steps (`--w-site:920px`); **>1280px** = zweispaltige Hero + 3-col Steps (`--w-site:1140px`). Beides „Laptop". Offener Punkt (erst absprechen): kompakte Hero zentriert, Sektionen darunter links → evtl. angleichen.
+- **Konsistenz-Pass Laptop:** App-Screens (Discover, Favorites, My Page, Profile) haben Apple-Button-Polish noch **nicht** — nur Landing + `/p/`. Moderation-Header ungeprüft.
+- **Brand:** `beatswipe.net` Konkurrent; `beatswipe.com` geparkt (~2k, zu teuer) — Name behalten, beobachten
+- **Marketing assets:** `marketing/insta-posts/` + `marketing/insta-triptych/` lokal/uncommitted; finaler IG-Post + Slogan offen
 
 ## Nächster Schritt
 
-1. **Deploy verifizieren:** nach Vercel-Build `/p/clyriax`, Discover Laptop+Handy, Profile/My-Page-Sidebar hard-refresh testen
-2. **Konsistenz-Pass Laptop weiterführen:** Moderation-Screen-Header prüfen; ggf. Icon-Sidebar-Idee mit Luca absprechen
-3. **Slogan** festlegen → dann IG-Announcement + ggf. Footer/OG anpassen
-4. **Producer onboarding:** 2–3 fremde Producer mit Link in Bio (Phase-1-Ziel)
+1. **Deploy verifizieren:** `/p/clyriax`, Preview Done+Sidebar, Discover Laptop+Handy hard-refresh
+2. **Apple-Feeling App-Screens (Laptop):** Discover, Favorites, My Page, Profile, Moderation — `.btn-primary` Accent-Glow + Hover-Lift
+3. **Slogan** festlegen → IG-Announcement + Footer/OG
+4. **Producer onboarding:** 2–3 fremde Producer mit Link in Bio
 
 ## Rules pflegen (Agent)
 

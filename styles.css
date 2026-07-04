@@ -1103,6 +1103,26 @@
       }
       #landScreen .hero-btns .btn-primary,
       #landScreen .hero-btns .btn-secondary { width: fit-content; min-width: 200px; }
+      #landScreen .hero-btns .btn-primary,
+      #landScreen .cta-banner-btn {
+        box-shadow: 0 10px 30px -10px rgba(124,58,237,0.55);
+        transition: opacity 0.2s ease, transform 0.22s cubic-bezier(0.22,1,0.36,1), box-shadow 0.22s ease;
+      }
+      #landScreen .hero-btns .btn-primary:hover,
+      #landScreen .cta-banner-btn:hover {
+        opacity: 1;
+        transform: translateY(-1.5px);
+        box-shadow: 0 16px 38px -10px rgba(124,58,237,0.68);
+      }
+      #landScreen .hero-btns .btn-primary:active,
+      #landScreen .cta-banner-btn:active { transform: translateY(0); }
+      #landScreen .hero-btns .btn-secondary {
+        transition: background 0.2s ease, border-color 0.2s ease, transform 0.22s cubic-bezier(0.22,1,0.36,1);
+      }
+      #landScreen .hero-btns .btn-secondary:hover {
+        transform: translateY(-1.5px);
+        border-color: var(--border);
+      }
       #landScreen .hero-visual {
         display: flex;
         align-items: center;
@@ -1142,6 +1162,20 @@
       #landScreen .faq-section {
         padding-inline: 0;
         max-width: 720px;
+      }
+      #landScreen .faq-block {
+        display: grid;
+        grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
+        column-gap: 64px;
+        align-items: start;
+        padding-top: 56px;
+      }
+      #landScreen .faq-block .land-section-head--faq {
+        padding: 4px 0 0;
+      }
+      #landScreen .faq-block .faq-section {
+        padding: 0;
+        max-width: 640px;
       }
       #landScreen .cta-strip {
         padding-inline: 0;
@@ -3345,7 +3379,7 @@
       font-size: 13px;
       font-weight: 600;
       text-decoration: none;
-      transition: background 0.2s ease, border-color 0.2s ease;
+      transition: background 0.2s ease, border-color 0.2s ease, transform 0.22s cubic-bezier(0.22,1,0.36,1), box-shadow 0.22s ease;
     }
     .portfolio-side-store:hover {
       background: rgba(124,58,237,0.24);
@@ -3377,7 +3411,7 @@
       font-size: 12px;
       font-weight: 600;
       cursor: pointer;
-      transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+      transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.22s cubic-bezier(0.22,1,0.36,1);
     }
     .portfolio-side-cta:hover {
       background: rgba(255,255,255,0.08);
@@ -3492,7 +3526,7 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      transition: opacity 0.2s ease, transform 0.15s ease, background 0.2s ease;
+      transition: opacity 0.2s ease, transform 0.22s cubic-bezier(0.22,1,0.36,1), background 0.2s ease, box-shadow 0.22s ease;
       box-sizing: border-box;
     }
     body.portfolio-swipe-done .portfolio-done-preview-panel .crate-buy-btn--prominent {
@@ -3737,6 +3771,7 @@
       max-width: 100%;
       white-space: nowrap;
       text-align: center;
+      transition: background 0.2s ease, border-color 0.2s ease, transform 0.22s cubic-bezier(0.22,1,0.36,1);
     }
     .portfolio-replay-btn i {
       font-size: 15px;
@@ -3789,7 +3824,7 @@
       font-weight: 600;
       cursor: pointer;
       box-shadow: 0 4px 22px rgba(124,58,237,0.38);
-      transition: opacity 0.2s ease, transform 0.15s ease;
+      transition: opacity 0.2s ease, transform 0.22s cubic-bezier(0.22,1,0.36,1), box-shadow 0.22s ease;
       width: 100%;
       max-width: 320px;
       box-sizing: border-box;
@@ -3800,6 +3835,30 @@
     }
     .portfolio-done-producer-btn i {
       font-size: 17px;
+    }
+    /* Apple-polish hover — laptop pointer only, mirrors landing CTAs */
+    @media (hover: hover) and (pointer: fine) and (min-width: 900px) {
+      .portfolio-done-producer-btn,
+      body.portfolio-swipe-done .portfolio-done-preview-panel .crate-buy-btn--prominent {
+        box-shadow: 0 10px 30px -10px rgba(124,58,237,0.55);
+      }
+      .portfolio-done-producer-btn:hover,
+      body.portfolio-swipe-done .portfolio-done-preview-panel .crate-buy-btn--prominent:hover {
+        opacity: 1;
+        transform: translateY(-1.5px);
+        box-shadow: 0 16px 38px -10px rgba(124,58,237,0.68);
+      }
+      .portfolio-side-store:hover {
+        transform: translateY(-1.5px);
+        box-shadow: 0 12px 30px -12px rgba(124,58,237,0.5);
+      }
+      .portfolio-side-cta:hover,
+      .portfolio-replay-btn:hover {
+        transform: translateY(-1.5px);
+      }
+      .portfolio-side-store:active,
+      .portfolio-side-cta:active,
+      .portfolio-replay-btn:active { transform: translateY(0); }
     }
     @media (min-width: 900px) {
       .portfolio-done--simple .portfolio-done-foot {
@@ -4144,6 +4203,20 @@
       body.portfolio-active #portfolioCardWrap .card-glow.glow-toward-skip {
         filter: blur(58px);
       }
+      body.portfolio-active #portfolioScreen .action-row,
+      body.portfolio-active .portfolio-action-row {
+        position: relative;
+        z-index: 16;
+        gap: 40px;
+        padding: 16px 0 48px;
+      }
+      body.portfolio-active .portfolio-action-row .btn-skip,
+      body.portfolio-active .portfolio-action-row .btn-save {
+        width: 80px;
+        height: 80px;
+      }
+      body.portfolio-active .portfolio-action-row .btn-skip i { font-size: 34px; }
+      body.portfolio-active .portfolio-action-row .btn-save i { font-size: 36px; }
       #portfolioCardWrap .portfolio-surface { padding: 28px 26px; }
       #portfolioCardWrap .waveform { height: 64px; }
       #portfolioCardWrap .portfolio-surface.fly-left,
@@ -4220,7 +4293,7 @@
         flex: 0 0 var(--w-portfolio);
         margin-inline: auto;
       }
-      body.portfolio-active.portfolio-swipe-done .shell {
+      body.portfolio-active.portfolio-swipe-done:has(.portfolio-done--results) .shell {
         width: min(1080px, calc(100vw - var(--discover-left) - 48px));
         max-width: min(1080px, calc(100vw - var(--discover-left) - 48px));
         flex: 0 0 auto;
@@ -4375,14 +4448,14 @@
         font-weight: 500;
       }
     }
-    #landScreen .faq-section .faq-title-mobile {
-      display: block;
-      font-size: 16px; font-weight: 700;
-      margin-bottom: 12px; letter-spacing: -0.3px;
-    }
 
     /* ── MOBILE LANDING REVEAL + HERO (<900px) ── */
     @media (max-width: 899px) {
+      #landScreen .faq-section .faq-title-mobile {
+        display: block;
+        font-size: 16px; font-weight: 700;
+        margin-bottom: 12px; letter-spacing: -0.3px;
+      }
       .reveal-on-scroll {
         opacity: 0;
         transform: translateY(10px);
@@ -4588,14 +4661,15 @@
       padding: 14px 0; display: flex; justify-content: space-between; align-items: center;
       cursor: pointer; gap: 10px; line-height: 1.4;
     }
-    .faq-q i { font-size: 16px; color: var(--text-3); flex-shrink: 0; transition: transform 0.25s; }
+    .faq-q i { font-size: 16px; color: var(--text-3); flex-shrink: 0; transition: transform 0.25s, color 0.2s ease; }
     .faq-q.open i { transform: rotate(45deg); color: var(--accent-mid); }
+    .faq-q:hover i { color: var(--accent-mid); }
     .faq-a {
       font-size: 13px; color: var(--text-2); line-height: 1.65;
       max-height: 0; overflow: hidden; transition: max-height 0.35s ease, padding 0.25s;
       padding: 0;
     }
-    .faq-a.open { max-height: 200px; padding-bottom: 14px; }
+    .faq-a.open { max-height: 320px; padding-bottom: 14px; }
 
     /* ── IMPRESSUM LINKS IN PROFILE ── */
     .legal-links { display: flex; flex-direction: column; gap: 0; margin-top: 16px; background: var(--bg-2); border-radius: 16px; border: 0.5px solid var(--border); overflow: hidden; }
