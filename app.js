@@ -143,7 +143,7 @@ function updateDesktopTopbarAuth() {
 }
 
 // ─── INVITE GATE (private beta) ───────────────────────────────────────────
-const INVITE_GATE_PAUSED = true; // TEMP: demo — set false to re-enable
+const INVITE_GATE_PAUSED = false; // TEMP: demo — set false to re-enable
 const INVITE_CODES = ['BEATSWIPE25', 'beatswipe'];
 const INVITE_PROTECTED = new Set([
   'discoverScreen', 'crateScreen', 'submitScreen',
