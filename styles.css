@@ -2254,6 +2254,141 @@
     }
     .land-step-title { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
     .land-step-desc { font-size: 13px; color: var(--text-2); line-height: 1.5; }
+
+    /* LANDING — platform compatibility */
+    .land-platforms {
+      padding: 8px var(--px) 12px;
+    }
+    .land-section-head--platforms {
+      padding-top: 36px;
+      padding-bottom: 18px;
+      text-align: center;
+    }
+    .land-section-head--platforms .land-section-desc {
+      max-width: 520px;
+      margin-inline: auto;
+    }
+    .land-platforms-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      max-width: 720px;
+      margin-inline: auto;
+    }
+    .land-platform-card {
+      --platform-brand: var(--accent);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 108px;
+      padding: 16px 10px 14px;
+      border-radius: 16px;
+      border: 0.5px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.03);
+      color: var(--platform-brand);
+      transition:
+        transform 0.22s cubic-bezier(0.22,1,0.36,1),
+        border-color 0.22s ease,
+        box-shadow 0.22s ease,
+        background 0.22s ease;
+    }
+    .land-platform-card:hover {
+      transform: translateY(-2px) scale(1.03);
+      border-color: color-mix(in srgb, var(--platform-brand) 42%, transparent);
+      background: color-mix(in srgb, var(--platform-brand) 8%, rgba(255,255,255,0.03));
+      box-shadow: 0 10px 28px color-mix(in srgb, var(--platform-brand) 22%, transparent);
+    }
+    .land-platform-icon {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .land-platform-icon svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .land-platform-icon--airbit svg {
+      width: 30px;
+      height: auto;
+    }
+    .land-platform-icon--traktrain {
+      width: auto;
+      min-width: 88px;
+      height: 22px;
+    }
+    .land-platform-icon--traktrain svg {
+      width: auto;
+      height: 20px;
+    }
+    .land-platform-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.01em;
+      text-align: center;
+      line-height: 1.2;
+    }
+    @media (max-width: 520px) {
+      .land-platforms-grid {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 10px;
+        max-width: none;
+        margin-inline: calc(var(--px) * -1);
+        padding: 0 var(--px) 4px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+      }
+      .land-platforms-grid::-webkit-scrollbar { display: none; }
+      .land-platform-card {
+        flex: 0 0 108px;
+        scroll-snap-align: start;
+      }
+    }
+    @media (min-width: 900px) {
+      #landScreen .land-platforms {
+        padding-inline: 0;
+        padding-bottom: 20px;
+      }
+      #landScreen .land-section-head--platforms {
+        padding-top: 56px;
+        padding-bottom: 24px;
+      }
+      .land-platforms-grid {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 14px;
+        max-width: none;
+      }
+      .land-platform-card {
+        flex: 0 1 132px;
+        min-height: 118px;
+        padding: 18px 12px 16px;
+      }
+      .land-platform-icon {
+        width: 44px;
+        height: 44px;
+      }
+      .land-platform-icon--airbit svg { width: 34px; }
+      .land-platform-name { font-size: 13px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .land-platform-card,
+      .land-platform-card:hover {
+        transform: none;
+        transition: border-color 0.22s ease, background 0.22s ease;
+      }
+    }
+
     .cta-strip { padding: 20px var(--px) 28px; }
     .cta-banner {
       position: relative;
@@ -3170,11 +3305,12 @@
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      border: 2px solid var(--accent);
+      border: 2px solid rgba(10,132,255,0.45);
+      background: rgba(10,132,255,0.16);
       font-size: 15px;
       font-weight: 700;
       letter-spacing: -0.3px;
-      color: var(--accent-mid);
+      color: var(--accent);
     }
     .portfolio-avatar-fallback--skel {
       border-color: var(--border);
@@ -3235,14 +3371,37 @@
       justify-content: center;
       color: var(--text-2);
       text-decoration: none;
-      transition: color 0.2s, background 0.2s, border-color 0.2s;
+      transition: color 0.2s, background 0.2s, border-color 0.2s, transform 0.2s cubic-bezier(0.22,1,0.36,1);
     }
+    .portfolio-social-link svg {
+      width: 16px;
+      height: 16px;
+      display: block;
+      flex-shrink: 0;
+    }
+    .portfolio-social-link[data-platform="airbit"] svg {
+      width: 13px;
+      height: auto;
+    }
+    .portfolio-social-link[data-platform="instagram"] { --social-glow: #E1306C; }
+    .portfolio-social-link[data-platform="tiktok"] { --social-glow: #FE2C55; }
+    .portfolio-social-link[data-platform="spotify"] { color: #1DB954; --social-glow: #1DB954; }
+    .portfolio-social-link[data-platform="beatstars"] { color: #EB0000; --social-glow: #EB0000; }
+    .portfolio-social-link[data-platform="airbit"] { color: #6900FF; --social-glow: #6900FF; }
+    .portfolio-social-link[data-platform="soundcloud"] { color: #FF5500; --social-glow: #FF5500; }
+    .portfolio-social-link[data-platform="youtube"] { color: #FF0000; --social-glow: #FF0000; }
     .portfolio-social-link:hover {
-      color: var(--accent-mid);
-      background: rgba(10,132,255,0.12);
-      border-color: rgba(10,132,255,0.22);
+      transform: scale(1.06);
+      background: color-mix(in srgb, var(--social-glow, var(--accent)) 12%, transparent);
+      border-color: color-mix(in srgb, var(--social-glow, var(--accent)) 30%, transparent);
+      box-shadow: 0 0 16px color-mix(in srgb, var(--social-glow, var(--accent)) 18%, transparent);
     }
-    .portfolio-social-link i { font-size: 15px; }
+    .portfolio-social-link[data-platform="instagram"]:hover {
+      color: #E1306C;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .portfolio-social-link:hover { transform: none; }
+    }
     .portfolio-counter {
       font-size: 11px;
       font-weight: 600;
@@ -3335,7 +3494,9 @@
       justify-content: center;
       font-size: 22px;
       font-weight: 700;
-      border: 1.5px solid;
+      border: 2px solid rgba(10,132,255,0.45);
+      background: rgba(10,132,255,0.16);
+      color: var(--accent);
     }
     .portfolio-side-name {
       font-size: 18px;
@@ -4836,6 +4997,43 @@
     .modal-close { background: var(--bg-3); border: none; color: var(--text-2); width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; }
     .modal-body { padding: 0 var(--px) var(--px); display: flex; flex-direction: column; gap: 16px; }
     .filter-label { font-size: 12px; font-weight: 600; color: var(--text-2); margin-bottom: 8px; letter-spacing: 0.2px; }
+    .filter-acc-list { display: flex; flex-direction: column; gap: 8px; }
+    .filter-acc {
+      background: rgba(255,255,255,0.03);
+      border: 0.5px solid var(--border-2);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .filter-acc.open { border-color: rgba(10,132,255,0.22); }
+    .filter-acc-head {
+      width: 100%; display: flex; align-items: center; gap: 8px;
+      padding: 12px 14px; background: none; border: none; cursor: pointer;
+      color: var(--text); text-align: left;
+    }
+    .filter-acc-head:hover { background: rgba(255,255,255,0.03); }
+    .filter-acc-label { font-size: 13px; font-weight: 600; flex-shrink: 0; }
+    .filter-acc-value {
+      flex: 1; min-width: 0; font-size: 12px; color: var(--text-3);
+      text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .filter-acc-value.is-active { color: var(--accent-mid); font-weight: 600; }
+    .filter-acc-chev {
+      font-size: 16px; color: var(--text-3); flex-shrink: 0;
+      transition: transform 0.2s cubic-bezier(0.22,1,0.36,1);
+    }
+    .filter-acc.open .filter-acc-chev { transform: rotate(180deg); }
+    .filter-acc-body { padding: 0 12px 12px; display: none; }
+    .filter-acc.open .filter-acc-body { display: block; }
+    .filter-acc-empty {
+      display: block; font-size: 12px; color: var(--text-3); padding: 4px 2px 2px;
+    }
+    .filter-clear-btn {
+      width: 100%; margin-top: 4px; padding: 10px;
+      background: none; border: none; color: var(--text-3);
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      transition: color 0.18s ease;
+    }
+    .filter-clear-btn:hover { color: var(--text-2); }
     .filter-pills { display: flex; flex-wrap: wrap; gap: 6px; }
     .filter-pill { padding: 7px 15px; border-radius: 100px; font-size: 13px; font-weight: 500; border: 0.5px solid var(--border-2); background: none; color: var(--text-2); cursor: pointer; transition: all 0.18s; }
     .filter-pill.active { background: var(--accent); border-color: var(--accent); color: #fff; }
@@ -4927,13 +5125,14 @@
       border-radius: 50%;
       border: 2px solid var(--accent);
       box-sizing: border-box;
+      box-shadow: 0 0 0 1px rgba(10,132,255,0.12);
     }
     .profile-hero-avatar-clip {
       width: 100%;
       height: 100%;
       border-radius: 50%;
       overflow: hidden;
-      background: var(--accent);
+      background: rgba(10,132,255,0.12);
     }
     .profile-hero-avatar,
     .profile-hero-avatar-fallback {
@@ -4945,13 +5144,14 @@
     }
     .profile-hero-avatar { transform: scale(1.1); }
     .profile-hero-avatar-fallback {
-      background: var(--accent-dark);
+      background: var(--accent);
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 24px;
       font-weight: 700;
-      color: var(--accent-mid);
+      color: #fff;
+      letter-spacing: -0.02em;
     }
     .profile-hero-camera {
       position: absolute;
@@ -5699,7 +5899,30 @@
     .avatar-overlay i { font-size: 18px; color: #fff; }
     .social-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
     .social-field { position: relative; }
-    .social-field i { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); font-size: 16px; color: var(--text-3); pointer-events: none; }
+    .social-field i,
+    .social-field-brand {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+    .social-field i { font-size: 16px; color: var(--text-3); }
+    .social-field .ti-brand-instagram { color: #E1306C; }
+    .social-field .ti-brand-spotify { color: #1DB954; }
+    .social-field .ti-brand-soundcloud { color: #FF5500; }
+    .social-field .ti-brand-youtube { color: #FF0000; }
+    .social-field-brand {
+      width: 16px;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .social-field-brand svg { width: 100%; height: 100%; display: block; }
+    .social-field-brand--beatstars { color: #EB0000; }
+    .social-field-brand--airbit { color: #6900FF; width: 14px; height: 18px; }
+    .social-field-brand--tiktok { width: 15px; height: 15px; }
     .social-field input { padding-left: 34px; }
     .save-profile-btn { width: 100%; padding: 13px; border-radius: 12px; background: var(--accent); border: none; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 0.2s; margin-top: 4px; }
     .save-profile-btn:hover { opacity: 0.88; }
@@ -5769,6 +5992,19 @@
       font-size: 12px; cursor: pointer; padding: 4px 0; display: inline-flex; align-items: center; gap: 4px;
     }
     .upload-queue-remove:hover { color: #f87171; }
+    .buy-store-field { display: flex; flex-direction: column; gap: 8px; }
+    .buy-store-pills { gap: 5px; }
+    .buy-store-pill { padding: 6px 12px; font-size: 12px; }
+    .buy-store-input {
+      width: 100%; padding: 10px 12px; border-radius: 10px;
+      border: 0.5px solid var(--border-2); background: rgba(255,255,255,0.04);
+      color: var(--text); font-size: 14px;
+    }
+    .buy-store-input:focus { outline: none; border-color: var(--accent-mid); }
+    .buy-store-hint,
+    .buy-store-pick-hint {
+      font-size: 11px; color: var(--text-3); line-height: 1.4;
+    }
     .batch-apply-row { margin-top: 10px; }
     .batch-apply-row .btn-secondary {
       width: 100%; justify-content: center; padding: 11px 14px;

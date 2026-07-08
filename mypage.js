@@ -92,6 +92,68 @@ function updatePreviewLabel() {
 
 const SUBMIT_GENRES = ['Trap','Drill','R&B','Lo-Fi','Afrobeats','Synthwave','Acoustic','Boom Bap','Other'];
 const SUBMIT_TYPES = ['Full Beat','Loop','Drum Kit','Sample'];
+const BUY_STORE_PLATFORMS = [
+  { id: 'beatstars', label: 'BeatStars', placeholder: 'https://beatstars.com/beat/...' },
+  { id: 'airbit', label: 'Airbit', placeholder: 'https://airbit.com/...' },
+  { id: 'traktrain', label: 'Traktrain', placeholder: 'https://traktrain.com/...' },
+  { id: 'other', label: 'Website', placeholder: 'https://yourstore.com/...' }
+];
+
+function normalizeBuyLink(raw) {
+  const trimmed = (raw || '').trim();
+  if (!trimmed) return '';
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  if (/^[\w.-]+\.[a-z]{2,}/i.test(trimmed)) return 'https://' + trimmed.replace(/^https?:\/\//i, '');
+  return '';
+}
+
+function validateBuyLink(raw) {
+  const trimmed = (raw || '').trim();
+  if (!trimmed) return 'Add where fans can buy the full beat.';
+  if (!normalizeBuyLink(trimmed)) return 'Enter a valid store link (https://…).';
+  return null;
+}
+
+function buyStorePlaceholder(platformId) {
+  return BUY_STORE_PLATFORMS.find(p => p.id === platformId)?.placeholder || 'https://...';
+}
+
+function buildBuyStoreFieldHtml({ wrapId, platform, buyLink }) {
+  const pills = BUY_STORE_PLATFORMS.map(p =>
+    `<button type="button" class="buy-store-pill filter-pill${platform === p.id ? ' active' : ''}" data-platform="${p.id}" onclick="selectQueueBuyPlatform('${wrapId}', '${p.id}')">${p.label}</button>`
+  ).join('');
+  const showInput = !!platform;
+  return `
+    <div class="buy-store-field" data-buy-wrap="${wrapId}">
+      <label class="field-label">Where can people buy this beat? *</label>
+      <div class="buy-store-pills filter-pills" role="list">${pills}</div>
+      <input type="url" class="buy-store-input" value="${escHtml(buyLink || '')}" placeholder="${escHtml(buyStorePlaceholder(platform))}"
+        style="display:${showInput ? 'block' : 'none'}" oninput="updateQueueField('${wrapId}', 'buyLink', this.value)">
+      <div class="buy-store-hint" style="display:${showInput ? 'block' : 'none'}">Paste your track or store link — fans buy the full beat there, not this preview.</div>
+      <div class="buy-store-pick-hint" style="display:${showInput ? 'none' : 'block'}">Select where you sell this beat.</div>
+    </div>`;
+}
+
+function selectQueueBuyPlatform(queueId, platform) {
+  const item = _mp3Queue.find(q => q.id === queueId);
+  if (!item) return;
+  item.buyPlatform = platform;
+  const wrap = document.querySelector(`[data-buy-wrap="${queueId}"]`);
+  if (!wrap) return;
+  wrap.querySelectorAll('.buy-store-pill').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.platform === platform);
+  });
+  const input = wrap.querySelector('.buy-store-input');
+  const hint = wrap.querySelector('.buy-store-hint');
+  const pickHint = wrap.querySelector('.buy-store-pick-hint');
+  if (input) {
+    input.style.display = 'block';
+    input.placeholder = buyStorePlaceholder(platform);
+    if (!input.value.trim()) input.focus();
+  }
+  if (hint) hint.style.display = 'block';
+  if (pickHint) pickHint.style.display = 'none';
+}
 
 function genreSelectHtml(selected, id, onchange) {
   const opts = SUBMIT_GENRES.map(g =>
@@ -117,7 +179,7 @@ function syncQueueFormLayout() {
   const isMp3 = document.getElementById('f-preview-type')?.value === 'MP3';
   const singleFields = document.getElementById('submitSingleFields');
   const noteHint = document.getElementById('batchNoteHint');
-  if (singleFields) singleFields.style.display = (isMp3 && hasQueue) ? 'none' : 'block';
+  if (singleFields) singleFields.style.display = isMp3 ? 'none' : 'block';
   if (noteHint) noteHint.textContent = (isMp3 && hasQueue) ? '(applies to whole batch)' : '';
 }
 
@@ -181,12 +243,7 @@ function renderUploadQueue() {
             <label class="field-label">Type *</label>
             ${typeSelectHtml(item.type, 'qt-' + item.id, `updateQueueField('${item.id}', 'type', this.value)`)}
           </div>
-          <div>
-            <label class="field-label">Buy link <span style="color:var(--text-3);font-weight:400">(optional)</span></label>
-            <input type="url" value="${escHtml(item.buyLink || '')}" placeholder="https://beatstars.com/beat/..."
-              oninput="updateQueueField('${item.id}', 'buyLink', this.value)">
-            <div style="font-size:11px;color:var(--text-3);margin-top:4px">Where fans buy the full beat — BeatStars, Splice, etc.</div>
-          </div>
+          ${buildBuyStoreFieldHtml({ wrapId: item.id, platform: item.buyPlatform || '', buyLink: item.buyLink || '' })}
           <button type="button" class="upload-queue-remove" onclick="removeQueueItem('${item.id}')"><i class="ti ti-trash"></i> Remove</button>
         </div>
       </div>
@@ -261,6 +318,7 @@ function addFilesToQueue(fileList) {
       genre: '',
       type: '',
       buyLink: '',
+      buyPlatform: '',
       expanded: isFirst
     });
     added++;
@@ -473,6 +531,17 @@ async function doSubmitForm() {
         expandQueueItem(item.id);
         return;
       }
+      if (!item.buyPlatform) {
+        showToast(`Select where you sell "${label}".`, 'error');
+        expandQueueItem(item.id);
+        return;
+      }
+      const buyErr = validateBuyLink(item.buyLink);
+      if (buyErr) {
+        showToast(`"${label}": ${buyErr}`, 'error');
+        expandQueueItem(item.id);
+        return;
+      }
     }
     return doSubmitMp3Batch({ producer, note });
   }
@@ -565,7 +634,7 @@ async function doSubmitMp3Batch(shared) {
         type: item.type,
         previewType: 'MP3',
         previewUrl,
-        buyLink: (item.buyLink || '').trim()
+        buyLink: normalizeBuyLink(item.buyLink)
       });
       addMyPendingBeat(item.title.trim());
       submitted.push(item.title.trim());

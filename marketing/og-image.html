@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 1200px;
+      height: 630px;
+      overflow: hidden;
+      background: #000;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .og {
+      position: relative;
+      width: 1200px;
+      height: 630px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+      overflow: hidden;
+    }
+    .og::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 70% 55% at 50% 42%, rgba(10, 132, 255, 0.22) 0%, transparent 68%),
+        radial-gradient(ellipse 40% 30% at 50% 50%, rgba(64, 156, 255, 0.08) 0%, transparent 100%);
+      pointer-events: none;
+    }
+    .og-inner {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 0 80px;
+    }
+    .logo {
+      font-size: 88px;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      margin-bottom: 28px;
+    }
+    .logo-beat { color: #fff; }
+    .logo-swipe { color: #409CFF; }
+    .tagline {
+      font-size: 34px;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      color: rgba(255, 255, 255, 0.72);
+      line-height: 1.35;
+      max-width: 900px;
+    }
+    .url {
+      position: absolute;
+      bottom: 52px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 22px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      color: rgba(255, 255, 255, 0.38);
+    }
+  </style>
+</head>
+<body>
+  <div class="og">
+    <div class="og-inner">
+      <div class="logo" aria-hidden="true">
+        <span class="logo-beat">Beat</span><span class="logo-swipe">Swipe</span>
+      </div>
+      <p class="tagline">Your bio link. Their next beat.</p>
+    </div>
+    <div class="url">beatswipe.app</div>
+  </div>
+</body>
+</html>

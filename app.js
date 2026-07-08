@@ -20,6 +20,29 @@ function escHtml(s) {
     .replace(/"/g, '&quot;');
 }
 
+const SOCIAL_PLATFORMS = [
+  { key: 'instagram', label: 'Instagram', placeholder: '@username', icon: 'ti-brand-instagram' },
+  { key: 'tiktok', label: 'TikTok', placeholder: '@username', icon: 'tiktok' },
+  { key: 'spotify', label: 'Spotify', placeholder: 'open.spotify.com/...', icon: 'ti-brand-spotify' },
+  { key: 'beatstars', label: 'BeatStars', placeholder: 'beatstars.com/...', icon: 'beatstars' },
+  { key: 'airbit', label: 'Airbit', placeholder: 'airbit.com/...', icon: 'airbit' },
+  { key: 'soundcloud', label: 'SoundCloud', placeholder: 'soundcloud.com/...', icon: 'ti-brand-soundcloud' },
+  { key: 'youtube', label: 'YouTube', placeholder: 'youtube.com/...', icon: 'ti-brand-youtube' },
+];
+
+function socialFieldIconMarkup(platform) {
+  if (platform.icon === 'airbit') {
+    return `<span class="social-field-brand social-field-brand--airbit" aria-hidden="true"><svg viewBox="0 0 506.36 680.25" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M-714.09,311V461.92a24.73,24.73,0,0,1-24.73,24.73h-33.59a24.73,24.73,0,0,1-24.73-24.73V335.73A24.73,24.73,0,0,1-772.41,311h58.32Z" transform="translate(1220.45 -28.37)"/><path fill="currentColor" d="M-1220.45,311V461.92a24.73,24.73,0,0,0,24.73,24.73h33.59a24.73,24.73,0,0,0,24.73-24.73V335.73A24.73,24.73,0,0,0-1162.13,311h-58.32Z" transform="translate(1220.45 -28.37)"/><path fill="currentColor" d="M-967.27,28.37c-139.83,0-253.18,113.35-253.18,253.18h43a208.8,208.8,0,0,1,61.56-148.62A208.79,208.79,0,0,1-967.27,71.37a208.8,208.8,0,0,1,148.62,61.56,208.8,208.8,0,0,1,61.56,148.62h43C-714.09,141.72-827.44,28.37-967.27,28.37Z" transform="translate(1220.45 -28.37)"/><rect fill="currentColor" x="463.36" y="253.18" width="43" height="177.57"/><rect fill="currentColor" y="253.18" width="43" height="177.57"/><rect fill="currentColor" x="144.23" y="285.79" width="43" height="145.13"/><rect fill="currentColor" x="144.23" y="470.61" width="43" height="109.33"/><rect fill="currentColor" x="231.68" y="356.49" width="43" height="122.81"/><rect fill="currentColor" x="231.68" y="518.84" width="43" height="60.96"/><rect fill="currentColor" x="231.68" y="619.46" width="43" height="60.79"/><rect fill="currentColor" x="319.13" y="285.79" width="43" height="86.82"/><rect fill="currentColor" x="319.13" y="412.31" width="43" height="94.26"/><rect fill="currentColor" x="319.13" y="546.26" width="43" height="61.52"/></svg></span>`;
+  }
+  if (platform.icon === 'beatstars') {
+    return `<span class="social-field-brand social-field-brand--beatstars" aria-hidden="true"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="m17.217 11.996-3.308 1.079v3.478l-2.052-2.818-3.309 1.079 2.043-2.818-2.043-2.819 3.31 1.08 2.05-2.819v3.487zm0 0v7.277H6.854V4.584h10.363v7.412l4.585-1.49v-7.67L19.135 0H2.198v24h16.92l2.684-2.685v-7.83z"/></svg></span>`;
+  }
+  if (platform.icon === 'tiktok') {
+    return `<span class="social-field-brand social-field-brand--tiktok" aria-hidden="true"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#25F4EE" d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/><path fill="#FE2C55" d="M19.59 5.19a4.83 4.83 0 0 1-3.77-4.25V.5h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V7.9a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 18.6a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52V5.6a4.85 4.85 0 0 1-1-.1z"/><path fill="#FFFFFF" d="M19.59 6.19a4.83 4.83 0 0 1-3.77-4.25V1.5h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V8.9a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 19.6a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg></span>`;
+  }
+  return `<i class="ti ${platform.icon}"></i>`;
+}
+
 let _toastHideTimer = null;
 function showToast(message, type = 'info', duration = 2800) {
   const wrap = document.getElementById('bsToastWrap');
@@ -494,6 +517,7 @@ function applyBeatsList(beats) {
   db = { full: [], loops: [], drums: [], samples: [] };
   beats.forEach(b => db[typeTocat(b.type)].push(b));
   _rawDb = JSON.parse(JSON.stringify(db));
+  applyDiscoverFilters();
   updateStats(true);
   return true;
 }
@@ -722,7 +746,7 @@ async function initApp() {
   } else {
     resetGuestSwipeState();
   }
-  restoreGenreFilter();
+  restoreDiscoverFilters();
   if (portfolioSlug) {
     const producerName = findProducerBySlug(portfolioSlug) || await findProducerInProfiles(portfolioSlug);
     if (producerName) await openPortfolio(producerName, { fromRoute: true });
@@ -2571,14 +2595,14 @@ let _profileFormSnapshot = null;
 function getProfileFormState() {
   const nameEl = document.getElementById('ep-name');
   if (!nameEl) return null;
-  return {
+  const state = {
     producer_name: document.getElementById('ep-name')?.value?.trim() || '',
     bio: document.getElementById('ep-bio')?.value?.trim() || '',
-    instagram: document.getElementById('ep-instagram')?.value?.trim() || '',
-    soundcloud: document.getElementById('ep-soundcloud')?.value?.trim() || '',
-    beatstars: document.getElementById('ep-beatstars')?.value?.trim() || '',
-    youtube: document.getElementById('ep-youtube')?.value?.trim() || '',
   };
+  SOCIAL_PLATFORMS.forEach(s => {
+    state[s.key] = document.getElementById('ep-' + s.key)?.value?.trim() || '';
+  });
+  return state;
 }
 
 function captureProfileFormSnapshot() {
@@ -2604,7 +2628,7 @@ function confirmDiscardProfileChanges() {
 }
 
 function bindProfileFormWatch() {
-  ['ep-name', 'ep-bio', 'ep-instagram', 'ep-soundcloud', 'ep-beatstars', 'ep-youtube'].forEach(id => {
+  ['ep-name', 'ep-bio', ...SOCIAL_PLATFORMS.map(s => 'ep-' + s.key)].forEach(id => {
     const el = document.getElementById(id);
     if (!el || el._profileWatch) return;
     el._profileWatch = true;
@@ -2739,22 +2763,11 @@ function renderProfile() {
           <div class="profile-section-title">Links</div>
           <div class="profile-section profile-glass">
             <div class="profile-social-grid">
+              ${SOCIAL_PLATFORMS.map(s => `
               <div class="social-field">
-                <i class="ti ti-brand-instagram"></i>
-                <input type="text" id="ep-instagram" value="${escHtml(p.instagram||'')}" placeholder="@username">
-              </div>
-              <div class="social-field">
-                <i class="ti ti-brand-soundcloud"></i>
-                <input type="text" id="ep-soundcloud" value="${escHtml(p.soundcloud||'')}" placeholder="soundcloud.com/...">
-              </div>
-              <div class="social-field">
-                <i class="ti ti-music"></i>
-                <input type="text" id="ep-beatstars" value="${escHtml(p.beatstars||'')}" placeholder="beatstars.com/...">
-              </div>
-              <div class="social-field">
-                <i class="ti ti-brand-youtube"></i>
-                <input type="text" id="ep-youtube" value="${escHtml(p.youtube||'')}" placeholder="youtube.com/...">
-              </div>
+                ${socialFieldIconMarkup(s)}
+                <input type="text" id="ep-${s.key}" value="${escHtml(p[s.key] || '')}" placeholder="${escHtml(s.placeholder)}">
+              </div>`).join('')}
             </div>
           </div>
         </div>
@@ -3147,13 +3160,12 @@ async function saveProfile() {
   const updates = {
     id: currentUser.id,
     producer_name: document.getElementById('ep-name')?.value.trim() || null,
-    bio:           document.getElementById('ep-bio')?.value.trim() || null,
-    instagram:     document.getElementById('ep-instagram')?.value.trim() || null,
-    soundcloud:    document.getElementById('ep-soundcloud')?.value.trim() || null,
-    beatstars:     document.getElementById('ep-beatstars')?.value.trim() || null,
-    youtube:       document.getElementById('ep-youtube')?.value.trim() || null,
-    updated_at:    new Date().toISOString()
+    bio: document.getElementById('ep-bio')?.value.trim() || null,
+    updated_at: new Date().toISOString()
   };
+  SOCIAL_PLATFORMS.forEach(s => {
+    updates[s.key] = document.getElementById('ep-' + s.key)?.value.trim() || null;
+  });
 
   try {
     // Direct REST API call — bypasses SDK completely
@@ -3449,12 +3461,184 @@ function clearDiscoverSearch() {
 
 // ─── FILTER MODAL ─────────────────────────────────────────────────────────
 let activeGenre = 'all';
+let activeKey = 'all';
+let activeBpm = 'all';
+
+const BPM_FILTER_LABELS = {
+  all: 'All',
+  under90: 'Under 90',
+  '90-120': '90–120',
+  '120-150': '120–150',
+  '150plus': '150+'
+};
+
+function parseBeatBpm(beat) {
+  const m = String(beat?.bpm || '').match(/(\d+(?:\.\d+)?)/);
+  return m ? parseFloat(m[1]) : NaN;
+}
+
+function beatMatchesBpmRange(bpm, range) {
+  if (range === 'all' || Number.isNaN(bpm)) return range === 'all';
+  if (range === 'under90') return bpm < 90;
+  if (range === '90-120') return bpm >= 90 && bpm < 120;
+  if (range === '120-150') return bpm >= 120 && bpm < 150;
+  if (range === '150plus') return bpm >= 150;
+  return true;
+}
+
+function beatMatchesDiscoverFilters(beat) {
+  if (activeGenre !== 'all' && beat.genre !== activeGenre) return false;
+  if (activeKey !== 'all') {
+    const key = (beat.key || '').trim();
+    if (!key || key.toLowerCase() !== activeKey.toLowerCase()) return false;
+  }
+  if (activeBpm !== 'all' && !beatMatchesBpmRange(parseBeatBpm(beat), activeBpm)) return false;
+  return true;
+}
+
+function hasActiveDiscoverFilters() {
+  return activeGenre !== 'all' || activeKey !== 'all' || activeBpm !== 'all';
+}
+
+function getDiscoverFilterSummary() {
+  const parts = [];
+  if (activeGenre !== 'all') parts.push(activeGenre);
+  if (activeKey !== 'all') parts.push(activeKey);
+  if (activeBpm !== 'all') parts.push(BPM_FILTER_LABELS[activeBpm] || activeBpm);
+  return parts.length ? parts.join(' · ') : 'All';
+}
+
+function getAvailableKeys() {
+  const keys = new Set();
+  Object.values(_rawDb).flat().forEach(b => {
+    const key = (b.key || '').trim();
+    if (key && key !== 'N/A' && key !== '---') keys.add(key);
+  });
+  return [...keys].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+}
+
+function applyDiscoverFilters() {
+  Object.keys(_rawDb).forEach(k => {
+    db[k] = _rawDb[k].filter(beatMatchesDiscoverFilters);
+  });
+}
+
+function saveDiscoverFilters() {
+  try {
+    localStorage.setItem('bs_discover_filters', JSON.stringify({
+      genre: activeGenre,
+      key: activeKey,
+      bpm: activeBpm
+    }));
+  } catch (e) {}
+}
+
+function restoreDiscoverFilters() {
+  try {
+    const raw = localStorage.getItem('bs_discover_filters');
+    if (raw) {
+      const saved = JSON.parse(raw);
+      activeGenre = saved.genre || 'all';
+      activeKey = saved.key || 'all';
+      activeBpm = saved.bpm || 'all';
+    } else {
+      const legacyGenre = localStorage.getItem('bs_genre');
+      if (legacyGenre) activeGenre = legacyGenre;
+    }
+  } catch (e) {}
+  applyDiscoverFilters();
+  syncFilterPillSelection();
+  updateFilterAccSummaries();
+  updateFilterBtnStyle();
+}
+
+function resetDiscoverFilterState() {
+  activeGenre = 'all';
+  activeKey = 'all';
+  activeBpm = 'all';
+  applyDiscoverFilters();
+  syncFilterPillSelection();
+  updateFilterAccSummaries();
+  updateFilterBtnStyle();
+  renderKeyFilterPills();
+}
+
+function clearDiscoverFilters() {
+  resetDiscoverFilterState();
+  try {
+    localStorage.removeItem('bs_discover_filters');
+    localStorage.removeItem('bs_genre');
+  } catch (e) {}
+}
+
+function toggleFilterAcc(name) {
+  const id = 'filterAcc' + name.charAt(0).toUpperCase() + name.slice(1);
+  document.getElementById(id)?.classList.toggle('open');
+}
+
+function renderKeyFilterPills() {
+  const wrap = document.getElementById('keyPills');
+  if (!wrap) return;
+  const keys = getAvailableKeys();
+  let html = `<button type="button" class="filter-pill${activeKey === 'all' ? ' active' : ''}" data-key="all">All</button>`;
+  keys.forEach(key => {
+    const active = activeKey.toLowerCase() === key.toLowerCase();
+    html += `<button type="button" class="filter-pill${active ? ' active' : ''}" data-key="${escHtml(key)}">${escHtml(key)}</button>`;
+  });
+  if (!keys.length) {
+    html += '<span class="filter-acc-empty">No keys in library yet</span>';
+  }
+  wrap.innerHTML = html;
+}
+
+function syncFilterPillSelection() {
+  document.querySelectorAll('#genrePills .filter-pill').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.genre === activeGenre);
+  });
+  document.querySelectorAll('#keyPills .filter-pill').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.key === activeKey);
+  });
+  document.querySelectorAll('#bpmPills .filter-pill').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.bpm === activeBpm);
+  });
+}
+
+function updateFilterAccSummaries() {
+  const genreVal = document.getElementById('filterAccGenreVal');
+  const keyVal = document.getElementById('filterAccKeyVal');
+  const bpmVal = document.getElementById('filterAccBpmVal');
+  const clearBtn = document.getElementById('filterClearBtn');
+  if (genreVal) {
+    genreVal.textContent = activeGenre === 'all' ? 'All' : activeGenre;
+    genreVal.classList.toggle('is-active', activeGenre !== 'all');
+  }
+  if (keyVal) {
+    keyVal.textContent = activeKey === 'all' ? 'All' : activeKey;
+    keyVal.classList.toggle('is-active', activeKey !== 'all');
+  }
+  if (bpmVal) {
+    bpmVal.textContent = BPM_FILTER_LABELS[activeBpm] || 'All';
+    bpmVal.classList.toggle('is-active', activeBpm !== 'all');
+  }
+  if (clearBtn) clearBtn.hidden = !hasActiveDiscoverFilters();
+}
+
+function setDiscoverFilterValue(type, value) {
+  if (type === 'genre') activeGenre = value;
+  else if (type === 'key') activeKey = value;
+  else if (type === 'bpm') activeBpm = value;
+  syncFilterPillSelection();
+  updateFilterAccSummaries();
+}
 
 function openFilterModal() {
-  document.getElementById('filterModal').classList.add('open');
+  renderKeyFilterPills();
+  syncFilterPillSelection();
+  updateFilterAccSummaries();
+  document.getElementById('filterModal')?.classList.add('open');
 }
 function closeFilterModal() {
-  document.getElementById('filterModal').classList.remove('open');
+  document.getElementById('filterModal')?.classList.remove('open');
 }
 function closeFilterIfBackdrop(e) {
   if (e.target === document.getElementById('filterModal')) closeFilterModal();
@@ -3479,7 +3663,7 @@ function initSheetDragDismiss({ backdrop, sheet, onClose, dismissThreshold = 96,
   let scrollEl = null;
   let scrimBase = 0.65;
 
-  const BLOCK_SEL = 'button,a,input,select,textarea,.filter-pill,.modal-apply,.onboard-btn,.onboard-skip,.modal-close';
+  const BLOCK_SEL = 'button,a,input,select,textarea,.filter-pill,.filter-acc-head,.modal-apply,.onboard-btn,.onboard-skip,.modal-close';
 
   function readScrimBase() {
     const parts = getComputedStyle(backdrop).backgroundColor.match(/[\d.]+/g);
@@ -3650,13 +3834,13 @@ function updateDiscoverLeftRail() {
   if (catLbl) catLbl.textContent = catNames[cat] || 'Beats';
   if (skippedEl) skippedEl.textContent = String(skippedIds[cat]?.length || 0);
   if (savedEl) savedEl.textContent = String(crate.length);
-  if (filterLbl) filterLbl.textContent = activeGenre === 'all' ? 'All genres' : activeGenre;
+  if (filterLbl) filterLbl.textContent = getDiscoverFilterSummary();
 }
 
 function updateFilterBtnStyle() {
   const btn = document.getElementById('filterIconBtn');
   if (!btn) return;
-  if (activeGenre !== 'all') {
+  if (hasActiveDiscoverFilters()) {
     btn.style.background = 'var(--accent-light)';
     btn.style.borderColor = 'var(--accent)';
     btn.style.color = 'var(--accent-mid)';
@@ -3667,49 +3851,33 @@ function updateFilterBtnStyle() {
   }
 }
 
-function applyGenreToDb(genre) {
-  if (genre === 'all') {
-    Object.keys(_rawDb).forEach(k => { db[k] = [..._rawDb[k]]; });
-  } else {
-    Object.keys(_rawDb).forEach(k => {
-      db[k] = _rawDb[k].filter(b => b.genre === genre);
-    });
-  }
-}
-
-function saveGenreFilter() {
-  try { localStorage.setItem('bs_genre', activeGenre); } catch(e) {}
-}
-
-function restoreGenreFilter() {
-  try {
-    const saved = localStorage.getItem('bs_genre');
-    if (!saved) return;
-    activeGenre = saved;
-    document.querySelectorAll('.filter-pill').forEach(b => {
-      b.classList.toggle('active', b.dataset.genre === activeGenre);
-    });
-    applyGenreToDb(activeGenre);
-    updateFilterBtnStyle();
-  } catch(e) {}
-}
-
-document.getElementById('genrePills').querySelectorAll('.filter-pill').forEach(btn => {
-  btn.onclick = () => {
-    document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    activeGenre = btn.dataset.genre;
-  };
-});
-
 function applyFilter() {
   closeFilterModal();
-  applyGenreToDb(activeGenre);
+  applyDiscoverFilters();
   updateFilterBtnStyle();
-  saveGenreFilter();
-  Object.keys(catIdx).forEach(k => catIdx[k] = 0);
+  saveDiscoverFilters();
+  Object.keys(catIdx).forEach(k => { catIdx[k] = 0; });
   saveSwipeState();
   updateDiscoverLeftRail();
+  updateFilterAccSummaries();
   goTo('discoverScreen', 'navDiscover');
 }
+
+document.getElementById('genrePills')?.addEventListener('click', e => {
+  const btn = e.target.closest('.filter-pill');
+  if (!btn?.dataset.genre) return;
+  setDiscoverFilterValue('genre', btn.dataset.genre);
+});
+
+document.getElementById('keyPills')?.addEventListener('click', e => {
+  const btn = e.target.closest('.filter-pill');
+  if (!btn?.dataset.key) return;
+  setDiscoverFilterValue('key', btn.dataset.key);
+});
+
+document.getElementById('bpmPills')?.addEventListener('click', e => {
+  const btn = e.target.closest('.filter-pill');
+  if (!btn?.dataset.bpm) return;
+  setDiscoverFilterValue('bpm', btn.dataset.bpm);
+});
 

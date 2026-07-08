@@ -585,7 +585,7 @@ async function loadPortfolioProfile(producerName) {
   let profile = {};
   try {
     const res = await fetch(
-      `${SUPA_URL}/rest/v1/profiles?producer_name=eq.${encodeURIComponent(producerName)}&select=id,producer_name,bio,avatar_url,instagram,soundcloud,beatstars,youtube,beat_order&limit=1`,
+      `${SUPA_URL}/rest/v1/profiles?producer_name=eq.${encodeURIComponent(producerName)}&select=id,producer_name,bio,avatar_url,instagram,tiktok,spotify,airbit,soundcloud,beatstars,youtube,beat_order&limit=1`,
       { headers: { apikey: SUPA_KEY, Accept: 'application/json' } }
     );
     if (res.ok) {
@@ -622,20 +622,61 @@ function buildSocialHref(platform, raw) {
     if (v.includes('youtube.com') || v.includes('youtu.be')) return v.startsWith('http') ? v : 'https://' + v.replace(/^https?:\/\//, '');
     return 'https://youtube.com/@' + encodeURIComponent(v.replace(/^@/, ''));
   }
+  if (platform === 'tiktok') {
+    if (v.includes('tiktok.com')) return v.startsWith('http') ? v : 'https://' + v.replace(/^https?:\/\//, '');
+    return 'https://www.tiktok.com/@' + encodeURIComponent(v.replace(/^@/, ''));
+  }
+  if (platform === 'spotify') {
+    if (v.includes('spotify.com') || v.includes('open.spotify.com')) {
+      return v.startsWith('http') ? v : 'https://' + v.replace(/^https?:\/\//, '');
+    }
+    return null;
+  }
+  if (platform === 'airbit') {
+    if (v.includes('airbit.com')) return v.startsWith('http') ? v : 'https://' + v.replace(/^https?:\/\//, '');
+    return 'https://www.airbit.com/' + v.replace(/^@/, '');
+  }
   return null;
 }
 
+let _portfolioSocialIconSeq = 0;
+
+function portfolioSocialIconHTML(platform) {
+  const uid = ++_portfolioSocialIconSeq;
+  switch (platform) {
+    case 'instagram':
+      return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><linearGradient id="pfIgGrad${uid}" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#FFDC80"/><stop offset="25%" stop-color="#F77737"/><stop offset="50%" stop-color="#E1306C"/><stop offset="75%" stop-color="#C13584"/><stop offset="100%" stop-color="#833AB4"/></linearGradient></defs><path fill="url(#pfIgGrad${uid})" d="M7.0301.084c-1.2768.0602-2.1487.264-2.911.5634-.7888.3075-1.4575.72-2.1228 1.3877-.6652.6677-1.075 1.3368-1.3802 2.127-.2954.7638-.4956 1.6365-.552 2.914-.0564 1.2775-.0689 1.6882-.0626 4.947.0062 3.2586.0206 3.6671.0825 4.9473.061 1.2765.264 2.1482.5635 2.9107.308.7889.72 1.4573 1.388 2.1228.6679.6655 1.3365 1.0743 2.1285 1.38.7632.295 1.6361.4961 2.9134.552 1.2773.056 1.6884.069 4.9462.0627 3.2578-.0062 3.668-.0207 4.9478-.0814 1.28-.0607 2.147-.2652 2.9098-.5633.7889-.3086 1.4578-.72 2.1228-1.3881.665-.6682 1.0745-1.3378 1.3795-2.1284.2957-.7632.4966-1.636.552-2.9124.056-1.2809.0692-1.6898.063-4.948-.0063-3.2583-.021-3.6668-.0817-4.9465-.0607-1.2797-.264-2.1487-.5633-2.9117-.3084-.7889-.72-1.4568-1.3876-2.1228C21.2982 1.33 20.628.9208 19.8378.6165 19.074.321 18.2017.1197 16.9244.0645 15.6471.0093 15.236-.005 11.977.0014 8.718.0076 8.31.0215 7.0301.0839m.1402 21.6932c-1.17-.0509-1.8053-.2453-2.2287-.408-.5606-.216-.96-.4771-1.3819-.895-.422-.4178-.6811-.8186-.9-1.378-.1644-.4234-.3624-1.058-.4171-2.228-.0595-1.2645-.072-1.6442-.079-4.848-.007-3.2037.0053-3.583.0607-4.848.05-1.169.2456-1.805.408-2.2282.216-.5613.4762-.96.895-1.3816.4188-.4217.8184-.6814 1.3783-.9003.423-.1651 1.0575-.3614 2.227-.4171 1.2655-.06 1.6447-.072 4.848-.079 3.2033-.007 3.5835.005 4.8495.0608 1.169.0508 1.8053.2445 2.228.408.5608.216.96.4754 1.3816.895.4217.4194.6816.8176.9005 1.3787.1653.4217.3617 1.056.4169 2.2263.0602 1.2655.0739 1.645.0796 4.848.0058 3.203-.0055 3.5834-.061 4.848-.051 1.17-.245 1.8055-.408 2.2294-.216.5604-.4763.96-.8954 1.3814-.419.4215-.8181.6811-1.3783.9-.4224.1649-1.0577.3617-2.2262.4174-1.2656.0595-1.6448.072-4.8493.079-3.2045.007-3.5825-.006-4.848-.0608M16.953 5.5864A1.44 1.44 0 1 0 18.39 4.144a1.44 1.44 0 0 0-1.437 1.4424M5.8385 12.012c.0067 3.4032 2.7706 6.1557 6.173 6.1493 3.4026-.0065 6.157-2.7701 6.1506-6.1733-.0065-3.4032-2.771-6.1565-6.174-6.1498-3.403.0067-6.156 2.771-6.1496 6.1738M8 12.0077a4 4 0 1 1 4.008 3.9921A3.9996 3.9996 0 0 1 8 12.0077"/></svg>`;
+    case 'tiktok':
+      return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="#25F4EE" d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/><path fill="#FE2C55" d="M19.59 5.19a4.83 4.83 0 0 1-3.77-4.25V.5h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V7.9a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 18.6a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52V5.6a4.85 4.85 0 0 1-1-.1z"/><path fill="#FFFFFF" d="M19.59 6.19a4.83 4.83 0 0 1-3.77-4.25V1.5h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V8.9a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 19.6a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg>`;
+    case 'spotify':
+      return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.13-10.54-1.1-.402.12-.779-.179-.899-.581-.12-.421.18-.78.58-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.24 1.021zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>`;
+    case 'beatstars':
+      return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="m17.217 11.996-3.308 1.079v3.478l-2.052-2.818-3.309 1.079 2.043-2.818-2.043-2.819 3.31 1.08 2.05-2.819v3.487zm0 0v7.277H6.854V4.584h10.363v7.412l4.585-1.49v-7.67L19.135 0H2.198v24h16.92l2.684-2.685v-7.83z"/></svg>`;
+    case 'airbit':
+      return `<svg viewBox="0 0 506.36 680.25" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M-714.09,311V461.92a24.73,24.73,0,0,1-24.73,24.73h-33.59a24.73,24.73,0,0,1-24.73-24.73V335.73A24.73,24.73,0,0,1-772.41,311h58.32Z" transform="translate(1220.45 -28.37)"/><path fill="currentColor" d="M-1220.45,311V461.92a24.73,24.73,0,0,0,24.73,24.73h33.59a24.73,24.73,0,0,0,24.73-24.73V335.73A24.73,24.73,0,0,0-1162.13,311h-58.32Z" transform="translate(1220.45 -28.37)"/><path fill="currentColor" d="M-967.27,28.37c-139.83,0-253.18,113.35-253.18,253.18h43a208.8,208.8,0,0,1,61.56-148.62A208.79,208.79,0,0,1-967.27,71.37a208.8,208.8,0,0,1,148.62,61.56,208.8,208.8,0,0,1,61.56,148.62h43C-714.09,141.72-827.44,28.37-967.27,28.37Z" transform="translate(1220.45 -28.37)"/><rect fill="currentColor" x="463.36" y="253.18" width="43" height="177.57"/><rect fill="currentColor" y="253.18" width="43" height="177.57"/><rect fill="currentColor" x="144.23" y="285.79" width="43" height="145.13"/><rect fill="currentColor" x="144.23" y="470.61" width="43" height="109.33"/><rect fill="currentColor" x="231.68" y="356.49" width="43" height="122.81"/><rect fill="currentColor" x="231.68" y="518.84" width="43" height="60.96"/><rect fill="currentColor" x="231.68" y="619.46" width="43" height="60.79"/><rect fill="currentColor" x="319.13" y="285.79" width="43" height="86.82"/><rect fill="currentColor" x="319.13" y="412.31" width="43" height="94.26"/><rect fill="currentColor" x="319.13" y="546.26" width="43" height="61.52"/></svg>`;
+    case 'soundcloud':
+      return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M23.999 14.165c-.052 1.796-1.612 3.169-3.4 3.169h-8.18a.68.68 0 0 1-.675-.683V7.862a.747.747 0 0 1 .452-.724s.75-.513 2.333-.513a5.364 5.364 0 0 1 2.763.755 5.433 5.433 0 0 1 2.57 3.54c.282-.08.574-.121.868-.12.884 0 1.73.358 2.347.992s.948 1.49.922 2.373ZM10.721 8.421c.247 2.98.427 5.697 0 8.672a.264.264 0 0 1-.53 0c-.395-2.946-.22-5.718 0-8.672a.264.264 0 0 1 .53 0ZM9.072 9.448c.285 2.659.37 4.986-.006 7.655a.277.277 0 0 1-.55 0c-.331-2.63-.256-5.02 0-7.655a.277.277 0 0 1 .556 0Zm-1.663-.257c.27 2.726.39 5.171 0 7.904a.266.266 0 0 1-.532 0c-.38-2.69-.257-5.21 0-7.904a.266.266 0 0 1 .532 0Zm-1.647.77a26.108 26.108 0 0 1-.008 7.147.272.272 0 0 1-.542 0 27.955 27.955 0 0 1 0-7.147.275.275 0 0 1 .55 0Zm-1.67 1.769c.421 1.865.228 3.5-.029 5.388a.257.257 0 0 1-.514 0c-.21-1.858-.398-3.549 0-5.389a.272.272 0 0 1 .543 0Zm-1.655-.273c.388 1.897.26 3.508-.01 5.412-.026.28-.514.283-.54 0-.244-1.878-.347-3.54-.01-5.412a.283.283 0 0 1 .56 0Zm-1.668.911c.4 1.268.257 2.292-.026 3.572a.257.257 0 0 1-.514 0c-.241-1.262-.354-2.312-.023-3.572a.283.283 0 0 1 .563 0Z"/></svg>`;
+    case 'youtube':
+      return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>`;
+    default:
+      return '';
+  }
+}
+
 function buildPortfolioSocialsHTML(profile) {
-  const links = [
-    { key: 'instagram', icon: 'ti-brand-instagram', label: 'Instagram' },
-    { key: 'beatstars', icon: 'ti-music', label: 'BeatStars' },
-    { key: 'soundcloud', icon: 'ti-brand-soundcloud', label: 'SoundCloud' },
-    { key: 'youtube', icon: 'ti-brand-youtube', label: 'YouTube' },
-  ];
+  const links = (typeof SOCIAL_PLATFORMS !== 'undefined' ? SOCIAL_PLATFORMS : [
+    { key: 'instagram', label: 'Instagram' },
+    { key: 'tiktok', label: 'TikTok' },
+    { key: 'spotify', label: 'Spotify' },
+    { key: 'beatstars', label: 'BeatStars' },
+    { key: 'airbit', label: 'Airbit' },
+    { key: 'soundcloud', label: 'SoundCloud' },
+    { key: 'youtube', label: 'YouTube' },
+  ]);
   const items = links.map(l => {
     const href = buildSocialHref(l.key, profile[l.key]);
     if (!href) return '';
-    return `<a class="portfolio-social-link" href="${escHtml(href)}" target="_blank" rel="noopener noreferrer" aria-label="${l.label}"><i class="ti ${l.icon}"></i></a>`;
+    return `<a class="portfolio-social-link" data-platform="${l.key}" href="${escHtml(href)}" target="_blank" rel="noopener noreferrer" aria-label="${escHtml(l.label)}">${portfolioSocialIconHTML(l.key)}</a>`;
   }).filter(Boolean).join('');
   return items ? `<div class="portfolio-socials">${items}</div>` : '';
 }
@@ -734,11 +775,9 @@ function renderPortfolioSidePanel(producerName, profile) {
     return;
   }
   const p = profile || _portfolioProfile || {};
-  const hex = (_portfolioBeats[0]?.color && String(_portfolioBeats[0].color).startsWith('#'))
-    ? _portfolioBeats[0].color : '#0A84FF';
   const avatarEl = p.avatar_url
     ? `<img src="${escHtml(p.avatar_url)}" class="portfolio-side-avatar" alt="">`
-    : `<div class="portfolio-side-avatar-fallback" style="background:${hex}20;border-color:${hex}80;color:${hex}">${escHtml(portfolioInitials(producerName))}</div>`;
+    : `<div class="portfolio-side-avatar-fallback">${escHtml(portfolioInitials(producerName))}</div>`;
   const bio = p.bio ? escHtml(p.bio) : 'Independent producer';
   const socials = buildPortfolioSocialsHTML(p);
   const beatstarsHref = buildSocialHref('beatstars', p.beatstars);
@@ -788,10 +827,9 @@ function updatePortfolioProgress() {
 function renderPortfolioHeader(producerName, profile, color) {
   const header = document.getElementById('portfolioHeader');
   if (!header) return;
-  const hex = (color && String(color).startsWith('#')) ? color : '#0A84FF';
   const avatarEl = profile.avatar_url
     ? `<img src="${escHtml(profile.avatar_url)}" class="portfolio-avatar" alt="${escHtml(producerName)}">`
-    : `<div class="portfolio-avatar-fallback" style="background:${hex}20;border-color:${hex}80;color:${hex}">${escHtml(portfolioInitials(producerName))}</div>`;
+    : `<div class="portfolio-avatar-fallback">${escHtml(portfolioInitials(producerName))}</div>`;
   const bio = profile.bio ? escHtml(profile.bio) : 'Independent producer';
   const socials = buildPortfolioSocialsHTML(profile);
   header.innerHTML = `

@@ -49,7 +49,7 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 - Deploy: commit → push `main` → Vercel (~1–2 min). **Push only when Luca says.**
 - One feature → one commit → test → next
 - Never replace `index.html` via delete+upload on GitHub
-- Before CSS work: `grep "accent:" styles.css` → must be `#7C3AED`
+- Before CSS work: `grep "accent:" styles.css` → must be `#0A84FF`
 - `.env.local` never commit (`SUPABASE_SERVICE_ROLE_KEY`); `AIRTABLE_TOKEN` optional entfernen
 - Local: `npx vercel dev` → `localhost:3000`, hard-refresh after edits
 - Test: `beatswipe.app/p/clyriax`, My Page edit, Discover save
@@ -93,21 +93,23 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 - **Landing bg:** `portfolio-ambient` **nicht** global auf Laptop — nur `portfolio-active` / `/p/` boot
 - **`.site-page-head` / `.land-section-head` unsichtbar am Laptop:** alte Regel `.site-page-head, .hero-visual, .land-section-head { display:none; }` stand **ohne** Media Query nach den 900px-„show"-Regeln → gewann immer (gleiche Spezifität, später im File). Fix: in `@media (max-width: 899px)` verschoben. Bei neuen globalen `display:none`-Defaults immer prüfen, ob sie **vor** den Desktop-Overrides stehen oder selbst media-gated sind. **Umkehrfall (2026-07-05):** `.faq-title-mobile` hatte eine **globale** `display:block`-Regel (id+2 Klassen, spät im File) → schlug das media-gated Desktop-`display:none` → doppelter FAQ-Titel am Laptop. Merke: „mobile-only" sichtbare Elemente ihre `display:block`-Regel **in** die Mobile-Query legen, nicht global.
 - **Sidebar-Höhe uneinheitlich (Profile/Favorites vs. My Page):** Profile/Favorites rendern `.site-page-head` **außerhalb** vom Grid (Sidebar startet auf Höhe vom ersten Content), My Page rendert den Titel **innerhalb** der Hauptspalte per JS (`mypage.js`, mehrere `render...()`-Funktionen) → Sidebar sonst auf Höhe vom Titel-Text statt Content. Fix: `renderMyPageSidePanel()` misst `#myPageMain .site-page-head` Höhe zur Laufzeit und setzt sie als `margin-top` auf `#myPageSidePanel`.
+- **Portfolio social icons:** `buildPortfolioSocialsHTML()` — Instagram-Gradient braucht **eindeutige** `linearGradient`-IDs pro Instanz (Header + Sidepanel = 2×); sonst leerer Button. TikTok = Mehrfarben-SVG (nicht `ti-brand-tiktok`).
+- **Portfolio swipe glow (Preview/`/p/`):** `#cardGlow` als Sibling **hinter** `.portfolio-surface` (glasiger Hintergrund) → kaum sichtbar; Discover-Card fast transparent. Versuch Glow in Surface → zurückgesetzt; noch offen wenn wieder angehen.
 
-## Aktuell (2026-07-05)
+## Aktuell (2026-07-08)
 
-- **Live (frisch gepusht):** Slogan **„Your bio link. Their next beat."** — Footer, Hero-Demo, Onboarding, Meta/OG/Twitter, `portfolio.js` Fallback; Newsletter komplett entfernt (UI, Make.com-Webhook, Privacy); Profile Settings kürzer (Favorites/Legal/Account only). Davor live: Landing-/p/-Polish (FAQ, Swipe-Buttons 80px, Preview-Done-Sidebar).
-- **Slogan:** Hero-H1 bleibt *Your swipe page for the bio* (Headline ≠ Slogan). **`og-image.png` + `marketing/`** noch mit altem Text — neue Assets offen.
-- **Konsistenz-Pass Laptop:** App-Screens (Discover, Favorites, My Page, Profile) Apple-Button-Polish noch **nicht** — nur Landing + `/p/`.
-- **Brand:** `beatswipe.net` Konkurrent; `beatswipe.com` geparkt (~2k) — Name behalten.
-- **Marketing:** `marketing/` lokal/uncommitted; IG-Post mit neuem Slogan offen.
+- **Live:** Private Beta aktiv (`INVITE_GATE_PAUSED = false`). Apple-Redesign: schwarz/grau, Accent `#0A84FF` — Landing + `/p/` poliert.
+- **Lokal (noch nicht gepusht):** Discover-Filter Accordion (Genre / Key / BPM); Landing „Works with your favorite platforms"; Profile Links TikTok, Spotify, Airbit (7 Felder) + farbige Social-Buttons auf `/p/`; **MP3-Upload:** Buy-Link Pflicht pro Track + Store-Picker (BeatStars, Airbit, Traktrain, Website); **`og-image.png`** neu mit Slogan „Your bio link. Their next beat." (`marketing/og-image.html`, `node scripts/render-og-image.mjs`).
+- **Supabase:** `profiles-social-links.sql` (tiktok, spotify, airbit) — **einmal ausführen** vor Profile-Save.
+- **Marketing:** `marketing/` uncommitted (Avatar, IG-Posts). Glow-Fix Preview/`/p/` versucht → zurückgesetzt (noch offen).
 
 ## Nächster Schritt
 
-1. **Deploy verifizieren:** Landing Footer-Slogan, Profile Settings ohne Newsletter, `/p/clyriax` Laptop+Handy
-2. **Producer outreach:** 2–3 fremde Producer — Invite-Code, `/p/clyriax` als Demo, DM-Template
-3. **OG-Image + IG-Posts** mit neuem Slogan
-4. **Apple-Feeling App-Screens (Laptop):** Discover, Favorites, My Page, Profile — optional vor Outreach
+1. **Supabase:** `profiles-social-links.sql` ausführen
+2. **Lokal testen** — Discover-Filter, Profile-Links/`/p/` Socials, MP3 Buy-Picker, OG (`localhost:3000/og-image.png`)
+3. **Ein Push** (wenn Luca sagt): Filter + Platforms + Profile + MP3 Buy + OG
+4. **Luca:** Profilbild `marketing/beatswipe-profile-avatar-blue.png` hochladen · IG-Posts posten
+5. **Producer outreach:** 2–3 Producer — Invite + `/p/clyriax` Demo
 
 ## Rules pflegen (Agent)
 
@@ -115,7 +117,7 @@ After **deploy or larger feature** (end of session if appropriate): update only 
 
 ## Design
 
-- `--accent: #7C3AED`, `--accent-mid: #A78BFA`
+- `--accent: #0A84FF`, `--accent-mid: #409CFF`
 - Anim: `cubic-bezier(0.22,1,0.36,1)`; respect `prefers-reduced-motion`
 - Toast not `alert()` · `confirm()` ok for destructive actions
 
