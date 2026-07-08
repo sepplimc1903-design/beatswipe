@@ -143,6 +143,7 @@ function updateDesktopTopbarAuth() {
 }
 
 // ─── INVITE GATE (private beta) ───────────────────────────────────────────
+const INVITE_GATE_PAUSED = true; // TEMP: demo — set false to re-enable
 const INVITE_CODES = ['BEATSWIPE25', 'beatswipe'];
 const INVITE_PROTECTED = new Set([
   'discoverScreen', 'crateScreen', 'submitScreen',
@@ -152,6 +153,7 @@ let _invitePending = null;
 let _invitePendingProducer = null;
 
 function hasInviteAccess() {
+  if (INVITE_GATE_PAUSED) return true;
   try { return localStorage.getItem('bs_invite') === '1'; } catch(e) { return false; }
 }
 
