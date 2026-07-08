@@ -501,7 +501,7 @@ function buildBeatCardHTML(d, opts) {
   const useSC = isSoundCloud(d.mp3);
   const ytId = useYT ? getYtId(d.mp3) : null;
   const embedSrc = ytId ? getYtEmbedBase(ytId) : '';
-  const scEmbedSrc = useSC ? `https://w.soundcloud.com/player/?url=${encodeURIComponent(d.mp3)}&color=%237C3AED&auto_play=${_audioUnlocked ? 'true' : 'false'}&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false` : '';
+  const scEmbedSrc = useSC ? `https://w.soundcloud.com/player/?url=${encodeURIComponent(d.mp3)}&color=%230A84FF&auto_play=${_audioUnlocked ? 'true' : 'false'}&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false` : '';
   const buyLink = resolveBeatBuyLink(d);
   const buyUrl = buyLink || ((useYT || useSC) ? d.mp3 : '');
   const buyTrack = buyLink ? ` data-portfolio-buy="1" data-beat-id="${escHtml(String(d.id))}"` : '';
@@ -686,7 +686,7 @@ function showPortfolioLoadingState(slug) {
   if (header) header.innerHTML = portfolioHeaderSkeletonHTML(slugToDisplayName(slug));
   const slot = document.getElementById('portfolioCardSlot');
   if (slot) slot.innerHTML = portfolioCardSkeletonHTML();
-  setPortfolioGlow('#7C3AED');
+  setPortfolioGlow('#0A84FF');
 }
 
 function portfolioDesktopLayout() {
@@ -735,7 +735,7 @@ function renderPortfolioSidePanel(producerName, profile) {
   }
   const p = profile || _portfolioProfile || {};
   const hex = (_portfolioBeats[0]?.color && String(_portfolioBeats[0].color).startsWith('#'))
-    ? _portfolioBeats[0].color : '#7C3AED';
+    ? _portfolioBeats[0].color : '#0A84FF';
   const avatarEl = p.avatar_url
     ? `<img src="${escHtml(p.avatar_url)}" class="portfolio-side-avatar" alt="">`
     : `<div class="portfolio-side-avatar-fallback" style="background:${hex}20;border-color:${hex}80;color:${hex}">${escHtml(portfolioInitials(producerName))}</div>`;
@@ -788,7 +788,7 @@ function updatePortfolioProgress() {
 function renderPortfolioHeader(producerName, profile, color) {
   const header = document.getElementById('portfolioHeader');
   if (!header) return;
-  const hex = (color && String(color).startsWith('#')) ? color : '#7C3AED';
+  const hex = (color && String(color).startsWith('#')) ? color : '#0A84FF';
   const avatarEl = profile.avatar_url
     ? `<img src="${escHtml(profile.avatar_url)}" class="portfolio-avatar" alt="${escHtml(producerName)}">`
     : `<div class="portfolio-avatar-fallback" style="background:${hex}20;border-color:${hex}80;color:${hex}">${escHtml(portfolioInitials(producerName))}</div>`;
@@ -810,7 +810,7 @@ function renderPortfolioHeader(producerName, profile, color) {
 }
 
 function setPortfolioGlow(color) {
-  const hex = (color && String(color).startsWith('#')) ? color : '#7C3AED';
+  const hex = (color && String(color).startsWith('#')) ? color : '#0A84FF';
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
   const b = parseInt(hex.slice(5, 7), 16);
@@ -826,7 +826,7 @@ function renderPortfolioCard() {
 
   if (!list.length) {
     setPortfolioDoneMode(true);
-    setPortfolioGlow(_portfolioBeats[0]?.color || '#7C3AED');
+    setPortfolioGlow(_portfolioBeats[0]?.color || '#0A84FF');
     updatePortfolioProgress();
     if (!slot) return;
     if (!_portfolioBeats.length) {
@@ -1076,7 +1076,7 @@ async function openPortfolioQR() {
     await qr.toCanvas(canvas, url, {
       width: 220,
       margin: 2,
-      color: { dark: '#ffffff', light: '#050508' }
+      color: { dark: '#ffffff', light: '#000000' }
     });
   } catch (_) {
     showToast('Could not generate QR code.', 'error');

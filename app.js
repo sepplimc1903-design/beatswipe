@@ -1259,7 +1259,7 @@ function renderCard(opts) {
   const useSC = isSoundCloud(d.mp3);
   const ytId  = useYT ? getYtId(d.mp3) : null;
   const embedSrc = ytId ? getYtEmbedBase(ytId) : '';
-  const scEmbedSrc = useSC ? `https://w.soundcloud.com/player/?url=${encodeURIComponent(d.mp3)}&color=%237C3AED&auto_play=${_audioUnlocked ? 'true' : 'false'}&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false` : '';
+  const scEmbedSrc = useSC ? `https://w.soundcloud.com/player/?url=${encodeURIComponent(d.mp3)}&color=%230A84FF&auto_play=${_audioUnlocked ? 'true' : 'false'}&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false` : '';
 
   const playerHTML = useYT ? `
     <div class="yt-wrap">
@@ -1581,7 +1581,7 @@ function renderCard(opts) {
     const btnSave = document.querySelector('#portfolioScreen .btn-save');
     if (btnSave) {
       if (dx > 12) {
-        btnSave.style.boxShadow = `inset 0 1px 0 rgba(255,255,255,0.22), 0 4px 14px rgba(0,0,0,0.16), 0 10px 32px rgba(124,58,237,${0.36 + pct * 0.35}), 0 0 ${16 + pct * 28}px rgba(124,58,237,${0.28 + pct * 0.42})`;
+        btnSave.style.boxShadow = `inset 0 1px 0 rgba(255,255,255,0.22), 0 4px 14px rgba(0,0,0,0.2), 0 10px 26px rgba(0,0,0,${0.35 + pct * 0.3})`;
         btnSave.style.transform = `scale(${1 + pct * 0.06})`;
       } else {
         btnSave.style.boxShadow = '';
@@ -2092,7 +2092,7 @@ function buildCratePreviewHTML(d, opts = {}) {
   const useSC = isSoundCloud(d.mp3);
   const ytId = useYT ? getYtId(d.mp3) : null;
   const embedSrc = ytId ? `https://www.youtube.com/embed/${ytId}?rel=0&modestbranding=1` : '';
-  const scEmbedSrc = useSC ? `https://w.soundcloud.com/player/?url=${encodeURIComponent(d.mp3)}&color=%237C3AED&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false` : '';
+  const scEmbedSrc = useSC ? `https://w.soundcloud.com/player/?url=${encodeURIComponent(d.mp3)}&color=%230A84FF&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false` : '';
   const bars = Array(28).fill(0).map(() =>
     `<div class="wbar cp-wbar" style="height:${Math.round(Math.random()*14+3)}px;opacity:0.55"></div>`
   ).join('');
@@ -3252,11 +3252,11 @@ async function confirmCrop() {
   const canvas = document.createElement('canvas');
   canvas.width = 280; canvas.height = 280;
   const ctx = canvas.getContext('2d');
-  // Clip to circle; purple fill + slight bleed avoids dark fringe at edge
+  // Clip to circle; accent fill + slight bleed avoids dark fringe at edge
   ctx.beginPath();
   ctx.arc(140, 140, 140, 0, Math.PI * 2);
   ctx.clip();
-  ctx.fillStyle = '#7C3AED';
+  ctx.fillStyle = '#0A84FF';
   ctx.fillRect(0, 0, 280, 280);
 
   const img = document.getElementById('cropImg');
