@@ -1299,7 +1299,34 @@ function fmtTime(s) {
 // ─── CARD RENDER ──────────────────────────────────────────────────────────
 // ─── YOUTUBE HELPERS ──────────────────────────────────────────────────────
 function isSoundCloud(url) {
-  return url && url.includes('soundcloud.com');
+  return /soundcloud\.com|snd\.sc\//i.test(String(url || ''));
+}
+
+function extractSoundCloudUrl(raw) {
+  let s = String(raw || '').trim();
+  if (!s) return '';
+  const iframe = s.match(/src=["']([^"']+)["']/i);
+  if (iframe) s = iframe[1].replace(/&amp;/g, '&');
+  s = s.replace(/^<|>$/g, '').trim();
+  if (!/^https?:\/\//i.test(s)) s = 'https://' + s.replace(/^\/\//, '');
+  try {
+    const u = new URL(s);
+    if (/w\.soundcloud\.com$/i.test(u.hostname) && u.searchParams.get('url')) {
+      return extractSoundCloudUrl(u.searchParams.get('url'));
+    }
+    ['si', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'ref', 'in'].forEach(k => {
+      u.searchParams.delete(k);
+    });
+    u.hash = '';
+    return u.toString().replace(/\/+$/, '');
+  } catch (_) {
+    return s;
+  }
+}
+
+function getSoundCloudEmbedSrc(raw, autoplay) {
+  const url = extractSoundCloudUrl(raw) || String(raw || '').trim();
+  return `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%230A84FF&auto_play=${autoplay ? 'true' : 'false'}&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false`;
 }
 
 function isYouTube(url) {
@@ -1326,6 +1353,7 @@ function beatBuyAction(beat) {
     if (u.includes('beatstars.com')) return { link: buy, html: '<i class="ti ti-external-link"></i> BeatStars' };
     if (u.includes('airbit.com')) return { link: buy, html: '<i class="ti ti-external-link"></i> Airbit' };
     if (u.includes('traktrain.com')) return { link: buy, html: '<i class="ti ti-external-link"></i> Traktrain' };
+    if (u.includes('soundcloud.com') || u.includes('snd.sc')) return { link: buy, html: '<i class="ti ti-brand-soundcloud"></i> SoundCloud' };
     if (u.includes('splice.com')) return { link: buy, html: '<i class="ti ti-external-link"></i> Splice' };
     if (u.includes('loopmasters.com')) return { link: buy, html: '<i class="ti ti-external-link"></i> Loopmasters' };
     if (u.includes('instagram.com')) return { link: buy, html: '<i class="ti ti-brand-instagram"></i> Instagram' };
@@ -1453,7 +1481,7 @@ function renderCard(opts) {
   const useSC = isSoundCloud(d.mp3);
   const ytId  = useYT ? getYtId(d.mp3) : null;
   const embedSrc = ytId ? getYtEmbedBase(ytId) : '';
-  const scEmbedSrc = useSC ? `https://w.soundcloud.com/player/?url=${encodeURIComponent(d.mp3)}&color=%230A84FF&auto_play=${_audioUnlocked ? 'true' : 'false'}&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false` : '';
+  const scEmbedSrc = useSC ? getSoundCloudEmbedSrc(d.mp3, _audioUnlocked) : '';
 
   const playerHTML = useYT ? `
     <div class="yt-wrap">
@@ -2293,7 +2321,7 @@ function buildCratePreviewHTML(d, opts = {}) {
   const useSC = isSoundCloud(d.mp3);
   const ytId = useYT ? getYtId(d.mp3) : null;
   const embedSrc = ytId ? `https://www.youtube.com/embed/${ytId}?rel=0&modestbranding=1` : '';
-  const scEmbedSrc = useSC ? `https://w.soundcloud.com/player/?url=${encodeURIComponent(d.mp3)}&color=%230A84FF&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false` : '';
+  const scEmbedSrc = useSC ? getSoundCloudEmbedSrc(d.mp3, false) : '';
   const bars = Array(28).fill(0).map(() =>
     `<div class="wbar cp-wbar" style="height:${Math.round(Math.random()*14+3)}px;opacity:0.55"></div>`
   ).join('');

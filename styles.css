@@ -6238,7 +6238,7 @@
     }
     .upload-queue-remove:hover { color: #fca5a5; }
     .buy-store-field { display: flex; flex-direction: column; gap: 8px; }
-    .buy-store-pills { gap: 5px; }
+    .buy-store-pills { gap: 5px; flex-wrap: wrap; }
     .buy-store-pill { padding: 6px 12px; font-size: 12px; }
     .buy-store-input {
       width: 100%; padding: 10px 12px; border-radius: 10px;

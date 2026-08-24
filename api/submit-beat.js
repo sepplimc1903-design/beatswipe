@@ -1,4 +1,5 @@
 import { getServiceRoleKey, getSupabaseUrl, getSupabaseAnonKey } from './_env.js';
+import { looksLikeSoundCloudUrl, resolveSoundCloudTrackUrl } from './_soundcloud.js';
 
 function serviceHeaders() {
   const key = getServiceRoleKey();
@@ -42,10 +43,6 @@ function isYouTubeUrl(url) {
   return /(?:youtube\.com\/(?:watch\?|embed\/|shorts\/)|youtu\.be\/)/i.test(url);
 }
 
-function isSoundCloudUrl(url) {
-  return /soundcloud\.com\//i.test(url);
-}
-
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -68,8 +65,9 @@ export default async function handler(req, res) {
   const genre = String(body.genre || body.Genre || '').trim();
   const type = String(body.type || body.Type || '').trim();
   const previewType = String(body.previewType || body.PreviewType || '').trim();
-  const previewUrl = String(body.previewUrl || body.PreviewURL || '').trim();
-  const buyLink = normalizeBuyLink(body.buyLink || body.BuyLink);
+  let previewUrl = String(body.previewUrl || body.PreviewURL || '').trim();
+  let buyLink = normalizeBuyLink(body.buyLink || body.BuyLink);
+  const originalPreview = previewUrl;
   const key = String(body.key || body.Key || '').trim();
   const bpmRaw = body.bpm ?? body.BPM;
   const bpmNum = bpmRaw != null && bpmRaw !== '' ? parseFloat(bpmRaw) : null;
@@ -82,10 +80,23 @@ export default async function handler(req, res) {
   if (previewType === 'YouTube' && !isYouTubeUrl(previewUrl)) {
     return res.status(400).json({ error: 'Paste a YouTube video link' });
   }
-  if (previewType === 'SoundCloud' && !isSoundCloudUrl(previewUrl)) {
-    return res.status(400).json({ error: 'Paste a SoundCloud track link' });
+  if (previewType === 'SoundCloud') {
+    if (!looksLikeSoundCloudUrl(previewUrl)) {
+      return res.status(400).json({ error: 'Paste a SoundCloud track link' });
+    }
+    const resolved = await resolveSoundCloudTrackUrl(previewUrl);
+    if (!resolved) {
+      return res.status(400).json({
+        error: 'Could not load that SoundCloud track. Paste a public track page — short or private links often fail.'
+      });
+    }
+    previewUrl = resolved;
   }
-  if (!buyLink) return res.status(400).json({ error: 'Buy link required' });
+  if (previewType === 'YouTube' || previewType === 'SoundCloud') {
+    if (!buyLink) buyLink = normalizeBuyLink(originalPreview) || originalPreview;
+  } else if (!buyLink) {
+    return res.status(400).json({ error: 'Buy link required' });
+  }
   if (bpmNum != null && (Number.isNaN(bpmNum) || bpmNum < 40 || bpmNum > 240)) {
     return res.status(400).json({ error: 'BPM should be between 40 and 240' });
   }

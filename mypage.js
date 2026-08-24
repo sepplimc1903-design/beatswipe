@@ -83,6 +83,9 @@ function updatePreviewLabel() {
   mp3Group.style.display = 'none';
   if (titleGroup) titleGroup.style.display = 'none';
 
+  const buyStore = document.getElementById('submitBuyStore');
+  if (buyStore) buyStore.style.display = 'none';
+
   if (!type) return;
 
   if (type === 'YouTube') {
@@ -90,14 +93,14 @@ function updatePreviewLabel() {
     if (titleGroup) titleGroup.style.display = 'block';
     label.textContent = 'YouTube Link *';
     input.placeholder = 'https://youtube.com/watch?v=...';
-    hint.textContent = 'Preview link only — fans hear a snippet, not the full beat';
+    hint.textContent = 'Fans swipe the preview, then tap through to this YouTube link.';
     clearMp3Queue();
   } else if (type === 'SoundCloud') {
     urlGroup.style.display = 'block';
     if (titleGroup) titleGroup.style.display = 'block';
     label.textContent = 'SoundCloud Link *';
-    input.placeholder = 'https://soundcloud.com/...';
-    hint.textContent = 'Preview link only — fans hear a snippet, not the full beat';
+    input.placeholder = 'https://soundcloud.com/you/track';
+    hint.textContent = 'Public track page or share link. Fans tap through to SoundCloud — private tracks will not play.';
     clearMp3Queue();
   } else if (type === 'MP3') {
     mp3Group.style.display = 'block';
@@ -124,12 +127,14 @@ const BUY_STORE_PLATFORMS = [
   { id: 'beatstars', label: 'BeatStars', placeholder: 'https://beatstars.com/beat/...' },
   { id: 'airbit', label: 'Airbit', placeholder: 'https://airbit.com/...' },
   { id: 'traktrain', label: 'Traktrain', placeholder: 'https://traktrain.com/...' },
+  { id: 'soundcloud', label: 'SoundCloud', placeholder: 'https://soundcloud.com/you/track' },
   { id: 'other', label: 'Custom website', placeholder: 'https://yourstore.com/...' }
 ];
 const BUY_STORE_HOSTS = {
   beatstars: 'beatstars.com',
   airbit: 'airbit.com',
-  traktrain: 'traktrain.com'
+  traktrain: 'traktrain.com',
+  soundcloud: 'soundcloud.com'
 };
 const BPM_MIN = 40;
 const BPM_MAX = 240;
@@ -147,6 +152,7 @@ function detectBuyPlatform(url) {
   if (u.includes('beatstars.com')) return 'beatstars';
   if (u.includes('airbit.com')) return 'airbit';
   if (u.includes('traktrain.com')) return 'traktrain';
+  if (u.includes('soundcloud.com') || u.includes('snd.sc')) return 'soundcloud';
   if (u.trim()) return 'other';
   return '';
 }
@@ -159,7 +165,11 @@ function validateBuyLink(raw, platform) {
   if (!normalized) return 'Enter a full link (https://…).';
   const host = BUY_STORE_HOSTS[platform];
   const label = BUY_STORE_PLATFORMS.find(p => p.id === platform)?.label;
-  if (host && !normalized.toLowerCase().includes(host)) {
+  if (platform === 'soundcloud') {
+    if (!/soundcloud\.com|snd\.sc\//i.test(normalized)) {
+      return `That doesn't look like a ${label} link.`;
+    }
+  } else if (host && !normalized.toLowerCase().includes(host)) {
     return `That doesn't look like a ${label} link.`;
   }
   return null;
@@ -180,7 +190,7 @@ function validatePreviewUrl(type, url) {
   if (type === 'YouTube' && !/(?:youtube\.com\/(?:watch\?|embed\/|shorts\/)|youtu\.be\/)/i.test(trimmed)) {
     return 'Paste a YouTube video link.';
   }
-  if (type === 'SoundCloud' && !/soundcloud\.com\//i.test(trimmed)) {
+  if (type === 'SoundCloud' && !/soundcloud\.com|snd\.sc\//i.test(trimmed)) {
     return 'Paste a SoundCloud track link.';
   }
   return null;
@@ -659,15 +669,12 @@ async function doSubmitForm() {
   const title = document.getElementById('f-title').value.trim();
   if (!title) { showToast('Please enter a track title.', 'error'); return; }
 
-  const singleBuy = getResolvedBuyState('single');
-  if (singleBuy.error) {
-    showToast(singleBuy.error, 'error');
-    return;
-  }
-
   let previewUrl = '';
   if (previewType === 'YouTube' || previewType === 'SoundCloud') {
     previewUrl = document.getElementById('f-preview')?.value.trim() || '';
+    if (previewType === 'SoundCloud' && typeof extractSoundCloudUrl === 'function') {
+      previewUrl = extractSoundCloudUrl(previewUrl) || previewUrl;
+    }
     const previewErr = validatePreviewUrl(previewType, previewUrl);
     if (previewErr) { showToast(previewErr, 'error'); return; }
   }
@@ -683,7 +690,7 @@ async function doSubmitForm() {
       type,
       previewType,
       previewUrl,
-      buyLink: normalizeBuyLink(singleBuy.buyLink)
+      buyLink: previewUrl
     });
 
     finishSubmitSuccess(1);

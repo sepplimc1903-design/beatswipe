@@ -1,4 +1,5 @@
 import { getServiceRoleKey, getSupabaseUrl } from './_env.js';
+import { resolveSoundCloudTrackUrl, needsSoundCloudResolve } from './_soundcloud.js';
 
 function serviceHeaders() {
   const key = getServiceRoleKey();
@@ -44,7 +45,14 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: text || 'Could not load beats', status: dbRes.status });
     }
     const rows = JSON.parse(text || '[]');
-    const beats = rows.map(beatFromRow);
+    const beats = await Promise.all(rows.map(async row => {
+      const beat = beatFromRow(row);
+      if (needsSoundCloudResolve(beat.mp3)) {
+        const resolved = await resolveSoundCloudTrackUrl(beat.mp3);
+        if (resolved) beat.mp3 = resolved;
+      }
+      return beat;
+    }));
     return res.status(200).json({ beats });
   } catch (e) {
     return res.status(500).json({ error: e.message });

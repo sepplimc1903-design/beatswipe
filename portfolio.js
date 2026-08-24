@@ -567,7 +567,7 @@ function buildBeatCardHTML(d, opts) {
   const useSC = isSoundCloud(d.mp3);
   const ytId = useYT ? getYtId(d.mp3) : null;
   const embedSrc = ytId ? getYtEmbedBase(ytId) : '';
-  const scEmbedSrc = useSC ? `https://w.soundcloud.com/player/?url=${encodeURIComponent(d.mp3)}&color=%230A84FF&auto_play=${_audioUnlocked ? 'true' : 'false'}&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false` : '';
+  const scEmbedSrc = useSC ? getSoundCloudEmbedSrc(d.mp3, _audioUnlocked) : '';
   const buyLink = resolveBeatBuyLink(d);
   const buyUrl = buyLink || ((useYT || useSC) ? d.mp3 : '');
   const buyTrack = buyLink ? ` data-portfolio-buy="1" data-beat-id="${escHtml(String(d.id))}"` : '';
