@@ -86,8 +86,8 @@
   </script>
 
   <!-- Favicon -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230A84FF'/><text x='16' y='22' text-anchor='middle' font-family='system-ui,sans-serif' font-size='14' font-weight='700' fill='white'>B</text></svg>">
-  <link rel="apple-touch-icon" sizes="180x180" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='40' fill='%230A84FF'/><text x='90' y='118' text-anchor='middle' font-family='system-ui,sans-serif' font-size='72' font-weight='700' fill='white'>BS</text></svg>">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="/styles.css">
@@ -104,6 +104,7 @@
     <div class="pf-ambient-layer pf-ambient-layer--b"></div>
     <div class="pf-ambient-layer pf-ambient-layer--c"></div>
   </div>
+  <div class="portfolio-vignette" aria-hidden="true"></div>
   <div class="discover-ambient" aria-hidden="true">
     <div class="discover-ambient-glow"></div>
     <aside class="discover-left-rail" id="discoverLeftRail" aria-label="Discover panel">
@@ -224,7 +225,7 @@
 </div>
 
 <header class="desktop-topbar" id="desktopTopbar">
-  <button type="button" class="dtb-logo" onclick="goTo('landScreen','navHome')">Beat<span>Swipe</span></button>
+  <button type="button" class="dtb-logo" onclick="goTo('landScreen','navHome')"><img class="brand-mark" src="/favicon.svg" alt="" width="22" height="22">Beat<span>Swipe</span></button>
   <nav class="dtb-nav" aria-label="Main navigation">
     <div class="dtb-nav-indicator" id="dtbNavIndicator" aria-hidden="true"></div>
     <button type="button" class="dtb-tab active" id="dtbHome" onclick="goTo('landScreen','navHome')">Home</button>
@@ -249,7 +250,7 @@
   <div class="screen active" id="landScreen">
     <div class="page-inner page-inner--wide">
     <div class="top-bar">
-      <div class="wordmark">Beat<b>Swipe</b></div>
+      <div class="wordmark"><img class="brand-mark" src="/favicon.svg" alt="" width="22" height="22">Beat<b>Swipe</b></div>
       <div class="top-badge">Private Beta</div>
     </div>
     <div class="land-scroll">
@@ -264,68 +265,62 @@
             <a class="btn-secondary" href="/p/clyriax"><i class="ti ti-bolt"></i> See a live page</a>
             <p class="hero-invite-hint">Invite only · DM <a href="https://instagram.com/beatswipe.app" target="_blank" rel="noopener">@beatswipe.app</a> for a code</p>
           </div>
-          <a class="hero-live-card" href="/p/clyriax">
-            <div class="hero-live-card-icon"><i class="ti ti-bolt"></i></div>
-            <div class="hero-live-card-body">
-              <div class="hero-live-card-title">Live demo</div>
-              <div class="hero-live-card-url">beatswipe.app/p/clyriax</div>
-              <div class="hero-live-card-hint">What fans see from your bio link — try the swipe</div>
-            </div>
-            <i class="ti ti-chevron-right hero-live-card-arrow"></i>
-          </a>
         </div>
         <div class="hero-visual reveal-on-scroll reveal-delay-1">
-          <div class="hero-preview">
-            <div class="hero-card-demo">
-              <div class="card-stage">
-                <div class="card-glow hero-card-glow" id="heroCardGlow"></div>
-                <div class="beat-card hero-beat-card" id="heroBeatCard">
-                  <div class="card-head">
-                    <div class="cover-box">
-                      <i class="ti ti-music"></i>
-                    </div>
-                    <div style="flex:1;min-width:0">
-                      <div class="track-name">Midnight Drive</div>
-                      <div class="track-by" style="color:var(--accent-mid)">by clyriax</div>
-                    </div>
-                    <div class="card-head-meta">
-                      <span class="type-pill type-pill--head">Beat</span>
-                    </div>
-                  </div>
-                  <div class="tag-row">
-                    <span class="tag">140 BPM</span>
-                    <span class="tag">F# Min</span>
-                    <span class="tag">Trap</span>
-                  </div>
-                  <div class="player-area">
-                    <div class="waveform-wrap">
-                      <div class="waveform" id="heroWaveform"></div>
-                    </div>
-                    <div class="player-controls">
-                      <button class="play-btn" type="button" tabindex="-1" aria-hidden="true">
-                        <i class="ti ti-player-play" style="margin-left:2px"></i>
-                      </button>
-                      <div class="progress-wrap">
-                        <div class="progress-bar">
-                          <div class="progress-fill" id="heroProgressFill" style="width:34%"></div>
+          <a class="hero-phone" href="/p/clyriax" aria-label="Open live page beatswipe.app/p/clyriax">
+            <span class="hero-phone-bezel">
+              <span class="hero-phone-notch" aria-hidden="true"></span>
+              <div class="hero-preview">
+                <div class="hero-card-demo">
+                  <div class="card-stage">
+                    <div class="card-glow hero-card-glow" id="heroCardGlow"></div>
+                    <div class="beat-card hero-beat-card" id="heroBeatCard">
+                      <div class="card-head">
+                        <div class="cover-box"></div>
+                        <div style="flex:1;min-width:0">
+                          <div class="track-name">Midnight Drive</div>
+                          <div class="track-by" style="color:var(--accent-mid)">by clyriax</div>
                         </div>
-                        <div class="time-row">
-                          <span class="time-lbl">0:42</span>
-                          <span class="time-lbl">2:04</span>
+                        <div class="card-head-meta">
+                          <span class="type-pill type-pill--head">Beat</span>
                         </div>
                       </div>
-                      <span class="buy-link"><i class="ti ti-shopping-cart" style="font-size:15px"></i>Buy</span>
+                      <div class="tag-row">
+                        <span class="tag">140 BPM</span>
+                        <span class="tag">F# Min</span>
+                        <span class="tag">Trap</span>
+                      </div>
+                      <div class="player-area">
+                        <div class="waveform-wrap">
+                          <div class="waveform" id="heroWaveform"></div>
+                        </div>
+                        <div class="player-controls">
+                          <button class="play-btn" type="button" tabindex="-1" aria-hidden="true">
+                            <i class="ti ti-player-play" style="margin-left:2px"></i>
+                          </button>
+                          <div class="progress-wrap">
+                            <div class="progress-bar">
+                              <div class="progress-fill" id="heroProgressFill" style="width:34%"></div>
+                            </div>
+                            <div class="time-row">
+                              <span class="time-lbl">0:42</span>
+                              <span class="time-lbl">2:04</span>
+                            </div>
+                          </div>
+                          <span class="buy-link"><i class="ti ti-shopping-cart" style="font-size:15px"></i>Buy</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
+                <div class="hero-demo-actions" aria-hidden="true">
+                  <button class="act-btn btn-skip" type="button" tabindex="-1"><i class="ti ti-x"></i></button>
+                  <button class="act-btn btn-save" type="button" tabindex="-1"><i class="ti ti-flame"></i></button>
+                </div>
               </div>
-            </div>
-            <div class="hero-demo-actions" aria-hidden="true">
-              <button class="act-btn btn-skip" type="button" tabindex="-1"><i class="ti ti-x"></i></button>
-              <button class="act-btn btn-save" type="button" tabindex="-1"><i class="ti ti-flame"></i></button>
-            </div>
-            <p class="hero-preview-caption">Your bio link. Their next beat.</p>
-          </div>
+            </span>
+          </a>
+          <p class="hero-preview-caption">What fans see from your bio · beatswipe.app/p/clyriax</p>
         </div>
       </div>
       <div class="stats-row reveal-on-scroll" id="landStatsRow" hidden>
@@ -623,9 +618,12 @@
         <!-- shown when logged in -->
         <div id="uploadLoggedIn" style="display:none">
           <div class="upload-drop" id="uploadDrop" onclick="document.getElementById('f-mp3-file').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
-            <input type="file" id="f-mp3-file" accept="audio/mpeg,.mp3" multiple style="display:none" onchange="handleFileSelect(event)">
+            <input type="file" id="f-mp3-file" accept="audio/mpeg,audio/mp3,.mp3,audio/*" multiple style="display:none" onchange="handleFileSelect(event)">
             <i class="ti ti-file-music"></i>
-            <div class="upload-drop-title">Drop preview MP3s here or click to select</div>
+            <div class="upload-drop-title">
+              <span class="upload-drop-title--desk">Drop preview MP3s here or click to select</span>
+              <span class="upload-drop-title--mobile">Tap to select MP3s</span>
+            </div>
             <div class="upload-drop-sub">Preview only · ~30–60s each · not full beats · max. 15 MB</div>
           </div>
           <div class="upload-queue" id="uploadQueue" style="display:none"></div>

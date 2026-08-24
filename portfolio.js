@@ -217,16 +217,17 @@ function renderPortfolioDoneList() {
     const sel = !mobile && d.id === _portfolioDoneSelectedId ? ' crate-card--selected' : '';
     const action = beatBuyAction(d);
     const id = String(d.id).replace(/'/g, "\\'");
-    const actionHTML = !mobile && action
+    const prodEsc = String(d.producer || '').replace(/'/g, "\\'");
+    const buyHTML = action
       ? `<button class="crate-action-btn" data-portfolio-buy="1" data-beat-id="${escHtml(String(d.id))}" onclick="event.stopPropagation();window.open('${action.link.replace(/'/g, "\\'")}','_blank')">${action.html}</button>`
-      : (mobile ? '<i class="ti ti-chevron-right portfolio-done-chevron"></i>' : '');
+      : `<button class="crate-action-btn crate-action-btn--ghost" onclick="event.stopPropagation();openProducerProfile('${prodEsc}')"><i class="ti ti-user"></i> Contact</button>`;
     return `<div class="crate-card${sel}" onclick="selectPortfolioDoneBeat('${id}')">
-      <div class="mini-cover"><i class="ti ti-music"></i></div>
+      <div class="mini-cover">${beatCoverHTML(d, '', 'pfdone')}</div>
       <div class="crate-info">
         <div class="crate-name">${escHtml(d.title)}</div>
         <div class="crate-meta">${escHtml(d.bpm)} · ${escHtml(d.genre)} · ${escHtml(d.type)}</div>
       </div>
-      ${actionHTML ? `<div class="crate-actions">${actionHTML}</div>` : ''}
+      <div class="crate-actions">${buyHTML}</div>
     </div>`;
   }).join('');
 }
@@ -327,7 +328,9 @@ function buildPortfolioDoneHTML() {
   if (saved.length) {
     return `<div class="portfolio-done portfolio-done--results">
       <div class="portfolio-done-head"><i class="ti ti-flame"></i>You saved ${saved.length} beat${saved.length === 1 ? '' : 's'}</div>
-      <div class="portfolio-done-sub">Tap a beat to preview · license from ${_portfolioProducer ? escHtml(_portfolioProducer) : 'the producer'}.</div>
+      <div class="portfolio-done-sub">${typeof isMobileUI === 'function' && isMobileUI()
+        ? `Buy from ${_portfolioProducer ? escHtml(_portfolioProducer) : 'the producer'} — tap a beat to preview.`
+        : `Tap a beat to preview · license from ${_portfolioProducer ? escHtml(_portfolioProducer) : 'the producer'}.`}</div>
       <div class="portfolio-done-layout">
         <div class="portfolio-done-main">
           <div class="portfolio-done-list-panel">
@@ -556,7 +559,7 @@ function buildBeatCardHTML(d, opts) {
         <span class="swipe-label swipe-label-skip" id="labelSkip">SKIP</span>
         <span class="swipe-label swipe-label-save" id="labelSave">SAVE</span>
         <div class="cover-box">
-          <i class="ti ti-${d.type==='Drums'?'circle':'music'}"></i>
+          ${beatCoverHTML(d, '', 'pf')}
         </div>
         <div style="flex:1;min-width:0">
           <div class="track-name">${d.title}</div>

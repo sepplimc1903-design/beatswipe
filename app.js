@@ -20,6 +20,129 @@ function escHtml(s) {
     .replace(/"/g, '&quot;');
 }
 
+function hashString(str) {
+  let h = 2166136261;
+  const s = String(str || '');
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+function rgbToHex(r, g, b) {
+  const clamp = n => Math.max(0, Math.min(255, Math.round(n)));
+  return '#' + [r, g, b].map(n => clamp(n).toString(16).padStart(2, '0')).join('');
+}
+
+function hslToHex(h, s, l) {
+  s /= 100;
+  l /= 100;
+  const k = n => (n + h / 30) % 12;
+  const a = s * Math.min(l, 1 - l);
+  const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+  return rgbToHex(f(0) * 255, f(8) * 255, f(4) * 255);
+}
+
+function parseHexColor(hex) {
+  const m = String(hex || '').trim().match(/^#?([0-9a-f]{6})$/i);
+  if (!m) return null;
+  return {
+    r: parseInt(m[1].slice(0, 2), 16),
+    g: parseInt(m[1].slice(2, 4), 16),
+    b: parseInt(m[1].slice(4, 6), 16)
+  };
+}
+
+function mixHex(hex, toward, amount) {
+  const a = parseHexColor(hex);
+  const b = parseHexColor(toward);
+  if (!a || !b) return hex;
+  return rgbToHex(
+    a.r + (b.r - a.r) * amount,
+    a.g + (b.g - a.g) * amount,
+    a.b + (b.b - a.b) * amount
+  );
+}
+
+const DEFAULT_BEAT_COLOR = '#BA7517';
+
+function beatArtColor(d, seed) {
+  const raw = String(d?.color || '').trim();
+  const hex = raw.startsWith('#') ? raw : (raw ? '#' + raw : '');
+  if (parseHexColor(hex) && hex.toUpperCase() !== DEFAULT_BEAT_COLOR) return hex;
+  return hslToHex(seed % 360, 42, 40);
+}
+
+function beatCoverHTML(d, extraClass, slot) {
+  const seed = hashString([d?.id, d?.title, d?.bpm, d?.key, d?.genre, d?.producer].join('|'));
+  const base = beatArtColor(d, seed);
+  const safeSlot = String(slot || 'a').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 24) || 'a';
+  const uid = 'cv' + String(d?.id || seed).replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 24) + '-' + safeSlot;
+  const letter = escHtml((d?.title || 'B').trim().charAt(0).toUpperCase() || 'B');
+  const c1 = mixHex(base, '#FFFFFF', 0.22);
+  const c2 = mixHex(base, '#050505', 0.55);
+  const c3 = mixHex(base, '#0A84FF', 0.18);
+  const rot = seed % 360;
+  const cx = 16 + (seed % 52);
+  const cy = 10 + ((seed >> 5) % 56);
+  const r1 = 34 + ((seed >> 8) % 22);
+  const cx2 = 72 - ((seed >> 3) % 44);
+  const cy2 = 78 - ((seed >> 7) % 36);
+  const cls = ['beat-cover', extraClass].filter(Boolean).join(' ').replace(/[^a-zA-Z0-9 _-]/g, '');
+  return `<div class="${cls}" aria-hidden="true"><svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="${uid}-g" x1="0" y1="0" x2="1" y2="1" gradientTransform="rotate(${rot} 0.5 0.5)"><stop offset="0%" stop-color="${c1}"/><stop offset="100%" stop-color="${c2}"/></linearGradient><radialGradient id="${uid}-r" cx="42%" cy="32%" r="72%"><stop offset="0%" stop-color="${c3}" stop-opacity="0.9"/><stop offset="100%" stop-color="#050505" stop-opacity="0.92"/></radialGradient><filter id="${uid}-n" x="-20%" y="-20%" width="140%" height="140%"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="${seed % 97}" result="n"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope="0.16"/></feComponentTransfer></filter></defs><rect width="80" height="80" fill="#0A0A0A"/><rect width="80" height="80" fill="url(#${uid}-g)"/><ellipse cx="${cx}" cy="${cy}" rx="${r1}" ry="${Math.round(r1 * 0.7)}" fill="url(#${uid}-r)" opacity="0.75"/><ellipse cx="${cx2}" cy="${cy2}" rx="24" ry="16" fill="${c1}" opacity="0.22"/><rect width="80" height="80" filter="url(#${uid}-n)"/><text x="40" y="49" text-anchor="middle" fill="rgba(255,255,255,0.86)" font-family="system-ui,-apple-system,sans-serif" font-size="26" font-weight="700">${letter}</text></svg></div>`;
+}
+
+const HERO_DEMO_FALLBACK = {
+  title: 'Midnight Drive',
+  producer: 'clyriax',
+  bpm: '140 BPM',
+  key: 'F# Min',
+  genre: 'Trap',
+  type: 'Beat',
+  color: '#0A84FF'
+};
+
+function heroBeatScore(b) {
+  let s = 0;
+  const bpm = parseFloat(String(b?.bpm || ''));
+  if (bpm >= 40 && bpm <= 240) s += 4;
+  const title = String(b?.title || '').toLowerCase();
+  if (title && !/^(wtf|test|asdf|xxx)\b/.test(title)) s += 1;
+  const key = String(b?.key || '');
+  if (key && key !== 'N/A' && key.length > 1) s += 1;
+  if (b?.buy) s += 1;
+  return s;
+}
+
+function pickHeroDemoBeat() {
+  const pool = _beatsCache || [];
+  const named = pool.filter(b => String(b.producer || '').toLowerCase() === 'clyriax');
+  const list = (named.length ? named : pool).slice().sort((a, b) => heroBeatScore(b) - heroBeatScore(a));
+  return list[0] || HERO_DEMO_FALLBACK;
+}
+
+function hydrateHeroDemoCard() {
+  const d = pickHeroDemoBeat();
+  const card = document.getElementById('heroBeatCard');
+  if (!card) return;
+  const name = card.querySelector('.track-name');
+  const by = card.querySelector('.track-by');
+  const type = card.querySelector('.type-pill');
+  const tags = card.querySelector('.tag-row');
+  const cover = card.querySelector('.cover-box');
+  if (name) name.textContent = d.title || HERO_DEMO_FALLBACK.title;
+  if (by) by.textContent = 'by ' + (d.producer || HERO_DEMO_FALLBACK.producer);
+  if (type) type.textContent = d.type || HERO_DEMO_FALLBACK.type;
+  if (tags) {
+    tags.innerHTML =
+      `<span class="tag">${escHtml(d.bpm || HERO_DEMO_FALLBACK.bpm)}</span>` +
+      `<span class="tag">${escHtml(d.key || HERO_DEMO_FALLBACK.key)}</span>` +
+      `<span class="tag">${escHtml(d.genre || HERO_DEMO_FALLBACK.genre)}</span>`;
+  }
+  if (cover) cover.innerHTML = beatCoverHTML(d, '', 'hero');
+}
+
 const SOCIAL_PLATFORMS = [
   { key: 'instagram', label: 'Instagram', placeholder: '@username', icon: 'ti-brand-instagram' },
   { key: 'tiktok', label: 'TikTok', placeholder: '@username', icon: 'tiktok' },
@@ -454,6 +577,7 @@ function buildHeroWaveBars() {
 }
 function initHeroDemoCard() {
   stopHeroDemoCard();
+  hydrateHeroDemoCard();
   buildHeroWaveBars();
   const wf = document.getElementById('heroWaveform');
   const card = document.getElementById('heroBeatCard');
@@ -494,6 +618,9 @@ const ONBOARD_STEPS = 4;
 function initOnboard() {
   if (localStorage.getItem('bs_onboarded')) return;
   if (_portfolioMode) return;
+  document.querySelectorAll('.onboard-demo-art').forEach((el, i) => {
+    el.innerHTML = beatCoverHTML(HERO_DEMO_FALLBACK, '', 'ob' + i);
+  });
   setTimeout(() => {
     document.getElementById('onboardBackdrop').classList.add('open');
   }, 500);
@@ -569,6 +696,7 @@ function applyBeatsList(beats) {
   _rawDb = JSON.parse(JSON.stringify(db));
   applyDiscoverFilters();
   updateStats(true);
+  hydrateHeroDemoCard();
   return true;
 }
 
@@ -1395,7 +1523,7 @@ function renderCard(opts) {
         <span class="swipe-label swipe-label-skip" id="labelSkip">SKIP</span>
         <span class="swipe-label swipe-label-save" id="labelSave">SAVE</span>
         <div class="cover-box">
-          <i class="ti ti-${d.type==='Drums'?'circle':'music'}"></i>
+          ${beatCoverHTML(d, '', 'discover')}
         </div>
         <div style="flex:1;min-width:0">
           <div class="track-name">${d.title}</div>
@@ -1696,13 +1824,13 @@ function renderCard(opts) {
     }
     const pct = Math.min(Math.abs(dx) / 110, 1);
     const mobile = isMobileUI();
-    const scale = 1 + pct * (mobile ? 0.1 : 0.22);
     const portfolioDesktop = _portfolioMode && !mobile;
-    const tx = portfolioDesktop ? 0 : dx * (mobile ? 0.08 : 0.14);
-    glow.style.transform = portfolioDesktop
-      ? `translate(-50%, -50%) scale(${scale})`
-      : `translate(calc(-50% + ${tx}px), -50%) scale(${scale})`;
-    glow.style.opacity = String((mobile ? 0.2 : 0.28) + pct * (mobile ? 0.18 : 0.42));
+    const scale = 1 + pct * (mobile ? 0.12 : (portfolioDesktop ? 0.55 : 0.22));
+    const tx = dx * (mobile ? 0.08 : (portfolioDesktop ? 0.28 : 0.14));
+    glow.style.transform = `translate(calc(-50% + ${tx}px), -50%) scale(${scale})`;
+    const baseOp = _portfolioMode ? (mobile ? 0.26 : 0.4) : (mobile ? 0.2 : 0.28);
+    const addOp = _portfolioMode ? (mobile ? 0.3 : 0.5) : (mobile ? 0.18 : 0.42);
+    glow.style.opacity = String(baseOp + pct * addOp);
     if (dx > 12) glow.classList.add('glow-toward-save');
     else if (dx < -12) glow.classList.add('glow-toward-skip');
   }
@@ -2219,7 +2347,7 @@ function buildCratePreviewHTML(d, opts = {}) {
   }
   const cardBody = `
     <div class="crate-preview-head">
-      <div class="crate-preview-cover"><i class="ti ti-music"></i></div>
+      <div class="crate-preview-cover">${beatCoverHTML(d, '', 'preview')}</div>
       <div>
         <div class="crate-preview-title">${d.title}</div>
         <div class="crate-preview-producer" onclick="openProducerProfile('${prodEsc}')">by ${d.producer}</div>
@@ -2340,9 +2468,7 @@ function renderCrate() {
       : `<button class="crate-action-btn crate-action-btn--ghost" onclick="event.stopPropagation();openProducerProfile('${prodEsc}')" title="Contact ${d.producer} for licensing"><i class="ti ti-user"></i> Contact</button>`;
     return `
     <div class="crate-card${enterCls}${selCls}" id="crate-card-${d.id}"${staggerStyle} onclick="selectCrateBeat('${d.id}')">
-      <div class="mini-cover">
-        <i class="ti ti-music"></i>
-      </div>
+      <div class="mini-cover">${beatCoverHTML(d, '', 'crate')}</div>
       <div class="crate-info">
         <div class="crate-name">${d.title}</div>
         <div class="crate-meta"><span class="crate-meta-producer" onclick="openProducerProfile('${prodEsc}')">${d.producer}</span> · ${d.bpm} · ${d.genre}</div>
@@ -2377,7 +2503,7 @@ function renderDesktopCrate(stagger) {
     return '<div class="dc-card' + enterCls + '"' + staggerStyle + '>'
       + '<div class="dc-card-top">'
       + '<div class="dc-cover">'
-      + '<i class="ti ti-music"></i></div>'
+      + beatCoverHTML(d, '', 'dc') + '</div>'
       + '<div class="dc-info">'
       + '<div class="dc-name">' + d.title + '</div>'
       + '<div class="dc-meta">' + d.producer + ' · ' + d.genre + '</div>'

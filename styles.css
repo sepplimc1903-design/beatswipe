@@ -137,6 +137,16 @@
     .portfolio-left-rail { display: none; }
 
     /* Portfolio /p/ — drifting aurora */
+    .portfolio-vignette {
+      display: none;
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      background: radial-gradient(ellipse 54% 64% at 50% 46%, transparent 0%, rgba(0,0,0,0.28) 55%, rgba(0,0,0,0.78) 100%);
+    }
+    html.portfolio-route-boot .portfolio-vignette,
+    body.portfolio-active .portfolio-vignette { display: block; }
     .portfolio-ambient {
       display: none;
       position: absolute;
@@ -196,6 +206,11 @@
 
     /* Mobile — same aurora wash as laptop app pages (/p/ overrides below) */
     @media (max-width: 899px) {
+      html, body {
+        overflow-x: hidden;
+        max-width: 100%;
+        overscroll-behavior-x: none;
+      }
       .shell { background: transparent; }
       .bg-desktop {
         background:
@@ -546,8 +561,14 @@
       background: none; border: none; padding: 0;
       font-size: 17px; font-weight: 700; color: var(--text);
       letter-spacing: -0.4px; cursor: pointer; flex-shrink: 0;
+      display: inline-flex; align-items: center;
     }
     .dtb-logo span { color: var(--accent-mid); }
+    .brand-mark {
+      width: 22px; height: 22px; border-radius: 6px;
+      display: block; flex-shrink: 0;
+      margin-right: 7px;
+    }
     .dtb-nav {
       justify-self: center;
       position: relative;
@@ -1125,10 +1146,32 @@
       }
       #landScreen .hero-visual {
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
       }
-      #landScreen .hero-preview { width: 100%; max-width: var(--w-discover); margin-inline: auto; }
+      #landScreen .hero-phone {
+        max-width: 340px;
+      }
+      #landScreen .hero-phone-bezel {
+        display: block;
+        background: #111113;
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 36px;
+        padding: 14px 12px 18px;
+        box-shadow:
+          0 28px 80px rgba(0,0,0,0.55),
+          inset 0 1px 0 rgba(255,255,255,0.08);
+      }
+      #landScreen .hero-phone-notch {
+        display: block;
+        width: 86px;
+        height: 6px;
+        margin: 2px auto 12px;
+        border-radius: 100px;
+        background: rgba(255,255,255,0.12);
+      }
+      #landScreen .hero-preview { width: 100%; max-width: none; margin-inline: auto; }
       #landScreen .hero-card-demo { width: 100%; max-width: 400px; margin-inline: auto; }
       #landScreen .hero-card-demo .card-stage { width: 100%; }
       #landScreen .hero-card-demo .card-glow {
@@ -2056,7 +2099,10 @@
 
     /* TOP BAR */
     .top-bar { display: flex; align-items: center; justify-content: space-between; padding: var(--py) var(--px) 12px; flex-shrink: 0; }
-    .wordmark { font-size: 19px; font-weight: 700; color: var(--text); letter-spacing: -0.4px; }
+    .wordmark {
+      font-size: 19px; font-weight: 700; color: var(--text); letter-spacing: -0.4px;
+      display: inline-flex; align-items: center;
+    }
     .wordmark b { color: var(--accent-mid); }
     .top-badge { font-size: 11px; color: var(--text-2); background: rgba(255,255,255,0.06); padding: 3px 10px; border-radius: 100px; font-weight: 600; }
 
@@ -2110,6 +2156,7 @@
       font-size: 12px;
       color: var(--text-3);
       line-height: 1.45;
+      flex-basis: 100%;
     }
     .hero-invite-hint a { color: var(--accent-mid); text-decoration: none; }
     .hero-invite-hint a:hover { text-decoration: underline; }
@@ -2154,6 +2201,16 @@
     .hero-live-card-hint { margin-top: 3px; font-size: 11px; color: var(--text-3); line-height: 1.4; }
     .hero-live-card-arrow { font-size: 18px; color: var(--text-3); flex-shrink: 0; }
 
+    .hero-visual { display: flex; flex-direction: column; align-items: center; }
+    .hero-phone {
+      display: block;
+      width: 100%;
+      max-width: 400px;
+      text-decoration: none;
+      color: inherit;
+    }
+    .hero-phone-bezel { display: block; }
+    .hero-phone-notch { display: none; }
     /* Hero swipe demo — matches Discover card */
     .hero-preview { width: 100%; }
     .hero-card-demo { width: 100%; max-width: 100%; }
@@ -2356,22 +2413,13 @@
     }
     @media (max-width: 520px) {
       .land-platforms-grid {
-        display: flex;
-        flex-wrap: nowrap;
-        gap: 10px;
-        max-width: none;
-        margin-inline: calc(var(--px) * -1);
-        padding: 0 var(--px) 4px;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        scroll-snap-type: x mandatory;
-        scrollbar-width: none;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
       }
-      .land-platforms-grid::-webkit-scrollbar { display: none; }
       .land-platform-card {
-        flex: 0 0 108px;
-        scroll-snap-align: start;
+        min-height: 96px;
+        padding: 12px 6px 10px;
       }
+      .land-platform-name { font-size: 11px; }
     }
     @media (min-width: 900px) {
       #landScreen .land-platforms {
@@ -2528,8 +2576,10 @@
     .mini-cover,
     .dc-cover,
     .crate-preview-cover {
-      background: var(--bg-3);
-      border: 0.5px solid var(--border);
+      background: #111;
+      border: none;
+      overflow: hidden;
+      padding: 0;
     }
     .cover-box i,
     .mini-cover i,
@@ -2538,6 +2588,8 @@
     .dc-cover i { font-size: 16px; }
     .cover-box { width: 60px; height: 60px; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .cover-box i { font-size: 24px; }
+    .beat-cover { width: 100%; height: 100%; display: block; }
+    .beat-cover svg { width: 100%; height: 100%; display: block; }
     .track-name { font-size: 20px; font-weight: 700; margin-bottom: 3px; line-height: 1.15; letter-spacing: -0.4px; }
     .track-by { font-size: 13px; color: var(--text-2); font-weight: 400; }
     .type-pill { font-size: 10px; font-weight: 600; padding: 3px 10px; border-radius: 100px; background: var(--bg-3); border: 0.5px solid var(--border-2); color: var(--text-3); letter-spacing: 0.2px; white-space: nowrap; }
@@ -2794,7 +2846,7 @@
       transition: background 0.15s;
     }
     .my-page-back:active { background: var(--bg-3); }
-    .my-page-add-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+    .my-page-add-btn { margin-bottom: 16px; }
     .my-page-login {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       text-align: center; gap: 14px; padding: 48px 24px; min-height: 320px;
@@ -2862,6 +2914,7 @@
       border-radius: 16px;
       overflow: hidden;
     }
+    .my-page-beat-cover { width: 36px; height: 36px; border-radius: 9px; }
     .my-page-beat-row {
       display: flex; align-items: center; gap: 10px; padding: 13px 14px;
       background: transparent; border: none;
@@ -2870,12 +2923,11 @@
     }
     .my-page-beat-row:last-child { border-bottom: none; }
     .my-page-beat-list--sortable {
-      touch-action: none;
       -webkit-touch-callout: none;
     }
     .my-page-beat-row--sortable {
       cursor: grab;
-      touch-action: none;
+      touch-action: pan-y;
       -webkit-tap-highlight-color: transparent;
       -webkit-touch-callout: none;
       user-select: none;
@@ -3115,7 +3167,7 @@
       width: 100%;
       max-width: none;
       padding: 0 var(--px) 8px;
-      overflow: hidden;
+      overflow: visible;
       box-sizing: border-box;
     }
     #portfolioPageInner {
@@ -3180,7 +3232,7 @@
       align-self: stretch;
       justify-content: flex-start;
       padding-top: 24px;
-      overflow: hidden;
+      overflow: visible;
     }
     #portfolioPageInner.page-inner--swipe-done .portfolio-card-slot {
       justify-content: flex-start;
@@ -3219,15 +3271,15 @@
       justify-content: center;
     }
     #portfolioCardWrap .card-glow {
-      top: 46%;
-      width: 78%;
-      height: 55%;
+      top: 48%;
+      width: 130%;
+      height: 88%;
       opacity: 0;
-      filter: blur(52px);
+      filter: blur(72px);
     }
     #portfolioCardWrap .card-glow.glow-toward-save,
     #portfolioCardWrap .card-glow.glow-toward-skip {
-      filter: blur(58px);
+      filter: blur(80px);
     }
     #portfolioCardWrap .card-glow.glow-toward-skip {
       background: #fb923c;
@@ -3739,8 +3791,14 @@
         max-height: none;
       }
       body.portfolio-swipe-done .portfolio-done-chevron {
-        font-size: 18px;
-        color: var(--text-3);
+        display: none;
+      }
+      body.portfolio-swipe-done .portfolio-done-list .crate-actions {
+        flex-shrink: 0;
+      }
+      body.portfolio-swipe-done .portfolio-done-list .crate-action-btn {
+        padding: 7px 11px;
+        font-size: 11px;
       }
       body.portfolio-swipe-done.portfolio-done-preview-open .portfolio-done-head,
       body.portfolio-swipe-done.portfolio-done-preview-open .portfolio-done-sub,
@@ -4050,6 +4108,9 @@
         display: block;
         height: 100dvh;
         overflow: hidden;
+        overflow-x: hidden;
+        max-width: 100%;
+        overscroll-behavior-x: none;
       }
       body.portfolio-active .desktop-layout,
       body.portfolio-active .desktop-right {
@@ -4069,11 +4130,34 @@
       body.portfolio-active #portfolioPageInner,
       body.portfolio-active .page-inner--portfolio {
         width: 100%;
-        max-width: none;
+        max-width: 100%;
+        min-width: 0;
         margin-inline: 0;
         height: 100%;
-        padding-inline: 16px;
+        padding-inline: var(--px);
         box-sizing: border-box;
+      }
+      body.portfolio-active #portfolioPageInner > *,
+      body.portfolio-active .portfolio-header,
+      body.portfolio-active .portfolio-header-main,
+      body.portfolio-active .portfolio-card-wrap,
+      body.portfolio-active .portfolio-card-slot,
+      body.portfolio-active .portfolio-done,
+      body.portfolio-active .portfolio-done-layout,
+      body.portfolio-active .portfolio-done-main,
+      body.portfolio-active .portfolio-done-list-panel,
+      body.portfolio-active .portfolio-done-list,
+      body.portfolio-active .portfolio-done-side,
+      body.portfolio-active .portfolio-done-guest,
+      body.portfolio-active .portfolio-foot {
+        min-width: 0;
+        max-width: 100%;
+      }
+      body.portfolio-active .portfolio-done-guest {
+        max-width: 100%;
+      }
+      body.portfolio-swipe-done .portfolio-done-list .crate-card {
+        min-width: 0;
       }
       body.portfolio-active .portfolio-header {
         padding: calc(env(safe-area-inset-top, 0px) + 12px) 0 10px;
@@ -4371,15 +4455,18 @@
         padding-top: 8px;
       }
       body.portfolio-active #portfolioCardWrap .card-glow {
-        top: 46%;
-        width: 82%;
-        height: 58%;
+        top: 48%;
+        width: 170%;
+        height: 120%;
         opacity: 0;
-        filter: blur(52px);
+        filter: blur(96px);
       }
       body.portfolio-active #portfolioCardWrap .card-glow.glow-toward-save,
       body.portfolio-active #portfolioCardWrap .card-glow.glow-toward-skip {
-        filter: blur(58px);
+        filter: blur(110px);
+      }
+      body.portfolio-active .portfolio-vignette {
+        background: radial-gradient(ellipse 46% 58% at 50% 46%, transparent 0%, rgba(0,0,0,0.38) 58%, rgba(0,0,0,0.88) 100%);
       }
       body.portfolio-active #portfolioScreen .action-row,
       body.portfolio-active .portfolio-action-row {
@@ -4629,6 +4716,17 @@
 
     /* ── MOBILE LANDING REVEAL + HERO (<900px) ── */
     @media (max-width: 899px) {
+      #landScreen,
+      #landScreen .page-inner,
+      #landScreen .land-scroll {
+        overflow-x: hidden;
+        max-width: 100%;
+      }
+      #landScreen .land-scroll {
+        overflow-y: auto;
+        touch-action: pan-y;
+        overscroll-behavior-x: none;
+      }
       #landScreen .faq-section .faq-title-mobile {
         display: block;
         font-size: 16px; font-weight: 700;
@@ -4650,6 +4748,7 @@
         justify-content: center;
         margin-top: 32px;
         padding-inline: 0;
+        max-width: 100%;
       }
       #landScreen .hero-card-demo { width: 100%; max-width: 100%; }
       #landScreen .hero-card-demo .card-glow {
@@ -4674,6 +4773,47 @@
 
     /* ── MOBILE MICRO-INTERACTIONS (<900px) ── */
     @media (max-width: 899px) {
+      .upload-drop-title--desk { display: none; }
+      .upload-drop-title--mobile { display: inline; }
+      #submitScreen .site-page-head {
+        display: block;
+        padding: 16px var(--px) 10px;
+      }
+      #submitScreen .site-page-title {
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        margin-bottom: 4px;
+      }
+      #submitScreen .site-page-desc {
+        font-size: 13px;
+        color: var(--text-2);
+        line-height: 1.45;
+      }
+      #submitScreen .submit-scroll,
+      #myPageAddBeat .submit-scroll {
+        padding-bottom: calc(28px + 64px + env(safe-area-inset-bottom, 0px));
+      }
+      body.mypage-active #submitScreen .page-inner,
+      body.mypage-active #submitScreen .page-inner--wide {
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      body.mypage-active .my-page-layout,
+      body.mypage-active .my-page-main-col,
+      body.mypage-active #myPageMain,
+      body.mypage-active #myPageAddBeat {
+        overflow: visible;
+        flex: none;
+        min-height: auto;
+        height: auto;
+      }
+      body.mypage-active .submit-scroll,
+      body.mypage-active #myPageAddBeat .submit-scroll {
+        overflow: visible;
+        flex: none;
+        min-height: auto;
+      }
       #discoverScreen .action-row .btn-skip,
       #discoverScreen .action-row .btn-save {
         width: 74px;
@@ -4746,6 +4886,8 @@
         height: 100dvh;
         min-height: 100dvh;
         overflow: hidden;
+        max-width: 100%;
+        overscroll-behavior-x: none;
       }
       body.portfolio-active .desktop-layout {
         height: 100dvh;
@@ -4810,11 +4952,12 @@
         width: 74%;
       }
       #portfolioCardWrap .card-glow {
-        top: 40%;
+        top: 46%;
         opacity: 0;
-        filter: blur(44px);
-        height: 44%;
-        width: 74%;
+        filter: blur(48px);
+        height: 70%;
+        width: 78%;
+        max-width: 100%;
       }
       /* Only .dragging — fly clones must stay position:absolute or flex slot doubles height (zoom/jerk) */
       body.discover-active .beat-card.dragging,
@@ -5535,6 +5678,7 @@
       justify-content: flex-end;
       padding-bottom: env(safe-area-inset-bottom);
       pointer-events: none;
+      overflow: hidden;
     }
     .onboard-backdrop.open { pointer-events: all; display: flex; }
     .onboard-sheet {
@@ -5613,7 +5757,8 @@
     }
     .onboard-demo-art {
       width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
-      background: var(--accent-light);
+      background: #111;
+      overflow: hidden;
       display: flex; align-items: center; justify-content: center;
     }
     .onboard-demo-art i { font-size: 18px; color: var(--accent-mid); }
@@ -5962,6 +6107,7 @@
     .upload-drop input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
     .upload-drop i { font-size: 28px; color: var(--accent-mid); }
     .upload-drop-title { font-size: 14px; font-weight: 600; color: var(--text); }
+    .upload-drop-title--mobile { display: none; }
     .upload-drop-sub { font-size: 12px; color: var(--text-3); }
     .upload-file-selected { display: flex; align-items: center; gap: 10px; background: var(--accent-light); border: 0.5px solid rgba(244,63,94,0.3); border-radius: 12px; padding: 12px 14px; margin-top: 8px; }
     .upload-file-selected i { font-size: 20px; color: var(--accent-mid); flex-shrink: 0; }

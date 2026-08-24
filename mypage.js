@@ -1153,8 +1153,7 @@ function startMyPageBeatDrag(state) {
   _myPageBeatDragging = true;
   row.classList.add('my-page-beat-row--dragging');
   list.classList.add('my-page-beat-list--dragging');
-  const scroll = list.closest('.submit-scroll');
-  if (scroll) scroll.style.overflow = 'hidden';
+  myPageLockScroll(list, true);
 }
 
 function myPageDragAtY(clientY) {
@@ -1180,18 +1179,39 @@ function endMyPageBeatDrag(gid) {
   row.classList.remove('my-page-beat-row--dragging');
   list.classList.remove('my-page-beat-list--dragging');
   list.querySelectorAll('.my-page-beat-row--drag-over').forEach(el => el.classList.remove('my-page-beat-row--drag-over'));
-  const scroll = list.closest('.submit-scroll');
-  if (scroll) scroll.style.overflow = '';
+  myPageLockScroll(list, false);
   const ids = myPageBeatOrderFromList(list);
   _myPageDrag = null;
   setTimeout(() => { _myPageBeatDragging = false; }, 150);
   if (ids.length) void persistBeatOrder(ids);
 }
 
+const MY_PAGE_LONG_PRESS_MS = 320;
+let _myPagePressTimer = null;
+
+function clearMyPagePressTimer() {
+  if (_myPagePressTimer) {
+    clearTimeout(_myPagePressTimer);
+    _myPagePressTimer = null;
+  }
+}
+
+function myPageLockScroll(list, on) {
+  const scroll = list?.closest('.submit-scroll') || list?.closest('.page-inner');
+  if (scroll) scroll.style.overflow = on ? 'hidden' : '';
+}
+
 function myPageBeatGestureDown(row, list, gid, x, y, e) {
   if (_myPageDrag) return;
-  if (e?.cancelable) e.preventDefault();
+  const isTouch = typeof gid === 'string' && gid.startsWith('touch-');
   _myPagePointer = { row, list, gid, startX: x, startY: y };
+  if (!isTouch) return;
+  clearMyPagePressTimer();
+  _myPagePressTimer = setTimeout(() => {
+    _myPagePressTimer = null;
+    if (!_myPagePointer || _myPagePointer.gid !== gid) return;
+    startMyPageBeatDrag(_myPagePointer);
+  }, MY_PAGE_LONG_PRESS_MS);
 }
 
 function myPageBeatGestureMove(gid, x, y, e) {
@@ -1204,12 +1224,18 @@ function myPageBeatGestureMove(gid, x, y, e) {
   if (!_myPagePointer || _myPagePointer.gid !== gid) return;
   const moved = Math.hypot(x - _myPagePointer.startX, y - _myPagePointer.startY);
   if (moved < MY_PAGE_DRAG_THRESHOLD) return;
+  if (gid.startsWith('touch-')) {
+    clearMyPagePressTimer();
+    _myPagePointer = null;
+    return;
+  }
   if (e?.cancelable) e.preventDefault();
   startMyPageBeatDrag(_myPagePointer);
   myPageDragAtY(y);
 }
 
 function myPageBeatGestureUp(gid, x, y) {
+  clearMyPagePressTimer();
   if (_myPageDrag && _myPageDrag.gid === gid) {
     endMyPageBeatDrag(gid);
     return;
@@ -1223,6 +1249,7 @@ function myPageBeatGestureUp(gid, x, y) {
 }
 
 function myPageBeatGestureCancel(gid) {
+  clearMyPagePressTimer();
   if (_myPageDrag && _myPageDrag.gid === gid) endMyPageBeatDrag(gid);
   if (_myPagePointer && _myPagePointer.gid === gid) _myPagePointer = null;
 }
@@ -1536,7 +1563,7 @@ function renderMyPageBeatRows(opts) {
   const pending = getMyPendingBeats();
   const pendingFiltered = pending.filter(p => !live.find(b => b.title === p.title));
   if (!live.length && !pendingFiltered.length) {
-    return `<div class="my-page-empty"><i class="ti ti-music-off" style="font-size:28px;display:block;margin-bottom:8px;opacity:0.5"></i>No beats yet.<br>Tap below to add your first one.</div>`;
+    return `<div class="my-page-empty"><i class="ti ti-music-off" style="font-size:28px;display:block;margin-bottom:8px;opacity:0.5"></i>No beats yet.<br>Tap Add beat to upload your first one.</div>`;
   }
 
   let html = '<div class="my-page-beat-groups">';
@@ -1545,7 +1572,7 @@ function renderMyPageBeatRows(opts) {
     html += `<div class="my-page-beat-group">
       <div class="my-page-beat-group-head">
         <span class="my-page-beat-group-label">Live <span class="my-page-beat-group-count">${live.length}</span></span>
-        ${sortable ? '<span class="my-page-beat-group-hint">Press & drag to reorder</span>' : ''}
+        ${sortable ? '<span class="my-page-beat-group-hint">Hold to reorder</span>' : ''}
       </div>
       <div class="my-page-beat-group-card${sortable ? ' my-page-beat-list--sortable' : ''}">`;
     live.forEach((b, idx) => {
@@ -1558,7 +1585,7 @@ function renderMyPageBeatRows(opts) {
         ? ` tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openBeatEditModal('${idEsc}')}"`
         : '';
       html += `<div class="my-page-beat-row my-page-beat-row--live${sortCls}${enterCls}" data-beat-id="${idEsc}"${staggerStyle}${keyAttrs}>
-        ${sortable ? '' : '<span class="my-page-beat-dot my-page-beat-dot--live" aria-hidden="true"></span>'}
+        <div class="mini-cover my-page-beat-cover">${beatCoverHTML(b, '', 'my' + idx)}</div>
         <div class="my-page-beat-body">
           <div class="my-page-beat-title">${escHtml(b.title)}</div>
           <div class="my-page-beat-meta">${meta ? escHtml(meta) : (sortable ? 'Tap to edit · drag to reorder' : 'Live on your page')}</div>
@@ -1608,10 +1635,10 @@ function renderMyPageDashboard(stagger) {
       <p class="site-page-desc">Manage your swipe portfolio and bio link.</p>
     </div>
     <div class="submit-scroll">
+      <button type="button" class="submit-btn my-page-add-btn" onclick="showMyPageAddBeat()"><i class="ti ti-plus"></i> Add new beat</button>
       ${linkInMain ? buildMyPageLinkBoxHTML() : ''}
       ${liveCount < 3 ? `<div class="my-page-hint"><strong>Tip:</strong> Add at least 3 beats before sharing your link in your bio.</div>` : ''}
       ${renderMyPageBeatRows({ stagger })}
-      <button type="button" class="submit-btn" onclick="showMyPageAddBeat()"><i class="ti ti-plus"></i> Add new beat</button>
       <div style="font-size:12px;color:var(--text-3);text-align:center;margin-top:14px;line-height:1.5">Edit avatar & bio in <a onclick="goTo('profileScreen','navProfile')" style="color:var(--accent-mid);cursor:pointer">Profile</a></div>
     </div>`;
 }
@@ -1661,9 +1688,9 @@ function renderMyPageOnboarding(stagger) {
         <div class="submit-title" style="margin-bottom:6px">Add your beats</div>
         <div class="my-page-hint"><strong>Min. 3 beats</strong> recommended before you share your link in your bio. Upload short previews only (~30–60s for MP3) — not full masters. Beats go live on your page right away.</div>
         <div style="font-size:13px;color:var(--text-2);margin-bottom:12px">${total} beat${total === 1 ? '' : 's'} added${live ? ` (${live} live)` : ''}</div>
+        <button type="button" class="submit-btn my-page-add-btn" onclick="showMyPageAddBeat()" style="margin-bottom:10px"><i class="ti ti-plus"></i> Add beat</button>
         ${renderMyPageBeatRows({ sortable: false, stagger })}
-        <button type="button" class="submit-btn" onclick="showMyPageAddBeat()" style="margin-bottom:10px"><i class="ti ti-plus"></i> Add beat</button>
-        <button type="button" class="btn-secondary" onclick="finishMyPageOnboarding()" style="width:100%;justify-content:center;padding:13px;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;border:0.5px solid var(--border-2);background:none;color:var(--text)">Finish setup</button>
+        <button type="button" class="btn-secondary" onclick="finishMyPageOnboarding()" style="width:100%;justify-content:center;padding:13px;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;border:0.5px solid var(--border-2);background:none;color:var(--text);margin-top:10px">Finish setup</button>
       </div>`;
   }
 

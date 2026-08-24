@@ -96,18 +96,23 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 - **Portfolio social icons:** `buildPortfolioSocialsHTML()` — Instagram-Gradient braucht **eindeutige** `linearGradient`-IDs pro Instanz (Header + Sidepanel = 2×); sonst leerer Button. TikTok = Mehrfarben-SVG (nicht `ti-brand-tiktok`).
 - **Portfolio swipe glow (Preview/`/p/`):** `#portfolioCardGlow` (nicht Discover-`#cardGlow` — doppelte ID hat Preview-Glow totgemacht). Sibling **hinter** `.portfolio-surface` (glasiger Hintergrund) → schwächer als Discover. Versuch Glow in Surface → zurückgesetzt.
 - **Upload goes live immediately:** `/api/submit-beat` setzt `status: 'approved'` — Beats sofort auf `/p/`. Kein 48h-Pending als Producer-Pfad. Moderation nur für alte Pending / Takedowns. Buy-Link Pflicht (Store-Picker). BPM 40–240 wenn gesetzt.
+- **Beat covers:** `beatCoverHTML(d, class, slot)` in `app.js` — generated SVG aus Titel/BPM/Key (nicht `ti-music`). `slot` muss unique sein (gleiche Beat-ID mehrfach = kaputte Gradient-IDs).
+- **Wordmark + Mark:** `.dtb-logo` / `.wordmark` **kein** Flex-`gap` — Icon, „Beat“ und `<span>Swipe</span>` sind drei Items, Gap trennt das Wort. Abstand nur `.brand-mark { margin-right }`.
+- **`/p/` Desktop-Glow:** idle `opacity: 0`; beim Swipe großer Bloom in die Leere. Wrap/slot `overflow: visible` (sonst clippt die 170%-Glow). Vignette `.portfolio-vignette`. Preview = dieselbe `#portfolioCardGlow`.
+- **`/p/` mobile overflow:** `#portfolioPageInner` ist CSS-Grid (`min-width: auto`) — nowrap-Titel in der Done-Liste weiten die Spalte über den Viewport, `overflow-x: hidden` clippt dann links/rechts. Handy: Grid-Items `min-width: 0; max-width: 100%`. Glow auf Mobile nicht 120%+ (sonst ~20px Seiten-Scroll). Platform-Grid auf Home nicht als Horizontal-Carousel (leakt Page-Scroll).
 
 ## Aktuell (2026-08-24)
 
-- **Live:** Private Beta. Upload sofort auf `/p/` (kein 48h-Wait). Buy-Link Pflicht. Landing-Stats versteckt bis ≥8 Beats / ≥3 Producer. Onboard/FAQ producer-first. Preview-Swipe-Glow = echte `/p/` (`#portfolioCardGlow`).
-- **Offen:** `/p/` Glow schwächer als Discover. Desktop-Leere um Karten. Testdaten auf `/p/clyriax` ersetzen bevor Outreach.
-- **Marketing:** `marketing/` Avatar + IG-Posts noch lokal.
+- **Live:** Private Beta. Upload sofort auf `/p/`. Buy-Link Pflicht. Landing-Stats versteckt bis ≥8 Beats / ≥3 Producer.
+- **Handy:** Home ohne Seitenscroll; `/p/` passt in den Viewport; Done-Liste hat Buy neben jedem Beat; My Page scrollt, Upload-Button oben.
+- **Look:** Generated Covers; `/p/` Vignette + Swipe-Glow; Landing-Hero → `/p/clyriax`; Favicon-Mark + OG.
+- **Offen:** Testdaten auf `/p/clyriax` ersetzen.
 
 ## Nächster Schritt
 
 1. Testdaten auf My Page runter (`wtf`, 2 BPM, `tiktok.com` …)
 2. Echte Beats auf `/p/clyriax` — dann 2–3 Producer anschreiben
-3. Später: Invite-Gate pausieren wenn Beta zu Ende (`INVITE_GATE_PAUSED = true`)
+3. Später: Invite-Gate pausieren (`INVITE_GATE_PAUSED = true`)
 
 ## Rules pflegen (Agent)
 
