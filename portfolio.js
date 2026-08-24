@@ -572,7 +572,7 @@ function buildBeatCardHTML(d, opts) {
         <span class="tag">${d.genre}</span>
       </div>
       ${playerHTML}`;
-  if (portfolioWrap) return `<div class="card-stage portfolio-card-stage"><div class="card-glow" id="cardGlow" aria-hidden="true"></div><div class="portfolio-surface"><div class="portfolio-beat" id="theCard">${cardInner}</div></div></div>`;
+  if (portfolioWrap) return `<div class="card-stage portfolio-card-stage"><div class="card-glow" id="portfolioCardGlow" aria-hidden="true" style="--glow-color:${d.color}"></div><div class="portfolio-surface"><div class="portfolio-beat" id="theCard">${cardInner}</div></div></div>`;
   return `
     <div class="card-stage">
     <div class="card-glow" id="cardGlow" style="--glow-color:${d.color}"></div>
@@ -977,7 +977,10 @@ async function openPortfolio(producerName, opts) {
   stopTrack();
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active', 'screen-fade-out', 'screen-entering'));
   document.getElementById('portfolioScreen')?.classList.add('active');
-  document.body.classList.remove('discover-active', 'crate-active', 'mypage-active', 'profile-active', 'site-scroll');
+  document.body.classList.remove(
+    'discover-active', 'crate-active', 'mypage-active', 'profile-active',
+    'moderate-active', 'site-scroll', 'mypage-add-open'
+  );
   document.body.classList.add('portfolio-active');
 
   const color = beats[0]?.color || 'var(--accent)';

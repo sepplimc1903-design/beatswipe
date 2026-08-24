@@ -18,7 +18,7 @@ function titleFromFilename(name) {
 }
 
 function resetAddBeatForm() {
-  ['f-title', 'f-bpm', 'f-key', 'f-preview', 'f-buy', 'f-note'].forEach(id => {
+  ['f-title', 'f-bpm', 'f-key', 'f-preview'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -28,6 +28,7 @@ function resetAddBeatForm() {
   });
   const pt = document.getElementById('f-preview-type');
   if (pt) pt.value = currentUser ? 'MP3' : '';
+  mountBuyStoreField('submitBuyStore', { wrapId: 'single', platform: '', buyLink: '' });
 }
 
 function syncSubmitBtnLabel() {
@@ -98,6 +99,13 @@ const BUY_STORE_PLATFORMS = [
   { id: 'traktrain', label: 'Traktrain', placeholder: 'https://traktrain.com/...' },
   { id: 'other', label: 'Website', placeholder: 'https://yourstore.com/...' }
 ];
+const BUY_STORE_HOSTS = {
+  beatstars: 'beatstars.com',
+  airbit: 'airbit.com',
+  traktrain: 'traktrain.com'
+};
+const BPM_MIN = 40;
+const BPM_MAX = 240;
 
 function normalizeBuyLink(raw) {
   const trimmed = (raw || '').trim();
@@ -107,11 +115,63 @@ function normalizeBuyLink(raw) {
   return '';
 }
 
-function validateBuyLink(raw) {
+function detectBuyPlatform(url) {
+  const u = (url || '').toLowerCase();
+  if (u.includes('beatstars.com')) return 'beatstars';
+  if (u.includes('airbit.com')) return 'airbit';
+  if (u.includes('traktrain.com')) return 'traktrain';
+  if (u.trim()) return 'other';
+  return '';
+}
+
+function validateBuyLink(raw, platform) {
+  if (!platform) return 'Select where you sell this beat.';
   const trimmed = (raw || '').trim();
-  if (!trimmed) return 'Add where fans can buy the full beat.';
-  if (!normalizeBuyLink(trimmed)) return 'Enter a valid store link (https://…).';
+  if (!trimmed) return 'Paste the store link for this beat.';
+  const normalized = normalizeBuyLink(trimmed);
+  if (!normalized) return 'Enter a full link (https://…).';
+  const host = BUY_STORE_HOSTS[platform];
+  const label = BUY_STORE_PLATFORMS.find(p => p.id === platform)?.label;
+  if (host && !normalized.toLowerCase().includes(host)) {
+    return `That doesn't look like a ${label} link.`;
+  }
   return null;
+}
+
+function validateBpm(raw) {
+  if (raw == null || String(raw).trim() === '') return null;
+  const n = parseFloat(raw);
+  if (Number.isNaN(n) || n < BPM_MIN || n > BPM_MAX) {
+    return `BPM should be between ${BPM_MIN} and ${BPM_MAX}.`;
+  }
+  return null;
+}
+
+function validatePreviewUrl(type, url) {
+  const trimmed = (url || '').trim();
+  if (!trimmed) return 'Paste a preview link.';
+  if (type === 'YouTube' && !/(?:youtube\.com\/(?:watch\?|embed\/|shorts\/)|youtu\.be\/)/i.test(trimmed)) {
+    return 'Paste a YouTube video link.';
+  }
+  if (type === 'SoundCloud' && !/soundcloud\.com\//i.test(trimmed)) {
+    return 'Paste a SoundCloud track link.';
+  }
+  return null;
+}
+
+function getBuyWrapState(wrapId) {
+  const wrap = document.querySelector(`[data-buy-wrap="${wrapId}"]`);
+  if (!wrap) return { platform: '', buyLink: '' };
+  return {
+    platform: wrap.querySelector('.buy-store-pill.active')?.dataset.platform || '',
+    buyLink: wrap.querySelector('.buy-store-input')?.value.trim() || ''
+  };
+}
+
+function mountBuyStoreField(containerId, opts) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = buildBuyStoreFieldHtml(opts);
 }
 
 function buyStorePlaceholder(platformId) {
@@ -129,16 +189,15 @@ function buildBuyStoreFieldHtml({ wrapId, platform, buyLink }) {
       <div class="buy-store-pills filter-pills" role="list">${pills}</div>
       <input type="url" class="buy-store-input" value="${escHtml(buyLink || '')}" placeholder="${escHtml(buyStorePlaceholder(platform))}"
         style="display:${showInput ? 'block' : 'none'}" oninput="updateQueueField('${wrapId}', 'buyLink', this.value)">
-      <div class="buy-store-hint" style="display:${showInput ? 'block' : 'none'}">Paste your track or store link — fans buy the full beat there, not this preview.</div>
+      <div class="buy-store-hint" style="display:${showInput ? 'block' : 'none'}">Paste the track page — fans leave BeatSwipe to buy there.</div>
       <div class="buy-store-pick-hint" style="display:${showInput ? 'none' : 'block'}">Select where you sell this beat.</div>
     </div>`;
 }
 
-function selectQueueBuyPlatform(queueId, platform) {
-  const item = _mp3Queue.find(q => q.id === queueId);
-  if (!item) return;
-  item.buyPlatform = platform;
-  const wrap = document.querySelector(`[data-buy-wrap="${queueId}"]`);
+function selectQueueBuyPlatform(wrapId, platform) {
+  const item = _mp3Queue.find(q => q.id === wrapId);
+  if (item) item.buyPlatform = platform;
+  const wrap = document.querySelector(`[data-buy-wrap="${wrapId}"]`);
   if (!wrap) return;
   wrap.querySelectorAll('.buy-store-pill').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.platform === platform);
@@ -175,12 +234,9 @@ function buildQueueSummary(item, index) {
 }
 
 function syncQueueFormLayout() {
-  const hasQueue = _mp3Queue.length > 0;
   const isMp3 = document.getElementById('f-preview-type')?.value === 'MP3';
   const singleFields = document.getElementById('submitSingleFields');
-  const noteHint = document.getElementById('batchNoteHint');
   if (singleFields) singleFields.style.display = isMp3 ? 'none' : 'block';
-  if (noteHint) noteHint.textContent = (isMp3 && hasQueue) ? '(applies to whole batch)' : '';
 }
 
 function validateMp3File(file) {
@@ -220,13 +276,13 @@ function renderUploadQueue() {
         <div class="upload-queue-fields">
           <div>
             <label class="field-label">Title *</label>
-            <input type="text" value="${escHtml(item.title)}" placeholder="Track title"
+            <input type="text" value="${escHtml(item.title)}" placeholder="Track title" maxlength="80"
               oninput="updateQueueField('${item.id}', 'title', this.value)">
           </div>
           <div class="upload-queue-row">
             <div>
               <label class="field-label">BPM <span style="color:var(--text-3);font-weight:400">(optional)</span></label>
-              <input type="number" value="${escHtml(item.bpm || '')}" placeholder="140"
+              <input type="number" value="${escHtml(item.bpm || '')}" placeholder="140" min="${BPM_MIN}" max="${BPM_MAX}" step="1"
                 oninput="updateQueueField('${item.id}', 'bpm', this.value)">
             </div>
             <div>
@@ -464,8 +520,9 @@ async function postBeatSubmit(payload) {
   return data;
 }
 
-function getResolvedBuyLink() {
-  return document.getElementById('f-buy')?.value.trim() || '';
+function getResolvedBuyState(wrapId) {
+  const { platform, buyLink } = getBuyWrapState(wrapId);
+  return { platform, buyLink, error: validateBuyLink(buyLink, platform) };
 }
 
 function setSubmitBtnLoading(loading, label) {
@@ -480,7 +537,7 @@ function setSubmitBtnLoading(loading, label) {
 }
 
 function clearBeatFormAfterSubmit() {
-  ['f-title', 'f-bpm', 'f-key', 'f-preview', 'f-note'].forEach(id => {
+  ['f-title', 'f-bpm', 'f-key', 'f-preview'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -506,9 +563,6 @@ async function doSubmitForm() {
     return;
   }
 
-  const buyLink = getResolvedBuyLink();
-  const note = document.getElementById('f-note').value.trim();
-
   if (previewType === 'MP3') {
     if (!_mp3Queue.length) {
       showToast('Please add at least one MP3 file.', 'error');
@@ -531,19 +585,25 @@ async function doSubmitForm() {
         expandQueueItem(item.id);
         return;
       }
+      const bpmErr = validateBpm(item.bpm);
+      if (bpmErr) {
+        showToast(`"${label}": ${bpmErr}`, 'error');
+        expandQueueItem(item.id);
+        return;
+      }
       if (!item.buyPlatform) {
         showToast(`Select where you sell "${label}".`, 'error');
         expandQueueItem(item.id);
         return;
       }
-      const buyErr = validateBuyLink(item.buyLink);
+      const buyErr = validateBuyLink(item.buyLink, item.buyPlatform);
       if (buyErr) {
         showToast(`"${label}": ${buyErr}`, 'error');
         expandQueueItem(item.id);
         return;
       }
     }
-    return doSubmitMp3Batch({ producer, note });
+    return doSubmitMp3Batch({ producer });
   }
 
   const genre = document.getElementById('f-genre').value.trim();
@@ -554,18 +614,27 @@ async function doSubmitForm() {
   }
 
   const bpm = document.getElementById('f-bpm').value.trim();
+  const bpmErr = validateBpm(bpm);
+  if (bpmErr) { showToast(bpmErr, 'error'); return; }
   const key = document.getElementById('f-key').value.trim();
 
   const title = document.getElementById('f-title').value.trim();
   if (!title) { showToast('Please enter a track title.', 'error'); return; }
 
+  const singleBuy = getResolvedBuyState('single');
+  if (singleBuy.error) {
+    showToast(singleBuy.error, 'error');
+    return;
+  }
+
   let previewUrl = '';
   if (previewType === 'YouTube' || previewType === 'SoundCloud') {
     previewUrl = document.getElementById('f-preview')?.value.trim() || '';
-    if (!previewUrl) { showToast('Please enter a preview link.', 'error'); return; }
+    const previewErr = validatePreviewUrl(previewType, previewUrl);
+    if (previewErr) { showToast(previewErr, 'error'); return; }
   }
 
-  setSubmitBtnLoading(true, 'Sending...');
+  setSubmitBtnLoading(true, 'Publishing...');
 
   try {
     await postBeatSubmit({
@@ -576,10 +645,9 @@ async function doSubmitForm() {
       type,
       previewType,
       previewUrl,
-      buyLink
+      buyLink: normalizeBuyLink(singleBuy.buyLink)
     });
 
-    addMyPendingBeat(title);
     finishSubmitSuccess(1);
   } catch (e) {
     console.error('[BeatSwipe] submitForm error:', e);
@@ -636,7 +704,6 @@ async function doSubmitMp3Batch(shared) {
         previewUrl,
         buyLink: normalizeBuyLink(item.buyLink)
       });
-      addMyPendingBeat(item.title.trim());
       submitted.push(item.title.trim());
       progressFill.style.width = '100%';
     }
@@ -663,24 +730,25 @@ async function doSubmitMp3Batch(shared) {
   }
 }
 
-function finishSubmitSuccess(count) {
+async function finishSubmitSuccess(count) {
   const successMsg = document.getElementById('successMsg');
   if (successMsg) {
     const p = successMsg.querySelector('p');
     if (p) {
       p.textContent = count > 1
-        ? `${count} beats submitted! We'll review them within 48h.`
-        : 'Beat submitted! We\'ll review it within 48h.';
+        ? `${count} beats are live on your page.`
+        : 'Beat is live on your page.';
     }
     successMsg.style.display = 'block';
   }
   setSubmitBtnLoading(false);
   clearBeatFormAfterSubmit();
 
-  setTimeout(async () => {
+  try { await loadBeats({ force: true }); } catch (e) {}
+
+  setTimeout(() => {
     if (successMsg) successMsg.style.display = 'none';
     hideMyPageAddBeat();
-    await refreshMyPendingBeats({ force: true });
     renderMyPage();
   }, count > 1 ? 1600 : 1200);
 }
@@ -688,7 +756,7 @@ function finishSubmitSuccess(count) {
 function resetSubmitForAnother() {
   const successMsg = document.getElementById('successMsg');
   if (successMsg) successMsg.style.display = 'none';
-  ['f-title', 'f-bpm', 'f-key', 'f-preview', 'f-note'].forEach(id => {
+  ['f-title', 'f-bpm', 'f-key', 'f-preview'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -923,7 +991,11 @@ function openBeatEditModal(beatId) {
   document.getElementById('beat-edit-type').value = beat.type || '';
   document.getElementById('beat-edit-bpm').value = parseBpmValue(beat.bpm);
   document.getElementById('beat-edit-key').value = parseKeyValue(beat.key);
-  document.getElementById('beat-edit-buy').value = beat.buy || '';
+  mountBuyStoreField('beatEditBuyStore', {
+    wrapId: 'edit',
+    platform: detectBuyPlatform(beat.buy),
+    buyLink: beat.buy || ''
+  });
   document.getElementById('beatEditModal')?.classList.add('open');
 }
 
@@ -966,9 +1038,12 @@ async function saveBeatEdit() {
   const type = document.getElementById('beat-edit-type')?.value.trim();
   const bpm = document.getElementById('beat-edit-bpm')?.value.trim();
   const key = document.getElementById('beat-edit-key')?.value.trim();
-  const buy = document.getElementById('beat-edit-buy')?.value.trim();
+  const buyState = getResolvedBuyState('edit');
   if (!title) { showToast('Title is required.', 'error'); return; }
   if (!genre || !type) { showToast('Genre and type are required.', 'error'); return; }
+  const bpmErr = validateBpm(bpm);
+  if (bpmErr) { showToast(bpmErr, 'error'); return; }
+  if (buyState.error) { showToast(buyState.error, 'error'); return; }
 
   const btn = document.getElementById('beatEditSaveBtn');
   if (btn) {
@@ -976,7 +1051,9 @@ async function saveBeatEdit() {
     btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Saving...';
   }
   try {
-    await manageBeatRequest('update', _editingBeatId, { title, genre, type, bpm, key, buy });
+    await manageBeatRequest('update', _editingBeatId, {
+      title, genre, type, bpm, key, buy: normalizeBuyLink(buyState.buyLink)
+    });
     closeBeatEditModal();
     showToast('Beat updated!', 'success');
     await loadBeats({ force: true });
@@ -1582,7 +1659,7 @@ function renderMyPageOnboarding(stagger) {
       <div class="submit-scroll">
         <span class="my-page-step-pill">Step 2 of 3</span>
         <div class="submit-title" style="margin-bottom:6px">Add your beats</div>
-        <div class="my-page-hint"><strong>Min. 3 beats</strong> recommended before you share your link in your bio. Upload short previews only (~30–60s for MP3) — not full masters. Each beat is reviewed within 48h.</div>
+        <div class="my-page-hint"><strong>Min. 3 beats</strong> recommended before you share your link in your bio. Upload short previews only (~30–60s for MP3) — not full masters. Beats go live on your page right away.</div>
         <div style="font-size:13px;color:var(--text-2);margin-bottom:12px">${total} beat${total === 1 ? '' : 's'} added${live ? ` (${live} live)` : ''}</div>
         ${renderMyPageBeatRows({ sortable: false, stagger })}
         <button type="button" class="submit-btn" onclick="showMyPageAddBeat()" style="margin-bottom:10px"><i class="ti ti-plus"></i> Add beat</button>
@@ -1594,13 +1671,13 @@ function renderMyPageOnboarding(stagger) {
   return `
     <div class="site-page-head">
       <h1 class="site-page-title">You're all set</h1>
-      <p class="site-page-desc">Your page is ready — beats go live after review.</p>
+      <p class="site-page-desc">Your page is ready — add beats and they go live immediately.</p>
     </div>
     <div class="submit-scroll" style="text-align:center;padding-top:12px">
       <span class="my-page-step-pill">Step 3 of 3</span>
       <div class="my-page-ready-icon"><i class="ti ti-circle-check"></i></div>
       <div class="submit-title" style="margin-bottom:8px">Your page is ready</div>
-      <div class="submit-sub" style="margin-bottom:20px;max-width:280px;margin-inline:auto">Share your link once you have a few beats live. Review usually takes under 48h.</div>
+      <div class="submit-sub" style="margin-bottom:20px;max-width:280px;margin-inline:auto">Share your link once you have a few beats. They go live as soon as you add them.</div>
       ${url ? `
       <div class="my-page-link-box" style="text-align:left">
         <div class="my-page-link-label">Your bio link</div>

@@ -94,21 +94,20 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 - **`.site-page-head` / `.land-section-head` unsichtbar am Laptop:** alte Regel `.site-page-head, .hero-visual, .land-section-head { display:none; }` stand **ohne** Media Query nach den 900px-„show"-Regeln → gewann immer (gleiche Spezifität, später im File). Fix: in `@media (max-width: 899px)` verschoben. Bei neuen globalen `display:none`-Defaults immer prüfen, ob sie **vor** den Desktop-Overrides stehen oder selbst media-gated sind. **Umkehrfall (2026-07-05):** `.faq-title-mobile` hatte eine **globale** `display:block`-Regel (id+2 Klassen, spät im File) → schlug das media-gated Desktop-`display:none` → doppelter FAQ-Titel am Laptop. Merke: „mobile-only" sichtbare Elemente ihre `display:block`-Regel **in** die Mobile-Query legen, nicht global.
 - **Sidebar-Höhe uneinheitlich (Profile/Favorites vs. My Page):** Profile/Favorites rendern `.site-page-head` **außerhalb** vom Grid (Sidebar startet auf Höhe vom ersten Content), My Page rendert den Titel **innerhalb** der Hauptspalte per JS (`mypage.js`, mehrere `render...()`-Funktionen) → Sidebar sonst auf Höhe vom Titel-Text statt Content. Fix: `renderMyPageSidePanel()` misst `#myPageMain .site-page-head` Höhe zur Laufzeit und setzt sie als `margin-top` auf `#myPageSidePanel`.
 - **Portfolio social icons:** `buildPortfolioSocialsHTML()` — Instagram-Gradient braucht **eindeutige** `linearGradient`-IDs pro Instanz (Header + Sidepanel = 2×); sonst leerer Button. TikTok = Mehrfarben-SVG (nicht `ti-brand-tiktok`).
-- **Portfolio swipe glow (Preview/`/p/`):** `#cardGlow` als Sibling **hinter** `.portfolio-surface` (glasiger Hintergrund) → kaum sichtbar; Discover-Card fast transparent. Versuch Glow in Surface → zurückgesetzt; noch offen wenn wieder angehen.
+- **Portfolio swipe glow (Preview/`/p/`):** `#portfolioCardGlow` (nicht Discover-`#cardGlow` — doppelte ID hat Preview-Glow totgemacht). Sibling **hinter** `.portfolio-surface` (glasiger Hintergrund) → schwächer als Discover. Versuch Glow in Surface → zurückgesetzt.
+- **Upload goes live immediately:** `/api/submit-beat` setzt `status: 'approved'` — Beats sofort auf `/p/`. Kein 48h-Pending als Producer-Pfad. Moderation nur für alte Pending / Takedowns. Buy-Link Pflicht (Store-Picker). BPM 40–240 wenn gesetzt.
 
 ## Aktuell (2026-08-24)
 
-- **Live:** Private Beta (`INVITE_GATE_PAUSED = false`). Producer-Funnel: „Get your free page“ öffnet Invite-Gate (nicht Scroll-Loop). Landing-Secondary = Live-Demo `/p/clyriax` (nicht Discover). Gäste: Nav/Footer Home · Live · Get page. Invite-Gate-Copy Producer vs App. Traktrain-Logo auf Landing als zentriertes TT.
-- **Schon live (vorher):** Discover-Filter, Platforms-Strip, Profile-Socials, MP3 Buy-Picker, OG mit Slogan.
-- **Offen:** `/p/` Swipe-Glow schwächer als Discover. Desktop-Leere um Karten — Stretch/Orbit/Stage-Versuche verworfen.
-- **Marketing:** `marketing/` Avatar + IG-Posts noch lokal. Supabase `profiles-social-links.sql` einmal ausführen falls noch nicht.
+- **Live:** Private Beta. Upload sofort auf `/p/` (kein 48h-Wait). Buy-Link Pflicht. Landing-Stats versteckt bis ≥8 Beats / ≥3 Producer. Onboard/FAQ producer-first. Preview-Swipe-Glow = echte `/p/` (`#portfolioCardGlow`).
+- **Offen:** `/p/` Glow schwächer als Discover. Desktop-Leere um Karten. Testdaten auf `/p/clyriax` ersetzen bevor Outreach.
+- **Marketing:** `marketing/` Avatar + IG-Posts noch lokal.
 
 ## Nächster Schritt
 
-1. Live checken nach Vercel: Landing CTA → Invite; Guest-Nav; `/p/clyriax`
-2. **Producer outreach:** 2–3 Producer — Invite + Demo
-3. **Luca:** Profilbild + IG-Posts
-4. Später: Invite-Gate pausieren wenn Beta zu Ende (`INVITE_GATE_PAUSED = true`)
+1. Testdaten auf My Page runter (`wtf`, 2 BPM, `tiktok.com` …)
+2. Echte Beats auf `/p/clyriax` — dann 2–3 Producer anschreiben
+3. Später: Invite-Gate pausieren wenn Beta zu Ende (`INVITE_GATE_PAUSED = true`)
 
 ## Rules pflegen (Agent)
 

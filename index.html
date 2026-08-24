@@ -185,7 +185,7 @@
     </div>
     <div class="dlr-block">
       <div class="dlr-heading">Tips</div>
-      <p class="flr-tip">Upload short previews (~30–60s), not full masters. Review usually within 48h.</p>
+      <p class="flr-tip">Upload short previews (~30–60s), not full masters. Beats go live on your page right away.</p>
     </div>
     <div class="dlr-block">
       <button type="button" class="flr-cta-btn" onclick="goTo('profileScreen','navProfile')">
@@ -328,7 +328,7 @@
           </div>
         </div>
       </div>
-      <div class="stats-row reveal-on-scroll">
+      <div class="stats-row reveal-on-scroll" id="landStatsRow" hidden>
         <div class="stat-cell">
           <i class="ti ti-music stat-icon" aria-hidden="true"></i>
           <div class="stat-num" id="statBeats">–</div>
@@ -345,11 +345,6 @@
           <div class="stat-lbl">Always</div>
         </div>
       </div>
-      <div class="beats-load-banner" id="beatsLoadBanner" hidden>
-        <i class="ti ti-alert-circle"></i>
-        <span>Couldn't load the beats catalog. Discover may be empty until this is fixed.</span>
-        <button type="button" class="beats-load-banner-btn" id="beatsLoadRetryBtn" onclick="retryLoadBeats()">Try again</button>
-      </div>
       <div class="land-section-head reveal-on-scroll">
         <h2 class="land-section-title">How it works</h2>
         <p class="land-section-desc">One link for your bio — fans swipe, save, and buy from you directly.</p>
@@ -360,7 +355,7 @@
           <div class="land-step-body">
             <div class="land-step-num">01</div>
             <div class="land-step-title">Upload your beats</div>
-            <div class="land-step-desc">Add short preview clips on My Page — YouTube, SoundCloud, or MP3 (~30–60s). Link your store for the full beat.</div>
+            <div class="land-step-desc">Add short preview clips on My Page — YouTube, SoundCloud, or MP3 (~30–60s). Link your store. Beats go live on your page right away.</div>
           </div>
         </div>
         <div class="land-step reveal-on-scroll reveal-delay-1">
@@ -454,15 +449,15 @@
         </div>
         <div class="faq-item">
           <button class="faq-q" onclick="toggleFaq(this)">How do I get my producer page?<i class="ti ti-plus"></i></button>
-          <div class="faq-a">Private beta — DM <a href="https://instagram.com/beatswipe.app" target="_blank" rel="noopener">@beatswipe.app</a> for an invite code, then create your free account, add beats on My Page, and share beatswipe.app/p/yourname in your bio once they're approved (usually within 48h). Upload short previews only (YouTube, SoundCloud, or MP3 ~30–60s) — not full masters. Add buy links to your store for the full beat.</div>
+          <div class="faq-a">Private beta — DM <a href="https://instagram.com/beatswipe.app" target="_blank" rel="noopener">@beatswipe.app</a> for an invite code, then create your free account, add beats on My Page, and share beatswipe.app/p/yourname in your bio. Upload short previews only (YouTube, SoundCloud, or MP3 ~30–60s) — not full masters. Add a buy link to your store for each beat — they go live on your page right away.</div>
         </div>
         <div class="faq-item">
           <button class="faq-q" onclick="toggleFaq(this)">Do I need an account?<i class="ti ti-plus"></i></button>
           <div class="faq-a">Fans need no account to swipe your portfolio. Producers need a free account to submit beats and manage their page.</div>
         </div>
         <div class="faq-item">
-          <button class="faq-q" onclick="toggleFaq(this)">What genres are on BeatSwipe?<i class="ti ti-plus"></i></button>
-          <div class="faq-a">Trap, Drill, R&B, Lo-Fi, Afrobeats, Synthwave, Boom Bap, Acoustic and more. Use the filter in Discover to narrow it down to exactly what you need.</div>
+          <button class="faq-q" onclick="toggleFaq(this)">What should I upload?<i class="ti ti-plus"></i></button>
+          <div class="faq-a">Short preview clips only (~30–60s) — not full masters. YouTube, SoundCloud, or MP3. Add a real store link (BeatStars, Airbit, Traktrain, or your site) so fans can buy. Three beats is a good start before you put the link in your bio.</div>
         </div>
         <div class="faq-item">
           <button class="faq-q" onclick="toggleFaq(this)">Does BeatSwipe take a cut from sales?<i class="ti ti-plus"></i></button>
@@ -537,6 +532,11 @@
         <button type="button" class="discover-sync-hint-btn" onclick="goTo('profileScreen','navProfile')">Sign in</button>
         <button type="button" class="discover-sync-hint-close" onclick="dismissDiscoverSyncHint()" aria-label="Dismiss"><i class="ti ti-x"></i></button>
       </div>
+      <div class="beats-load-banner" id="beatsLoadBanner" hidden>
+        <i class="ti ti-alert-circle"></i>
+        <span>Couldn't load beats. Try again.</span>
+        <button type="button" class="beats-load-banner-btn" id="beatsLoadRetryBtn" onclick="retryLoadBeats()">Try again</button>
+      </div>
       <div class="card-wrap" id="cardWrap"></div>
       <div class="swipe-hint">
         <span class="hint"><i class="ti ti-x" style="font-size:13px;color:#f87171"></i> skip</span>
@@ -584,7 +584,7 @@
     <div class="submit-header" style="padding-top:0">
       <button type="button" class="my-page-back" onclick="hideMyPageAddBeat()"><i class="ti ti-arrow-left"></i> Back to My Page</button>
       <div class="submit-title">Add new beat</div>
-      <div class="submit-sub">Short preview only (~30–60s for MP3) — not the full beat. Shows on your page after review — usually within 48h.</div>
+      <div class="submit-sub">Short preview only (~30–60s for MP3) — not the full beat. Goes live on your page as soon as you add it.</div>
     </div>
     <div class="submit-scroll" id="submitForm">
       <input type="hidden" id="f-producer">
@@ -639,7 +639,7 @@
 
       <div class="field-group" id="single-title-group" style="display:none">
         <label class="field-label">Track title *</label>
-        <input type="text" id="f-title" placeholder="e.g. Midnight Drive">
+        <input type="text" id="f-title" placeholder="e.g. Midnight Drive" maxlength="80">
       </div>
 
       <div id="submitSingleFields">
@@ -665,22 +665,14 @@
       <div class="field-group field-row" id="submitBpmRow">
         <div>
           <label class="field-label">BPM <span style="color:var(--text-3);font-weight:400">(optional)</span></label>
-          <input type="number" id="f-bpm" placeholder="140">
+          <input type="number" id="f-bpm" placeholder="140" min="40" max="240" step="1">
         </div>
         <div>
           <label class="field-label">Key <span style="color:var(--text-3);font-weight:400">(optional)</span></label>
           <input type="text" id="f-key" placeholder="F# Min">
         </div>
       </div>
-      <div class="field-group">
-        <label class="field-label">Where can people buy this beat? <span style="color:var(--text-3);font-weight:400">(optional)</span></label>
-        <input type="url" id="f-buy" placeholder="BeatStars, Splice, Instagram, Website...">
-        <div style="font-size:11px;color:var(--text-3);margin-top:5px">Where fans buy the full beat — not the preview.</div>
-      </div>
-      </div>
-      <div class="field-group" id="submitBatchNote">
-        <label class="field-label">Anything else? <span id="batchNoteHint" style="color:var(--text-3);font-weight:400"></span></label>
-        <textarea id="f-note" placeholder="Additional info, collab requests..."></textarea>
+      <div class="field-group" id="submitBuyStore"></div>
       </div>
       <div class="my-page-add-actions">
         <button type="button" class="submit-btn" id="submitBeatBtn" onclick="doSubmitForm()"><i class="ti ti-plus"></i> Add beat</button>
@@ -688,7 +680,7 @@
       </div>
       <div class="success-msg" id="successMsg">
         <i class="ti ti-circle-check"></i>
-        <p>Beat submitted! We'll review it within 48h.</p>
+        <p>Beat is live on your page.</p>
       </div>
     </div>
     </div>
@@ -1034,17 +1026,17 @@
           </div>
         </div>
 
-        <!-- Slide 2: Discover -->
+        <!-- Slide 2: Fans swipe -->
         <div class="onboard-slide">
           <div class="onboard-icon"><i class="ti ti-arrows-left-right"></i></div>
-          <div class="onboard-title">Swipe to <span>Discover</span></div>
-          <div class="onboard-desc">Listen, decide instantly. Swipe right to save — left to skip.</div>
+          <div class="onboard-title">Fans <span>swipe</span> your beats</div>
+          <div class="onboard-desc">One tap from your bio. They skip left, save right — hear a beat and decide in seconds.</div>
           <div class="onboard-demo onboard-demo--swipe">
             <div class="onboard-demo-card demo-card-anim">
               <div class="onboard-demo-art"><i class="ti ti-music"></i></div>
               <div class="onboard-demo-meta">
                 <div class="onboard-demo-title">Midnight Drive</div>
-                <div class="onboard-demo-sub">MetroVibe · 140 BPM</div>
+                <div class="onboard-demo-sub">clyriax · 140 BPM</div>
               </div>
               <div class="onboard-demo-actions">
                 <div class="onboard-demo-act onboard-demo-act--skip"><i class="ti ti-x"></i></div>
@@ -1054,17 +1046,17 @@
           </div>
         </div>
 
-        <!-- Slide 3: Favorites -->
+        <!-- Slide 3: Buy from store -->
         <div class="onboard-slide">
-          <div class="onboard-icon"><i class="ti ti-heart"></i></div>
-          <div class="onboard-title">Your <span>Favorites</span></div>
-          <div class="onboard-desc">Swipe right to add beats to Favorites. From there, go straight to the producer's store.</div>
+          <div class="onboard-icon"><i class="ti ti-shopping-cart"></i></div>
+          <div class="onboard-title">They buy from <span>your store</span></div>
+          <div class="onboard-desc">Saved beats keep a Buy button to BeatStars, Airbit, or your site. We take no cut.</div>
           <div class="onboard-demo onboard-demo--stack">
             <div class="onboard-fav-row">
               <div class="onboard-demo-art onboard-demo-art--sm"><i class="ti ti-music"></i></div>
               <div class="onboard-demo-meta">
                 <div class="onboard-demo-title">Midnight Drive</div>
-                <div class="onboard-demo-sub">MetroVibe · Trap</div>
+                <div class="onboard-demo-sub">Trap · 140 BPM</div>
               </div>
               <div class="onboard-fav-badge"><i class="ti ti-flame"></i></div>
             </div>
@@ -1072,16 +1064,16 @@
           </div>
         </div>
 
-        <!-- Slide 4: My Page -->
+        <!-- Slide 4: Get your page -->
         <div class="onboard-slide">
           <div class="onboard-icon"><i class="ti ti-link"></i></div>
-          <div class="onboard-title">Producer? <span>Get your page</span></div>
-          <div class="onboard-desc">Free swipe portfolio for your bio. Add short preview clips (~30–60s), share your link — fans save favorites and buy the full beat from you.</div>
+          <div class="onboard-title">Get your <span>free page</span></div>
+          <div class="onboard-desc">Add short preview clips, share beatswipe.app/p/yourname in your bio. Beats go live as soon as you add them.</div>
           <div class="onboard-demo onboard-demo--stack onboard-demo--checks">
             <div class="onboard-check-item"><i class="ti ti-check"></i><span>beatswipe.app/p/yourname</span></div>
             <div class="onboard-check-item"><i class="ti ti-check"></i><span>Preview via YouTube, SoundCloud or MP3 (~30–60s)</span></div>
-            <div class="onboard-check-item"><i class="ti ti-check"></i><span>Reviewed within 48 hours</span></div>
-            <div class="onboard-check-item"><i class="ti ti-check"></i><span>Buy links to your store</span></div>
+            <div class="onboard-check-item"><i class="ti ti-check"></i><span>Goes live on your page immediately</span></div>
+            <div class="onboard-check-item"><i class="ti ti-check"></i><span>Buy links to your store — no cut</span></div>
           </div>
         </div>
 
@@ -1181,7 +1173,7 @@
       <div class="beat-edit-sub">Changes go live on your portfolio after save.</div>
       <div class="field-group">
         <label class="field-label">Title *</label>
-        <input type="text" id="beat-edit-title" placeholder="Track title">
+        <input type="text" id="beat-edit-title" placeholder="Track title" maxlength="80">
       </div>
       <div class="field-group">
         <label class="field-label">Genre *</label>
@@ -1205,18 +1197,14 @@
       <div class="field-group field-row">
         <div>
           <label class="field-label">BPM <span style="color:var(--text-3);font-weight:400">(optional)</span></label>
-          <input type="number" id="beat-edit-bpm" placeholder="140">
+          <input type="number" id="beat-edit-bpm" placeholder="140" min="40" max="240" step="1">
         </div>
         <div>
           <label class="field-label">Key <span style="color:var(--text-3);font-weight:400">(optional)</span></label>
           <input type="text" id="beat-edit-key" placeholder="F# Min">
         </div>
       </div>
-      <div class="field-group">
-        <label class="field-label">Buy link <span style="color:var(--text-3);font-weight:400">(optional)</span></label>
-        <input type="url" id="beat-edit-buy" placeholder="BeatStars track link">
-        <div style="font-size:11px;color:var(--text-3);margin-top:5px">Where fans buy the full beat — not the preview.</div>
-      </div>
+      <div class="field-group" id="beatEditBuyStore"></div>
       <div class="beat-edit-actions">
         <button type="button" class="btn-secondary" onclick="closeBeatEditModal()">Cancel</button>
         <button type="button" class="submit-btn" id="beatEditSaveBtn" onclick="saveBeatEdit()"><i class="ti ti-check"></i> Save</button>
@@ -1291,6 +1279,10 @@ function updateStats(animate) {
   const allBeats = Object.values(db).flat();
   const beatCount = allBeats.length;
   const producerCount = new Set(allBeats.map(b => b.producer)).size;
+  const row = document.getElementById('landStatsRow');
+  const ready = beatCount >= 8 && producerCount >= 3;
+  if (row) row.hidden = !ready;
+  if (!ready) return;
   const bEl = document.getElementById('statBeats');
   const pEl = document.getElementById('statProducers');
   if (animate && !_statsCountUpDone) {

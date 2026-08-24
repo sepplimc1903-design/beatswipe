@@ -30,6 +30,22 @@ async function getProducerFromToken(token) {
   return rows[0]?.producer_name?.trim() || null;
 }
 
+function normalizeBuyLink(raw) {
+  const trimmed = String(raw || '').trim();
+  if (!trimmed) return '';
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  if (/^[\w.-]+\.[a-z]{2,}/i.test(trimmed)) return 'https://' + trimmed.replace(/^https?:\/\//i, '');
+  return '';
+}
+
+function isYouTubeUrl(url) {
+  return /(?:youtube\.com\/(?:watch\?|embed\/|shorts\/)|youtu\.be\/)/i.test(url);
+}
+
+function isSoundCloudUrl(url) {
+  return /soundcloud\.com\//i.test(url);
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -53,15 +69,26 @@ export default async function handler(req, res) {
   const type = String(body.type || body.Type || '').trim();
   const previewType = String(body.previewType || body.PreviewType || '').trim();
   const previewUrl = String(body.previewUrl || body.PreviewURL || '').trim();
-  const buyLink = String(body.buyLink || body.BuyLink || '').trim();
+  const buyLink = normalizeBuyLink(body.buyLink || body.BuyLink);
   const key = String(body.key || body.Key || '').trim();
   const bpmRaw = body.bpm ?? body.BPM;
   const bpmNum = bpmRaw != null && bpmRaw !== '' ? parseFloat(bpmRaw) : null;
 
   if (!title) return res.status(400).json({ error: 'Title required' });
+  if (title.length > 80) return res.status(400).json({ error: 'Title too long' });
   if (!genre || !type) return res.status(400).json({ error: 'Genre and type required' });
   if (!previewType) return res.status(400).json({ error: 'Preview type required' });
   if (!previewUrl) return res.status(400).json({ error: 'Preview URL required' });
+  if (previewType === 'YouTube' && !isYouTubeUrl(previewUrl)) {
+    return res.status(400).json({ error: 'Paste a YouTube video link' });
+  }
+  if (previewType === 'SoundCloud' && !isSoundCloudUrl(previewUrl)) {
+    return res.status(400).json({ error: 'Paste a SoundCloud track link' });
+  }
+  if (!buyLink) return res.status(400).json({ error: 'Buy link required' });
+  if (bpmNum != null && (Number.isNaN(bpmNum) || bpmNum < 40 || bpmNum > 240)) {
+    return res.status(400).json({ error: 'BPM should be between 40 and 240' });
+  }
 
   const row = {
     producer,
@@ -72,7 +99,7 @@ export default async function handler(req, res) {
     preview_url: previewUrl,
     buy_link: buyLink,
     key: key || 'N/A',
-    status: 'pending',
+    status: 'approved',
     color: '#BA7517'
   };
   if (bpmNum != null && !Number.isNaN(bpmNum) && bpmNum > 0) row.bpm = bpmNum;

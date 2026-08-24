@@ -28,7 +28,7 @@ function beatFromRow(row) {
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET');
-  res.setHeader('Cache-Control', 'public, s-maxage=45, stale-while-revalidate=60');
+  res.setHeader('Cache-Control', 'public, s-maxage=10, stale-while-revalidate=30');
 
   if (!getServiceRoleKey()) {
     return res.status(500).json({ error: 'Server not configured' });

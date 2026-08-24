@@ -335,7 +335,7 @@ function applyGoTo(screenId, navId) {
   document.body.classList.toggle('profile-active', screenId === 'profileScreen');
   document.body.classList.toggle('moderate-active', screenId === 'moderateScreen');
   document.body.classList.toggle('portfolio-active', screenId === 'portfolioScreen');
-  document.body.classList.toggle('site-scroll', isDesktop() && screenId !== 'discoverScreen');
+  document.body.classList.toggle('site-scroll', isDesktop() && screenId !== 'discoverScreen' && screenId !== 'portfolioScreen');
   if (isDesktop() && screenId !== 'discoverScreen' && screenId !== 'portfolioScreen') {
     window.scrollTo(0, 0);
   }
@@ -578,11 +578,14 @@ function sleep(ms) {
 
 function updateBeatsLoadBanner(show) {
   const el = document.getElementById('beatsLoadBanner');
-  if (el) el.hidden = !show;
+  if (!el) return;
+  const onDiscover = document.body.classList.contains('discover-active');
+  el.hidden = !show || !onDiscover;
 }
 
-async function fetchBeatsFromApi() {
-  const res = await fetch('/api/beats');
+async function fetchBeatsFromApi(force) {
+  const url = force ? '/api/beats?t=' + Date.now() : '/api/beats';
+  const res = await fetch(url, force ? { cache: 'no-store' } : undefined);
   if (!res.ok) throw new Error('Beats API ' + res.status);
   const data = await res.json();
   if (!data?.beats) throw new Error('Invalid beats response');
@@ -604,7 +607,7 @@ async function loadBeats(opts) {
   let lastErr = null;
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      const beats = await fetchBeatsFromApi();
+      const beats = await fetchBeatsFromApi(force);
       _beatsCache = beats;
       _beatsCacheAt = Date.now();
       updateBeatsLoadBanner(false);
@@ -1602,7 +1605,14 @@ function renderCard(opts) {
     if (el.closest('iframe,button,a,.progress-bar,.waveform-wrap,.yt-overlay')) return false;
     return true;
   }
-  function getGlow()  { return document.getElementById('cardGlow'); }
+  function getGlow() {
+    if (_portfolioMode) {
+      return document.getElementById('portfolioCardGlow')
+        || document.querySelector('#portfolioCardSlot .card-glow');
+    }
+    return document.querySelector('#cardWrap .card-glow')
+      || document.getElementById('cardGlow');
+  }
 
   function cancelSpring() {
     if (springRAF) { cancelAnimationFrame(springRAF); springRAF = null; }

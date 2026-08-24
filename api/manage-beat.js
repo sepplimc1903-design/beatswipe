@@ -55,6 +55,14 @@ async function patchBeat(beatId, fields) {
   }
 }
 
+function normalizeBuyLink(raw) {
+  const trimmed = String(raw || '').trim();
+  if (!trimmed) return '';
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  if (/^[\w.-]+\.[a-z]{2,}/i.test(trimmed)) return 'https://' + trimmed.replace(/^https?:\/\//i, '');
+  return '';
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -96,10 +104,17 @@ export default async function handler(req, res) {
       if (f.genre != null) updates.genre = String(f.genre).trim();
       if (f.type != null) updates.type = String(f.type).trim();
       if (f.key != null) updates.key = String(f.key).trim();
-      if (f.buy != null) updates.buy_link = String(f.buy).trim();
+      if (f.buy != null) {
+        const buy = normalizeBuyLink(f.buy);
+        if (!buy) return res.status(400).json({ error: 'Buy link required' });
+        updates.buy_link = buy;
+      }
       if (f.bpm != null && f.bpm !== '') {
         const bpmNum = parseFloat(f.bpm);
-        if (!Number.isNaN(bpmNum)) updates.bpm = bpmNum;
+        if (Number.isNaN(bpmNum) || bpmNum < 40 || bpmNum > 240) {
+          return res.status(400).json({ error: 'BPM should be between 40 and 240' });
+        }
+        updates.bpm = bpmNum;
       }
       if (!Object.keys(updates).length) {
         return res.status(400).json({ error: 'No fields to update' });
