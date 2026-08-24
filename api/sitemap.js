@@ -1,5 +1,4 @@
 import { fetchPortfolioSitemapEntries } from './_portfolio.js';
-import { getServiceRoleKey } from './_env.js';
 
 const SITE_URL = 'https://beatswipe.app';
 
@@ -7,7 +6,6 @@ export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
 
   if (req.method !== 'GET') return res.status(405).send('Method not allowed');
-  if (!getServiceRoleKey()) return res.status(500).send('Server not configured');
 
   try {
     const entries = await fetchPortfolioSitemapEntries();

@@ -41,6 +41,67 @@ let _prevNav = 'navDiscover';
 let _portfolioShowBack = false;
 let _portfolioPreview = false;
 let _portfolioPreviewPassed = [];
+let _portfolioDemo = false;
+
+const DEMO_PORTFOLIO_SLUG = 'demo';
+const DEMO_PORTFOLIO_NAME = 'Demo';
+const DEMO_PORTFOLIO_PROFILE = {
+  producer_name: DEMO_PORTFOLIO_NAME,
+  bio: 'Sample page — this is what fans see from a bio link. Beats are demos, not for sale.',
+  avatar_url: null,
+  instagram: 'beatswipe.app'
+};
+const DEMO_PORTFOLIO_BEATS = [
+  {
+    id: 'demo-midnight-drive',
+    title: 'Midnight Drive',
+    producer: DEMO_PORTFOLIO_NAME,
+    type: 'Full Beat',
+    bpm: '140 BPM',
+    key: 'F# Min',
+    genre: 'Trap',
+    color: '#0A84FF',
+    mp3: 'https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3',
+    buy: 'https://www.beatstars.com'
+  },
+  {
+    id: 'demo-glass-house',
+    title: 'Glass House',
+    producer: DEMO_PORTFOLIO_NAME,
+    type: 'Full Beat',
+    bpm: '92 BPM',
+    key: 'D Min',
+    genre: 'R&B',
+    color: '#7C5CFF',
+    mp3: 'https://cdn.pixabay.com/audio/2022/03/10/audio_c8c8a73467.mp3',
+    buy: 'https://airbit.com'
+  },
+  {
+    id: 'demo-after-hours',
+    title: 'After Hours',
+    producer: DEMO_PORTFOLIO_NAME,
+    type: 'Full Beat',
+    bpm: '150 BPM',
+    key: 'C# Min',
+    genre: 'Drill',
+    color: '#FF7A1A',
+    mp3: 'https://cdn.pixabay.com/audio/2022/08/04/audio_2dde668d05.mp3',
+    buy: 'https://traktrain.com'
+  }
+];
+
+function isDemoPortfolioSlug(slug) {
+  return String(slug || '').toLowerCase().replace(/\/+$/, '') === DEMO_PORTFOLIO_SLUG;
+}
+
+function isDemoBeatId(id) {
+  return String(id || '').startsWith('demo-');
+}
+
+function stripDemoBeatsFromCrate() {
+  if (typeof crate === 'undefined' || !Array.isArray(crate)) return;
+  crate = crate.filter(b => !isDemoBeatId(b.id));
+}
 
 function setPortfolioBackVisible(show) {
   _portfolioShowBack = !!show;
@@ -74,6 +135,7 @@ function getPortfolioSlugFromURL() {
 
 function findProducerBySlug(slug) {
   if (!slug) return null;
+  if (isDemoPortfolioSlug(slug)) return DEMO_PORTFOLIO_NAME;
   const norm = s => String(s).toLowerCase().replace(/[\s_-]+/g, '');
   const target = norm(slug);
   const allBeats = Object.values(_rawDb).flat();
@@ -83,6 +145,7 @@ function findProducerBySlug(slug) {
 
 async function findProducerInProfiles(slug) {
   if (!slug) return null;
+  if (isDemoPortfolioSlug(slug)) return DEMO_PORTFOLIO_NAME;
   try {
     const { data } = await supa.from('profiles').select('producer_name').not('producer_name', 'is', null);
     if (!data?.length) return null;
@@ -724,7 +787,7 @@ function showPortfolioLoadingState(slug) {
   document.documentElement.classList.remove('portfolio-route-boot');
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('portfolioScreen')?.classList.add('active');
-  document.body.classList.remove('discover-active', 'crate-active', 'mypage-active', 'profile-active', 'site-scroll');
+  document.body.classList.remove('land-active', 'discover-active', 'crate-active', 'mypage-active', 'profile-active', 'site-scroll');
   document.body.classList.add('portfolio-active');
   const header = document.getElementById('portfolioHeader');
   if (header) header.innerHTML = portfolioHeaderSkeletonHTML(slugToDisplayName(slug));
@@ -940,7 +1003,7 @@ function showPortfolioNotFound(slug) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('portfolioScreen')?.classList.add('active');
   document.body.classList.add('portfolio-active');
-  document.body.classList.remove('discover-active', 'crate-active', 'mypage-active', 'profile-active', 'site-scroll');
+  document.body.classList.remove('land-active', 'discover-active', 'crate-active', 'mypage-active', 'profile-active', 'site-scroll');
   const header = document.getElementById('portfolioHeader');
   if (header) header.innerHTML = `<div class="portfolio-name" style="flex:1">Producer not found</div>`;
   const slot = document.getElementById('portfolioCardSlot');
@@ -950,12 +1013,16 @@ function showPortfolioNotFound(slug) {
 
 async function openPortfolio(producerName, opts) {
   opts = opts || {};
+  const isDemo = isDemoPortfolioSlug(producerName);
+  if (isDemo) producerName = DEMO_PORTFOLIO_NAME;
   const allBeats = Object.values(_rawDb).flat();
-  const profile = await loadPortfolioProfile(producerName);
-  const beats = sortBeatsByOrder(
-    allBeats.filter(b => b.producer === producerName),
-    getBeatOrderForProducer(producerName, profile)
-  );
+  const profile = isDemo ? { ...DEMO_PORTFOLIO_PROFILE } : await loadPortfolioProfile(producerName);
+  const beats = isDemo
+    ? DEMO_PORTFOLIO_BEATS.map(b => ({ ...b }))
+    : sortBeatsByOrder(
+      allBeats.filter(b => b.producer === producerName),
+      getBeatOrderForProducer(producerName, profile)
+    );
   if (!beats.length && !opts.fromRoute) return;
 
   if (!opts.fromRoute) {
@@ -969,7 +1036,9 @@ async function openPortfolio(producerName, opts) {
 
   _portfolioMode = true;
   _portfolioPreview = !!opts.preview;
+  _portfolioDemo = isDemo;
   _portfolioProducer = producerName;
+  _portfolioProfile = profile;
   _portfolioBeats = beats;
   _portfolioIdx = 0;
   _portfolioSkipped = [];
@@ -981,7 +1050,7 @@ async function openPortfolio(producerName, opts) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active', 'screen-fade-out', 'screen-entering'));
   document.getElementById('portfolioScreen')?.classList.add('active');
   document.body.classList.remove(
-    'discover-active', 'crate-active', 'mypage-active', 'profile-active',
+    'land-active', 'discover-active', 'crate-active', 'mypage-active', 'profile-active',
     'moderate-active', 'site-scroll', 'mypage-add-open'
   );
   document.body.classList.add('portfolio-active');
@@ -999,7 +1068,7 @@ async function openPortfolio(producerName, opts) {
     else history.pushState(state, '', url);
   }
   updatePortfolioMeta(producerName, profile, slug);
-  if (!opts.preview && opts.fromRoute) trackPortfolioView(producerName);
+  if (!opts.preview && !_portfolioDemo && opts.fromRoute) trackPortfolioView(producerName);
 }
 
 function trackPortfolioView(producerName) {
@@ -1020,8 +1089,10 @@ function exitPortfolioMode() {
   setPortfolioBackVisible(false);
   _portfolioMode = false;
   _portfolioPreview = false;
+  _portfolioDemo = false;
   _portfolioPreviewPassed = [];
   _portfolioProducer = null;
+  stripDemoBeatsFromCrate();
   document.body.classList.remove('portfolio-active', 'portfolio-swipe-done');
   document.body.style.removeProperty('--pf-glow');
   clearPortfolioDesktopPanels();
@@ -1040,8 +1111,10 @@ async function handlePortfolioPopstate() {
     setPortfolioBackVisible(false);
     _portfolioMode = false;
     _portfolioPreview = false;
+    _portfolioDemo = false;
     _portfolioPreviewPassed = [];
     _portfolioProducer = null;
+    stripDemoBeatsFromCrate();
     document.body.classList.remove('portfolio-active', 'portfolio-swipe-done');
     clearPortfolioDesktopPanels();
     resetSiteMeta();
@@ -1162,7 +1235,7 @@ function initPortfolioBuyTracking() {
   if (!screen || screen._buyTrackBound) return;
   screen._buyTrackBound = true;
   screen.addEventListener('click', e => {
-    if (!_portfolioMode || _portfolioPreview || !_portfolioProducer) return;
+    if (!_portfolioMode || _portfolioPreview || _portfolioDemo || !_portfolioProducer) return;
     const el = e.target.closest('[data-portfolio-buy]');
     if (!el) return;
     trackPortfolioEvent(_portfolioProducer, 'buy_click', el.dataset.beatId || null);

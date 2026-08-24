@@ -52,7 +52,7 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 - Before CSS work: `grep "accent:" styles.css` → must be `#0A84FF`
 - `.env.local` never commit (`SUPABASE_SERVICE_ROLE_KEY`); `AIRTABLE_TOKEN` optional entfernen
 - Local: `npx vercel dev` → `localhost:3000`, hard-refresh after edits
-- Test: `beatswipe.app/p/clyriax`, My Page edit, Discover save
+- Test: `beatswipe.app/p/demo` (public sample), `beatswipe.app/p/clyriax` (Luca’s real page), My Page edit, Discover save
 
 ## Tech stack (short)
 
@@ -77,42 +77,49 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 - **iOS autoplay:** Playback nur in User-Geste — `unlockAudioTouch` + `onStart` (swipe) → `tryAutoplayFromGesture()`; YT via `startVideo()` (`about:blank` → `&autoplay=1`); MP3 braucht `_audioUnlocked`. YT-Overlay auf iOS bis Geste sichtbar (`isIOS()`). Kein Autoplay beim allerersten Page-Load ohne Touch (Apple-Limit). Helpers: `app.js` — `maybeAutoplayPreview`, `startVideo`, `isIOS`
 - **Discover desktop layout:** `--w-discover` 480px (Card capped) — Ränder via Sidebars füllen, nicht Card auf 720px strecken. Tokens: `--discover-left`, `--sidebar-w`. Left rail `#discoverLeftRail` / `updateDiscoverLeftRail()`; `desktop-crate` ab 1100px. Swipe-overflow `visible` beibehalten.
 - **YT desktop keyboard:** iframe cross-origin — `←`/`→` steuern YouTube wenn Player Fokus hat. **Nicht** `pointer-events:none` auf iframe (blockiert Scrub). Fokus-Modell: Klick auf Card → Skip/Save-Tasten; Klick in Player → Seek. `refocusSwipeShortcuts()` + `initDesktopSwipeFocus()` nach Swipe/neuer Card.
-- **Laptop page body classes:** `discover-active` / `crate-active` / `mypage-active` / `profile-active` — je Screen in `applyGoTo()`; nur einer aktiv. Left rails in `index.html`. **Profile ≥1100px:** kein left rail; `.profile-layout` + Sidebar als **CSS-Grid** zentriert (`grid-template-columns: minmax(0,var(--w-page)) 300px`), ganzer Block via `page-inner--wide { max-width: min(w-page+348px,100%); margin-inline:auto }` — **nicht** Hauptspalte allein zentrieren und Sidebar daneben "mitschleppen" (alte Flex+`margin-left: calc((100vw - var(--w-page))/2)`-Formel ignorierte Sidebar-Breite, saß dauerhaft 174px zu weit rechts). Portfolio entfernt alle + `site-scroll`. Sidebars meist ab 1100px.
+- **Laptop page body classes:** `land-active` / `discover-active` / `crate-active` / `mypage-active` / `profile-active` — je Screen in `applyGoTo()`; nur einer aktiv. Left rails in `index.html`. **Profile ≥1100px:** kein left rail; `.profile-layout` + Sidebar als **CSS-Grid** zentriert (`grid-template-columns: minmax(0,var(--w-page)) 300px`), ganzer Block via `page-inner--wide { max-width: min(w-page+348px,100%); margin-inline:auto }` — **nicht** Hauptspalte allein zentrieren und Sidebar daneben "mitschleppen" (alte Flex+`margin-left: calc((100vw - var(--w-page))/2)`-Formel ignorierte Sidebar-Breite, saß dauerhaft 174px zu weit rechts). Portfolio entfernt alle + `site-scroll`. Sidebars meist ab 1100px.
 - **Left rails mobile:** alle vier Rails global `display: none` (`discover-`, `favorites-`, `mypage-`, `portfolio-left-rail`) — sonst Laptop-Sidebar-Text im Hintergrund sichtbar
 - **Favorites Buy:** `getCrateBeats()` merged mit Live-Beats (`_beatsCache`); Buttons via `beatBuyAction()` / `resolveBeatBuyLink()` — **nicht** `d.buy.startsWith('http')` (ohne `https://` ging nicht)
 - **Profile mobile scroll:** `body.profile-active #profileScreen .page-inner--wide` → `overflow-y: auto`; `.profile-wrap` / tabs `overflow: visible` — sonst kein Scroll auf Handy
 - **`/p/` done screen (swipe complete):** Gäste bleiben auf `/p/`. Saves in `crate` (RAM/guest). **Desktop (≥1100px):** Liste + Preview-Split; erster Beat vorausgewählt; **Producer-CTA** in `.portfolio-done-side` unter Preview (nicht unter dem Grid). **Mobile:** nur Liste → Tap öffnet Preview (`portfolio-done-preview-open`, `backPortfolioDoneList()`); Buy **unter** Karte (`buildCratePreviewHTML(beat, { prominentBuy: true })`); Done-CTA volle Breite unter Liste. Merge `_portfolioBeats` in `getPortfolioSavedBeats()`. Replay/Guest in `.portfolio-done-foot`. **Nicht** `#portfolioSidePanel` für Done-Player.
 - **Profile laptop:** zentriert (`--w-page`); Bio-Link-Sidebar rechts daneben (Flex, kein `fixed`/Overlap) ab 1100px
 - **Vercel static:** kein `public/`-Ordner (sonst 404 auf `index.html` in `vercel dev`); kein `middleware.js` — Bot-OG via `vercel.json` Rewrite
-- **Producer funnel:** `openProducerSignup()` in `app.js` — eingeloggt → `submitScreen`; Gast ohne Invite → Invite-Gate (Producer-Copy, `bs_producer_signup_intent`) — **nicht** Landing-Scroll; Gast mit Invite → Signup → nach `SIGNED_IN` My Page. Gäste ohne Invite: Nav/Footer nur Home · Live (`/p/clyriax`) · Get page (`body.invite-locked` + `syncGuestChrome()`). Alle „Get your page“-CTAs nutzen das.
+- **Producer funnel:** `openProducerSignup()` in `app.js` — eingeloggt → `submitScreen`; Gast ohne Invite → Invite-Gate (Producer-Copy, `bs_producer_signup_intent`) — **nicht** Landing-Scroll; Gast mit Invite → Signup → nach `SIGNED_IN` My Page. Gäste ohne Invite: Nav/Footer nur Home · Live (`/p/demo`) · Get page (`body.invite-locked` + `syncGuestChrome()`). Alle „Get your page“-CTAs nutzen das.
+- **Public demo `/p/demo`:** hardcoded Pixabay-MP3s in `portfolio.js` (`DEMO_PORTFOLIO_*`). Kein View/Save/Buy-Tracking, keine Crate-DB. Slug `demo` reserved. `/p/clyriax` bleibt Lucas echte Page. My Page **Preview** = `{ preview: true }` der eigenen Beats — nicht die Demo.
 - **Producer stats:** `trackPortfolioEvent()` in `app.js`; Preview zählt nicht; View dedup `sessionStorage bs_pv_${slug}`; Buy via `data-portfolio-buy` auf `/p/`
 - **QR code:** `openPortfolioQR()` in `portfolio.js` — CDN `cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js` (**nicht** `qrcode@1.5.4/build/…` — 404)
 - **Moderation:** `api/moderate-beats.js` + `moderate.js`; Admin-Emails via `BEATSWIPE_ADMIN_EMAILS` (Default: `svetina.luca@gmail.com`, `hellobeatswipe@gmail.com`); Profile → Settings → Moderation
 - **Legal:** Impressum + Privacy in Modals; Links auf Landing (Footer mobile+desktop), `/p/` Footer, Cookie-Banner, Profile Settings; `openLegalModal()` mit Tabs — **z-index 450** (über Cookie-Banner 350); Landing-Footer mobile: `#landScreen .site-footer` nicht global `display:none`
 - **Landing hero demo:** Discover-like card (waveform + skip/save) — **keine** SKIP/SAVE-Stempel; `initHeroDemoCard()` in `app.js`. Topbar black-fade wie andere Seiten via `body:not(.portfolio-active) .bg-desktop::before` (site-scroll inkl. Landing)
 - **Landing bg:** `portfolio-ambient` **nicht** global auf Laptop — nur `portfolio-active` / `/p/` boot
-- **`.site-page-head` / `.land-section-head` unsichtbar am Laptop:** alte Regel `.site-page-head, .hero-visual, .land-section-head { display:none; }` stand **ohne** Media Query nach den 900px-„show"-Regeln → gewann immer (gleiche Spezifität, später im File). Fix: in `@media (max-width: 899px)` verschoben. Bei neuen globalen `display:none`-Defaults immer prüfen, ob sie **vor** den Desktop-Overrides stehen oder selbst media-gated sind. **Umkehrfall (2026-07-05):** `.faq-title-mobile` hatte eine **globale** `display:block`-Regel (id+2 Klassen, spät im File) → schlug das media-gated Desktop-`display:none` → doppelter FAQ-Titel am Laptop. Merke: „mobile-only" sichtbare Elemente ihre `display:block`-Regel **in** die Mobile-Query legen, nicht global.
+- **`.site-page-head` / `.land-section-head` unsichtbar am Laptop:** alte Regel `.site-page-head, .hero-visual, .land-section-head { display:none; }` stand **ohne** Media Query nach den 900px-„show"-Regeln → gewann immer (gleiche Spezifität, später im File). Fix: in `@media (max-width: 899px)` verschoben. Bei neuen globalen `display:none`-Defaults immer prüfen, ob sie **vor** den Desktop-Overrides stehen oder selbst media-gated sind. **Umkehrfall (2026-07-05):** `.faq-title-mobile` hatte eine **globale** `display:block`-Regel (id+2 Klassen, spät im File) → schlug das media-gated Desktop-`display:none` → doppelter FAQ-Titel am Laptop. Merke: „mobile-only" sichtbare Elemente ihre `display:block`-Regel **in** die Mobile-Query legen, nicht global. **Landing-Mobile:** dieselbe Hide-Regel hat How it works / Platforms / FAQ ohne Titel gelassen — `#landScreen .land-section-head { display:block }` in der Mobile-Query; kein `.faq-title-mobile`.
 - **Sidebar-Höhe uneinheitlich (Profile/Favorites vs. My Page):** Profile/Favorites rendern `.site-page-head` **außerhalb** vom Grid (Sidebar startet auf Höhe vom ersten Content), My Page rendert den Titel **innerhalb** der Hauptspalte per JS (`mypage.js`, mehrere `render...()`-Funktionen) → Sidebar sonst auf Höhe vom Titel-Text statt Content. Fix: `renderMyPageSidePanel()` misst `#myPageMain .site-page-head` Höhe zur Laufzeit und setzt sie als `margin-top` auf `#myPageSidePanel`.
 - **Portfolio social icons:** `buildPortfolioSocialsHTML()` — Instagram-Gradient braucht **eindeutige** `linearGradient`-IDs pro Instanz (Header + Sidepanel = 2×); sonst leerer Button. TikTok = Mehrfarben-SVG (nicht `ti-brand-tiktok`).
 - **Portfolio swipe glow (Preview/`/p/`):** `#portfolioCardGlow` (nicht Discover-`#cardGlow` — doppelte ID hat Preview-Glow totgemacht). Sibling **hinter** `.portfolio-surface` (glasiger Hintergrund) → schwächer als Discover. Versuch Glow in Surface → zurückgesetzt.
-- **Upload goes live immediately:** `/api/submit-beat` setzt `status: 'approved'` — Beats sofort auf `/p/`. Kein 48h-Pending als Producer-Pfad. Moderation nur für alte Pending / Takedowns. Buy-Link Pflicht (Store-Picker). BPM 40–240 wenn gesetzt.
+- **Upload goes live immediately:** `/api/submit-beat` setzt `status: 'approved'` — Beats sofort auf `/p/`. Kein 48h-Pending als Producer-Pfad. Moderation nur für alte Pending / Takedowns. Buy-Link Pflicht (Store-Picker). BPM 40–240 wenn gesetzt. **Add-Form:** `#addBeatBtn` = weiteren MP3 in die Queue (`addAnotherBeat()`); `#submitBeatBtn` = `doSubmitForm()` / Upload. Nicht einen Plus-Button für beides. My Page left-rail „pending“ nur wenn Count > 0.
 - **Beat covers:** `beatCoverHTML(d, class, slot)` in `app.js` — generated SVG aus Titel/BPM/Key (nicht `ti-music`). `slot` muss unique sein (gleiche Beat-ID mehrfach = kaputte Gradient-IDs).
 - **Wordmark + Mark:** `.dtb-logo` / `.wordmark` **kein** Flex-`gap` — Icon, „Beat“ und `<span>Swipe</span>` sind drei Items, Gap trennt das Wort. Abstand nur `.brand-mark { margin-right }`.
 - **`/p/` Desktop-Glow:** idle `opacity: 0`; beim Swipe großer Bloom in die Leere. Wrap/slot `overflow: visible` (sonst clippt die 170%-Glow). Vignette `.portfolio-vignette`. Preview = dieselbe `#portfolioCardGlow`.
 - **`/p/` mobile overflow:** `#portfolioPageInner` ist CSS-Grid (`min-width: auto`) — nowrap-Titel in der Done-Liste weiten die Spalte über den Viewport, `overflow-x: hidden` clippt dann links/rechts. Handy: Grid-Items `min-width: 0; max-width: 100%`. Glow auf Mobile nicht 120%+ (sonst ~20px Seiten-Scroll). Platform-Grid auf Home nicht als Horizontal-Carousel (leakt Page-Scroll).
+- **`/p/` mobile header:** Bio ausblenden (nicht line-clamp) — am Handy nicht lesbar. Desktop: Bio in der Sidepanel. Display-Name Demo = `Demo`, Slug bleibt `/p/demo`.
+
+- **Landing ambient:** `body.land-active` + `html:not(.portfolio-route-boot)` — true black + blue bloom (Insta-v2). White aurora bleibt auf App-Pages und `/p/`. Nie Landing-Blau auf Portfolio.
 
 ## Aktuell (2026-08-24)
 
 - **Live:** Private Beta. Upload sofort auf `/p/`. Buy-Link Pflicht. Landing-Stats versteckt bis ≥8 Beats / ≥3 Producer.
-- **Handy:** Home ohne Seitenscroll; `/p/` passt in den Viewport; Done-Liste hat Buy neben jedem Beat; My Page scrollt, Upload-Button oben.
-- **Look:** Generated Covers; `/p/` Vignette + Swipe-Glow; Landing-Hero → `/p/clyriax`; Favicon-Mark + OG.
-- **Offen:** Testdaten auf `/p/clyriax` ersetzen.
+- **Look:** Landing an Insta-v2 (true black + blue bloom). Stores nur BeatStars / Airbit / Traktrain. Generated Covers; `/p/` Vignette + Swipe-Glow; Hero → `/p/demo`.
+- **Demo:** `beatswipe.app/p/demo` öffentlich (Pixabay, Display-Name Demo). `/p/clyriax` bleibt Lucas echte Page.
+- **Insta:** Carousel bereit (`marketing/insta-v2/ig/`) — Caption `/p/demo`. Alte lila Posts in `insta-posts/` nicht verwenden.
+- **Offen:** Testdaten auf `/p/clyriax`. Carousel noch nicht gepostet.
 
 ## Nächster Schritt
 
-1. Testdaten auf My Page runter (`wtf`, 2 BPM, `tiktok.com` …)
-2. Echte Beats auf `/p/clyriax` — dann 2–3 Producer anschreiben
-3. Später: Invite-Gate pausieren (`INVITE_GATE_PAUSED = true`)
+1. Hard-Refresh live: `beatswipe.app/p/demo` (Swipe, Audio, Buy, Done)
+2. Insta-Carousel posten (`marketing/insta-v2/ig/` — Caption `/p/demo`, JPGs ggf. neu rendern)
+3. Testdaten auf My Page runter (`wtf`, 2 BPM, `tiktok.com` …)
+4. Echte Beats auf `/p/clyriax` — dann 2–3 Producer anschreiben (Link: `beatswipe.app/p/demo`)
+5. Später: Invite-Gate pausieren (`INVITE_GATE_PAUSED = true`)
 
 ## Rules pflegen (Agent)
 

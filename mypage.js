@@ -32,15 +32,42 @@ function resetAddBeatForm() {
 }
 
 function syncSubmitBtnLabel() {
-  const btn = document.getElementById('submitBeatBtn');
-  if (!btn || btn.disabled) return;
+  const addBtn = document.getElementById('addBeatBtn');
+  const uploadBtn = document.getElementById('submitBeatBtn');
   const pt = document.getElementById('f-preview-type')?.value;
   const n = _mp3Queue.length;
-  if (pt === 'MP3' && n > 1) {
-    btn.innerHTML = `<i class="ti ti-upload"></i> Upload all ${n} beats`;
-  } else {
-    btn.innerHTML = '<i class="ti ti-plus"></i> Add beat';
+  const showAdd = pt === 'MP3' && !!currentUser;
+  if (addBtn) {
+    addBtn.hidden = !showAdd;
+    if (!addBtn.dataset.loading) {
+      addBtn.disabled = n >= MAX_MP3_QUEUE;
+      addBtn.innerHTML = '<i class="ti ti-plus"></i> Add beat';
+    }
   }
+  if (uploadBtn && !uploadBtn.disabled) {
+    if (pt === 'MP3' && n > 1) {
+      uploadBtn.innerHTML = `<i class="ti ti-upload"></i> Upload all ${n} beats`;
+    } else {
+      uploadBtn.innerHTML = '<i class="ti ti-upload"></i> Upload';
+    }
+  }
+}
+
+function addAnotherBeat() {
+  const pt = document.getElementById('f-preview-type');
+  if (pt && pt.value !== 'MP3') {
+    pt.value = 'MP3';
+    updatePreviewLabel();
+  }
+  if (!currentUser) {
+    showToast('Sign in to upload MP3s.', 'error');
+    return;
+  }
+  if (_mp3Queue.length >= MAX_MP3_QUEUE) {
+    showToast(`Max. ${MAX_MP3_QUEUE} files per batch.`, 'error');
+    return;
+  }
+  document.getElementById('f-mp3-file')?.click();
 }
 
 function updatePreviewLabel() {
@@ -97,7 +124,7 @@ const BUY_STORE_PLATFORMS = [
   { id: 'beatstars', label: 'BeatStars', placeholder: 'https://beatstars.com/beat/...' },
   { id: 'airbit', label: 'Airbit', placeholder: 'https://airbit.com/...' },
   { id: 'traktrain', label: 'Traktrain', placeholder: 'https://traktrain.com/...' },
-  { id: 'other', label: 'Website', placeholder: 'https://yourstore.com/...' }
+  { id: 'other', label: 'Custom website', placeholder: 'https://yourstore.com/...' }
 ];
 const BUY_STORE_HOSTS = {
   beatstars: 'beatstars.com',
@@ -527,12 +554,23 @@ function getResolvedBuyState(wrapId) {
 
 function setSubmitBtnLoading(loading, label) {
   const btn = document.getElementById('submitBeatBtn');
-  if (!btn) return;
-  btn.disabled = loading;
-  if (loading) {
-    btn.innerHTML = `<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> ${label || 'Sending...'}`;
-  } else {
-    syncSubmitBtnLabel();
+  const addBtn = document.getElementById('addBeatBtn');
+  if (btn) {
+    btn.disabled = loading;
+    if (loading) {
+      btn.innerHTML = `<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> ${label || 'Sending...'}`;
+    } else {
+      syncSubmitBtnLabel();
+    }
+  }
+  if (addBtn) {
+    if (loading) {
+      addBtn.dataset.loading = '1';
+      addBtn.disabled = true;
+    } else {
+      delete addBtn.dataset.loading;
+      syncSubmitBtnLabel();
+    }
   }
 }
 
@@ -1400,7 +1438,10 @@ function updateMyPageLeftRail() {
   const pendingEl = document.getElementById('mlrPending');
   const stepEl = document.getElementById('mlrStep');
   if (liveEl) liveEl.textContent = String(getMyLiveBeats().length);
-  if (pendingEl) pendingEl.textContent = String(getMyPendingBeats().length);
+  const pendingCount = getMyPendingBeats().length;
+  if (pendingEl) pendingEl.textContent = String(pendingCount);
+  const pendingStat = document.getElementById('mlrPendingStat');
+  if (pendingStat) pendingStat.hidden = pendingCount === 0;
   if (stepEl) {
     if (!currentUser) stepEl.textContent = 'Sign in';
     else if (!isMyPageOnboarded()) stepEl.textContent = `Step ${_myPageObStep + 1} of 3`;
@@ -1485,6 +1526,10 @@ async function saveOnboardingProfile() {
   const name = document.getElementById('ob-name')?.value.trim();
   const bio = document.getElementById('ob-bio')?.value.trim();
   if (!name) { showToast('Producer name is required.', 'error'); return; }
+  if (typeof isDemoPortfolioSlug === 'function' && isDemoPortfolioSlug(name)) {
+    showToast('“demo” is reserved for the public sample page. Pick another name.', 'error');
+    return;
+  }
 
   const btn = document.getElementById('obSaveBtn');
   if (btn) {

@@ -550,7 +550,7 @@
       padding: 0 var(--px);
       align-items: center;
       grid-template-columns: 1fr auto 1fr;
-      background: rgba(9, 9, 15, 0.72);
+      background: rgba(0, 0, 0, 0.72);
       backdrop-filter: blur(20px) saturate(1.4);
       -webkit-backdrop-filter: blur(20px) saturate(1.4);
       border: none;
@@ -1022,11 +1022,11 @@
       .land-steps { padding: 28px var(--px); gap: 12px; }
       .land-step {
         background: rgba(255,255,255,0.03);
-        border: none;
+        border: 0.5px solid rgba(255,255,255,0.06);
         padding: 18px;
         border-radius: 16px;
       }
-      .land-step-num { color: var(--text-3); }
+      .land-step-num { color: var(--accent-mid); }
       .land-step-title { font-weight: 600; }
       .crate-card:hover { background: rgba(255,255,255,0.04); }
       .crate-header { padding-bottom: 14px; }
@@ -1126,14 +1126,14 @@
       #landScreen .hero-btns .btn-secondary { width: fit-content; min-width: 200px; }
       #landScreen .hero-btns .btn-primary,
       #landScreen .cta-banner-btn {
-        box-shadow: 0 10px 24px -8px rgba(0,0,0,0.55);
+        box-shadow: 0 8px 28px -6px rgba(10,132,255,0.5);
         transition: opacity 0.2s ease, transform 0.22s cubic-bezier(0.22,1,0.36,1), box-shadow 0.22s ease;
       }
       #landScreen .hero-btns .btn-primary:hover,
       #landScreen .cta-banner-btn:hover {
         opacity: 1;
         transform: translateY(-1.5px);
-        box-shadow: 0 14px 30px -8px rgba(0,0,0,0.6);
+        box-shadow: 0 12px 36px -6px rgba(10,132,255,0.62);
       }
       #landScreen .hero-btns .btn-primary:active,
       #landScreen .cta-banner-btn:active { transform: translateY(0); }
@@ -2106,6 +2106,35 @@
     .wordmark b { color: var(--accent-mid); }
     .top-badge { font-size: 11px; color: var(--text-2); background: rgba(255,255,255,0.06); padding: 3px 10px; border-radius: 100px; font-weight: 600; }
 
+    /* Landing — true black + subtle blue bloom (Insta-v2). Never on /p/. */
+    html:not(.portfolio-route-boot) body.land-active .bg-desktop {
+      background: #000000;
+    }
+    html:not(.portfolio-route-boot) body.land-active .bg-desktop::before {
+      animation: none;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      border-radius: 0;
+      background:
+        radial-gradient(ellipse 90% 50% at 50% 16%, rgba(10,132,255,0.16) 0%, transparent 64%),
+        radial-gradient(ellipse 62% 32% at 50% 100%, rgba(10,132,255,0.07) 0%, transparent 72%);
+    }
+    html:not(.portfolio-route-boot) body.land-active .bg-desktop::after { display: none; }
+    @media (min-width: 900px) {
+      html:not(.portfolio-route-boot) body.land-active .bg-desktop::before {
+        background:
+          linear-gradient(180deg,
+            #000000 0%,
+            rgba(0,0,0,0.92) 12px,
+            rgba(0,0,0,0.4) 36px,
+            transparent 72px),
+          radial-gradient(ellipse 80% 52% at 50% 20%, rgba(10,132,255,0.15) 0%, transparent 64%),
+          radial-gradient(ellipse 58% 30% at 50% 100%, rgba(10,132,255,0.06) 0%, transparent 72%);
+      }
+    }
+
     /* LANDING */
     .land-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
     .hero {
@@ -2116,7 +2145,7 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: rgba(255,255,255,0.06);
+      background: rgba(10,132,255,0.06);
       color: var(--text-2);
       font-size: 11px;
       font-weight: 600;
@@ -2124,7 +2153,7 @@
       border-radius: 100px;
       margin-bottom: 20px;
       letter-spacing: 0.2px;
-      border: 0.5px solid var(--border-2);
+      border: 0.5px solid rgba(10,132,255,0.28);
     }
     .hero-badge-dot {
       width: 7px; height: 7px; border-radius: 50%;
@@ -2143,13 +2172,18 @@
       letter-spacing: -0.04em;
     }
     .hero-title span {
-      background: linear-gradient(135deg, #FFFFFF 0%, #C7C7CC 55%, #8E8E93 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
+      color: var(--accent);
+      background: none;
+      -webkit-text-fill-color: unset;
     }
     .hero-sub { font-size: 15px; color: var(--text-2); line-height: 1.65; margin-bottom: 28px; max-width: 420px; margin-inline: auto; }
     .hero-btns { display: flex; flex-direction: column; gap: 10px; }
+    #landScreen .hero-btns .btn-primary,
+    #landScreen .cta-banner-btn {
+      border-radius: 100px;
+      box-shadow: 0 8px 28px -6px rgba(10,132,255,0.45);
+    }
+    #landScreen .hero-btns .btn-secondary { border-radius: 100px; }
     a.btn-secondary { text-decoration: none; box-sizing: border-box; }
     .hero-invite-hint {
       margin: 4px 0 0;
@@ -2333,7 +2367,7 @@
     .land-step-num {
       font-size: 11px;
       font-weight: 700;
-      color: var(--text-3);
+      color: var(--accent-mid);
       letter-spacing: 0.08em;
       text-transform: uppercase;
       margin-bottom: 4px;
@@ -2373,15 +2407,17 @@
       border-radius: 16px;
       border: 0.5px solid rgba(255,255,255,0.08);
       background: rgba(255,255,255,0.03);
-      color: var(--platform-brand);
+      color: rgba(255,255,255,0.72);
       transition:
         transform 0.22s cubic-bezier(0.22,1,0.36,1),
         border-color 0.22s ease,
         box-shadow 0.22s ease,
-        background 0.22s ease;
+        background 0.22s ease,
+        color 0.22s ease;
     }
     .land-platform-card:hover {
       transform: translateY(-2px) scale(1.03);
+      color: var(--platform-brand);
       border-color: color-mix(in srgb, var(--platform-brand) 42%, transparent);
       background: color-mix(in srgb, var(--platform-brand) 8%, rgba(255,255,255,0.03));
       box-shadow: 0 10px 28px color-mix(in srgb, var(--platform-brand) 22%, transparent);
@@ -2431,16 +2467,14 @@
         padding-bottom: 24px;
       }
       .land-platforms-grid {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        max-width: 520px;
         gap: 14px;
-        max-width: none;
       }
       .land-platform-card {
-        flex: 0 1 132px;
-        min-height: 118px;
-        padding: 18px 12px 16px;
+        min-height: 128px;
+        padding: 20px 14px 18px;
       }
       .land-platform-icon {
         width: 44px;
@@ -2448,6 +2482,15 @@
       }
       .land-platform-icon--airbit svg { width: 34px; }
       .land-platform-name { font-size: 13px; }
+    }
+    @media (max-width: 899px) {
+      .land-platform-card:hover {
+        transform: none;
+        color: rgba(255,255,255,0.72);
+        border-color: rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.03);
+        box-shadow: none;
+      }
     }
     @media (prefers-reduced-motion: reduce) {
       .land-platform-card,
@@ -2462,13 +2505,13 @@
       position: relative;
       border-radius: 20px;
       overflow: hidden;
-      border: 0.5px solid var(--border-2);
-      background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 50%, rgba(255,255,255,0.04) 100%);
+      border: 0.5px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.03);
     }
     .cta-banner-glow {
       position: absolute;
       inset: 0;
-      background: radial-gradient(ellipse 80% 120% at 20% 50%, rgba(255,255,255,0.08) 0%, transparent 70%);
+      background: radial-gradient(ellipse 80% 120% at 18% 50%, rgba(10,132,255,0.14) 0%, transparent 70%);
       pointer-events: none;
     }
     .cta-banner-inner {
@@ -2827,6 +2870,18 @@
     .submit-btn { width: 100%; padding: 14px; border-radius: 16px; background: var(--accent); border: none; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 6px; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
     .submit-btn:hover { opacity: 0.88; }
     .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .my-page-add-actions { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+    .my-page-add-actions .submit-btn { margin-top: 0; }
+    .add-beat-btn {
+      width: 100%; padding: 14px; border-radius: 16px;
+      background: var(--bg-2); border: 0.5px solid var(--border-2); color: var(--text);
+      font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .add-beat-btn:hover { background: var(--bg-3); border-color: rgba(255,255,255,0.16); }
+    .add-beat-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .add-beat-btn[hidden] { display: none; }
     /* My Page dashboard */
     .my-page-back {
       width: 100%;
@@ -2862,9 +2917,9 @@
     }
     .my-page-link-label { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; margin-bottom: 6px; }
     .my-page-link-url { font-size: 15px; font-weight: 600; word-break: break-all; margin-bottom: 12px; }
-    .my-page-link-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .my-page-link-actions { display: flex; gap: 12px; flex-wrap: wrap; }
     .my-page-link-actions .btn-secondary,
-    .my-page-link-actions .btn-primary { flex: 1; min-width: 120px; justify-content: center; font-size: 13px; padding: 11px 14px; }
+    .my-page-link-actions .btn-primary { flex: 1; min-width: 96px; justify-content: center; font-size: 13px; padding: 11px 14px; }
     .my-page-stats {
       margin-top: 14px; padding-top: 14px;
       border-top: 0.5px solid var(--border);
@@ -2894,7 +2949,7 @@
     }
     .portfolio-qr-frame canvas { display: block; border-radius: 8px; }
     .portfolio-qr-url { font-size: 14px; font-weight: 600; color: var(--text); word-break: break-all; margin-bottom: 16px; }
-    .portfolio-qr-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .portfolio-qr-actions { display: flex; gap: 12px; flex-wrap: wrap; }
     .portfolio-qr-actions .btn-primary,
     .portfolio-qr-actions .btn-secondary { flex: 1; min-width: 130px; justify-content: center; }
     .my-page-beat-groups { display: flex; flex-direction: column; gap: 18px; margin-bottom: 16px; }
@@ -2966,7 +3021,7 @@
     }
     .beat-edit-head { font-size: 17px; font-weight: 700; margin-bottom: 4px; letter-spacing: -0.3px; }
     .beat-edit-sub { font-size: 12px; color: var(--text-3); margin-bottom: 16px; }
-    .beat-edit-actions { display: flex; gap: 8px; margin-top: 8px; }
+    .beat-edit-actions { display: flex; gap: 12px; margin-top: 12px; }
     .beat-edit-actions .btn-secondary,
     .beat-edit-actions .submit-btn { flex: 1; margin-top: 0; }
     .beat-edit-delete {
@@ -4162,6 +4217,9 @@
       body.portfolio-active .portfolio-header {
         padding: calc(env(safe-area-inset-top, 0px) + 12px) 0 10px;
       }
+      body.portfolio-active .portfolio-header .portfolio-bio {
+        display: none;
+      }
       body.portfolio-has-back.portfolio-active .portfolio-header {
         padding-top: 8px;
       }
@@ -4728,9 +4786,30 @@
         overscroll-behavior-x: none;
       }
       #landScreen .faq-section .faq-title-mobile {
+        display: none;
+      }
+      #landScreen .land-section-head {
         display: block;
-        font-size: 16px; font-weight: 700;
-        margin-bottom: 12px; letter-spacing: -0.3px;
+        padding: 36px var(--px) 16px;
+      }
+      #landScreen .land-section-title {
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        margin-bottom: 6px;
+      }
+      #landScreen .land-section-desc {
+        font-size: 14px;
+        color: var(--text-2);
+        line-height: 1.45;
+      }
+      #landScreen .land-section-head--platforms {
+        text-align: left;
+        padding-top: 28px;
+      }
+      #landScreen .land-section-head--platforms .land-section-desc {
+        margin-inline: 0;
+        max-width: none;
       }
       .reveal-on-scroll {
         opacity: 0;
@@ -6033,10 +6112,9 @@
     .cookie-banner.open { display: flex; }
     .cookie-inner { width: 100%; max-width: 440px; background: var(--bg-2); border-top: 0.5px solid var(--border-2); padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
     .cookie-text { font-size: 12px; color: var(--text-2); line-height: 1.6; }
-    .cookie-text a { color: var(--accent-mid); text-decoration: none; }
+    .cookie-text a { color: var(--accent-mid); text-decoration: none; cursor: pointer; }
     .cookie-btns { display: flex; gap: 8px; }
     .cookie-accept { flex: 1; padding: 10px; border-radius: 10px; background: var(--accent); border: none; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
-    .cookie-decline { flex: 1; padding: 10px; border-radius: 10px; background: var(--bg-3); border: 0.5px solid var(--border-2); color: var(--text-2); font-size: 13px; font-weight: 500; cursor: pointer; }
 
     /* ── AVATAR CROP MODAL ── */
     .crop-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 300; display: none; align-items: center; justify-content: center; flex-direction: column; padding: 24px; }
@@ -6155,10 +6233,10 @@
     .upload-queue-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .upload-queue-remove {
       margin-top: 4px; align-self: flex-start;
-      background: none; border: none; color: var(--text-3);
+      background: none; border: none; color: #f87171;
       font-size: 12px; cursor: pointer; padding: 4px 0; display: inline-flex; align-items: center; gap: 4px;
     }
-    .upload-queue-remove:hover { color: #f87171; }
+    .upload-queue-remove:hover { color: #fca5a5; }
     .buy-store-field { display: flex; flex-direction: column; gap: 8px; }
     .buy-store-pills { gap: 5px; }
     .buy-store-pill { padding: 6px 12px; font-size: 12px; }

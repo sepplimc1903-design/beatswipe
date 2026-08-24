@@ -49,8 +49,28 @@ async function fetchProfiles() {
   return res.json();
 }
 
+export function isDemoPortfolioSlug(slug) {
+  if (!slug) return false;
+  let decoded = String(slug);
+  try { decoded = decodeURIComponent(decoded); } catch (_) {}
+  return normSlug(decoded) === 'demo';
+}
+
+export function getDemoPortfolioMeta() {
+  return {
+    title: 'Demo – BeatSwipe',
+    description: 'Sample swipe page — this is what fans see from a bio link on beatswipe.app.',
+    image: DEFAULT_OG,
+    url: `${SITE_URL}/p/demo`,
+    producerName: 'Demo',
+    slug: 'demo'
+  };
+}
+
 export async function fetchPortfolioMetaBySlug(slug) {
-  if (!slug || !getServiceRoleKey()) return null;
+  if (!slug) return null;
+  if (isDemoPortfolioSlug(slug)) return getDemoPortfolioMeta();
+  if (!getServiceRoleKey()) return null;
 
   const profiles = await fetchProfiles();
   let profile = profiles.find(p => producerMatchesSlug(p.producer_name, slug));
@@ -82,12 +102,16 @@ export async function fetchPortfolioMetaBySlug(slug) {
 }
 
 export async function fetchPortfolioSitemapEntries() {
-  if (!getServiceRoleKey()) return [];
+  const demo = [{ loc: `${SITE_URL}/p/demo`, name: 'demo' }];
+  if (!getServiceRoleKey()) return demo;
   const producers = await fetchApprovedProducers();
-  return producers.map(name => ({
-    loc: `${SITE_URL}/p/${slugFromProducerName(name)}`,
-    name
-  }));
+  const rest = producers
+    .filter(name => normSlug(name) !== 'demo')
+    .map(name => ({
+      loc: `${SITE_URL}/p/${slugFromProducerName(name)}`,
+      name
+    }));
+  return [...demo, ...rest];
 }
 
 export function escapeHtml(s) {

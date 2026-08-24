@@ -1,4 +1,4 @@
-import { fetchPortfolioMetaBySlug, escapeHtml } from './_portfolio.js';
+import { fetchPortfolioMetaBySlug, escapeHtml, isDemoPortfolioSlug } from './_portfolio.js';
 import { getServiceRoleKey } from './_env.js';
 
 function buildOgHtml(meta) {
@@ -49,10 +49,10 @@ export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
 
   if (req.method !== 'GET') return res.status(405).send('Method not allowed');
-  if (!getServiceRoleKey()) return res.status(500).send('Server not configured');
 
   const slug = String(req.query?.slug || '').trim();
   if (!slug) return res.status(400).send('slug required');
+  if (!getServiceRoleKey() && !isDemoPortfolioSlug(slug)) return res.status(500).send('Server not configured');
 
   try {
     const meta = await fetchPortfolioMetaBySlug(slug);

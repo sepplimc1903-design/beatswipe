@@ -95,7 +95,7 @@ function beatCoverHTML(d, extraClass, slot) {
 
 const HERO_DEMO_FALLBACK = {
   title: 'Midnight Drive',
-  producer: 'clyriax',
+  producer: 'Demo',
   bpm: '140 BPM',
   key: 'F# Min',
   genre: 'Trap',
@@ -103,23 +103,8 @@ const HERO_DEMO_FALLBACK = {
   color: '#0A84FF'
 };
 
-function heroBeatScore(b) {
-  let s = 0;
-  const bpm = parseFloat(String(b?.bpm || ''));
-  if (bpm >= 40 && bpm <= 240) s += 4;
-  const title = String(b?.title || '').toLowerCase();
-  if (title && !/^(wtf|test|asdf|xxx)\b/.test(title)) s += 1;
-  const key = String(b?.key || '');
-  if (key && key !== 'N/A' && key.length > 1) s += 1;
-  if (b?.buy) s += 1;
-  return s;
-}
-
 function pickHeroDemoBeat() {
-  const pool = _beatsCache || [];
-  const named = pool.filter(b => String(b.producer || '').toLowerCase() === 'clyriax');
-  const list = (named.length ? named : pool).slice().sort((a, b) => heroBeatScore(b) - heroBeatScore(a));
-  return list[0] || HERO_DEMO_FALLBACK;
+  return HERO_DEMO_FALLBACK;
 }
 
 function hydrateHeroDemoCard() {
@@ -354,14 +339,14 @@ function syncGuestChrome() {
   if (footNav) {
     if (locked) {
       footNav.innerHTML =
-        '<a href="/p/clyriax">Live demo</a>' +
-        '<a onclick="openProducerSignup()">Get your page</a>';
+        '<a href="/p/demo">Live demo</a>' +
+        '<a href="#signup" onclick="event.preventDefault();openProducerSignup()">Get your page</a>';
     } else {
       footNav.innerHTML =
-        '<a onclick="goTo(\'discoverScreen\',\'navDiscover\')">Discover</a>' +
-        '<a onclick="goTo(\'crateScreen\',\'navCrate\')">Favorites</a>' +
-        '<a onclick="goTo(\'submitScreen\',\'navSubmit\')">My Page</a>' +
-        '<a onclick="goTo(\'profileScreen\',\'navProfile\')">Profile</a>';
+        '<a href="#discover" onclick="event.preventDefault();goTo(\'discoverScreen\',\'navDiscover\')">Discover</a>' +
+        '<a href="#favorites" onclick="event.preventDefault();goTo(\'crateScreen\',\'navCrate\')">Favorites</a>' +
+        '<a href="#mypage" onclick="event.preventDefault();goTo(\'submitScreen\',\'navSubmit\')">My Page</a>' +
+        '<a href="#profile" onclick="event.preventDefault();goTo(\'profileScreen\',\'navProfile\')">Profile</a>';
     }
   }
   const active = document.querySelector('.nav-tab.active');
@@ -452,6 +437,7 @@ function applyGoTo(screenId, navId) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active', 'screen-fade-out', 'screen-entering'));
   next.classList.add('active');
   playScreenEnterAnim(next);
+  document.body.classList.toggle('land-active', screenId === 'landScreen');
   document.body.classList.toggle('discover-active', screenId === 'discoverScreen');
   document.body.classList.toggle('crate-active', screenId === 'crateScreen');
   document.body.classList.toggle('mypage-active', screenId === 'submitScreen');
@@ -659,9 +645,9 @@ function initCookie() {
   }
 }
 
-function closeCookie(accepted) {
+function closeCookie() {
   document.getElementById('cookieBanner').classList.remove('open');
-  localStorage.setItem('bs_cookie', accepted ? 'accepted' : 'essential');
+  localStorage.setItem('bs_cookie', 'essential');
 }
 
 // ─── BEAT DATABASE ─────────────────────────────────────────────────────────
@@ -1338,6 +1324,8 @@ function beatBuyAction(beat) {
   if (buy) {
     const u = buy.toLowerCase();
     if (u.includes('beatstars.com')) return { link: buy, html: '<i class="ti ti-external-link"></i> BeatStars' };
+    if (u.includes('airbit.com')) return { link: buy, html: '<i class="ti ti-external-link"></i> Airbit' };
+    if (u.includes('traktrain.com')) return { link: buy, html: '<i class="ti ti-external-link"></i> Traktrain' };
     if (u.includes('splice.com')) return { link: buy, html: '<i class="ti ti-external-link"></i> Splice' };
     if (u.includes('loopmasters.com')) return { link: buy, html: '<i class="ti ti-external-link"></i> Loopmasters' };
     if (u.includes('instagram.com')) return { link: buy, html: '<i class="ti ti-brand-instagram"></i> Instagram' };
@@ -1353,7 +1341,7 @@ function getCrateBeats() {
   const beatMap = new Map();
   const pool = _beatsCache?.length ? _beatsCache : Object.values(_rawDb).flat();
   pool.forEach(b => { if (b?.id) beatMap.set(b.id, b); });
-  return crate.map(b => {
+  return crate.filter(b => typeof isDemoBeatId !== 'function' || !isDemoBeatId(b.id)).map(b => {
     const live = beatMap.get(b.id);
     if (!live) return b;
     const buy = (live.buy || live.buyLink || b.buy || b.buyLink || '').trim();
@@ -2229,9 +2217,9 @@ function doSwipe(dir, opts = {}) {
       if (!crate.find(i => i.id === item.id)) {
         crate.push(item);
         _lastSavedBeatId = item.id;
-        if (currentUser) queueSaveBeatToDB(item);
-        else showMobileSyncHint(incrementGuestSaveCount());
-        trackPortfolioEvent(_portfolioProducer, 'save', item.id);
+        if (currentUser && !_portfolioDemo) queueSaveBeatToDB(item);
+        else if (!currentUser && !_portfolioDemo) showMobileSyncHint(incrementGuestSaveCount());
+        if (!_portfolioDemo) trackPortfolioEvent(_portfolioProducer, 'save', item.id);
       }
       _portfolioSkipped = _portfolioSkipped.filter(id => id !== item.id);
     } else {
@@ -2991,8 +2979,8 @@ function renderProfile() {
         </button>
 
         <div class="legal-links">
-          <a class="legal-link" onclick="openInfoModal('impressumModal')">Legal Notice <i class="ti ti-chevron-right"></i></a>
-          <a class="legal-link" onclick="openInfoModal('privacyModal')">Privacy Policy <i class="ti ti-chevron-right"></i></a>
+          <a class="legal-link" href="#legal" onclick="event.preventDefault();openInfoModal('impressumModal')">Legal Notice <i class="ti ti-chevron-right"></i></a>
+          <a class="legal-link" href="#privacy" onclick="event.preventDefault();openInfoModal('privacyModal')">Privacy Policy <i class="ti ti-chevron-right"></i></a>
           <a class="legal-link" href="mailto:hellobeatswipe@gmail.com">Contact <i class="ti ti-mail"></i></a>
         </div>
 
@@ -3056,7 +3044,7 @@ function renderProfile() {
               <input type="checkbox" id="authDsgvo" style="display:none">
             </div>
             <label class="auth-dsgvo-label" onclick="toggleDsgvo()">
-              I accept the <a onclick="event.stopPropagation();openInfoModal('privacyModal')">Privacy Policy</a> and agree that my email address will be stored.
+              I accept the <a href="#privacy" onclick="event.stopPropagation();event.preventDefault();openInfoModal('privacyModal')">Privacy Policy</a> and agree that my email address will be stored.
             </label>
           </div>` : ''}
           <button class="auth-btn auth-btn--secondary" onclick="handleAuth()" id="authBtn">
@@ -3066,8 +3054,8 @@ function renderProfile() {
           `}
         </div>
         <div class="legal-links">
-          <a class="legal-link" onclick="openInfoModal('impressumModal')">Legal Notice <i class="ti ti-chevron-right"></i></a>
-          <a class="legal-link" onclick="openInfoModal('privacyModal')">Privacy Policy <i class="ti ti-chevron-right"></i></a>
+          <a class="legal-link" href="#legal" onclick="event.preventDefault();openInfoModal('impressumModal')">Legal Notice <i class="ti ti-chevron-right"></i></a>
+          <a class="legal-link" href="#privacy" onclick="event.preventDefault();openInfoModal('privacyModal')">Privacy Policy <i class="ti ti-chevron-right"></i></a>
           <a class="legal-link" href="mailto:hellobeatswipe@gmail.com">Contact <i class="ti ti-mail"></i></a>
         </div>
       </div>
@@ -3344,9 +3332,17 @@ async function saveProfile() {
     return;
   }
 
+  const producerName = document.getElementById('ep-name')?.value.trim() || null;
+  if (producerName && typeof isDemoPortfolioSlug === 'function' && isDemoPortfolioSlug(producerName)) {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-check"></i> Save profile';
+    showToast('“demo” is reserved for the public sample page. Pick another name.', 'error');
+    return;
+  }
+
   const updates = {
     id: currentUser.id,
-    producer_name: document.getElementById('ep-name')?.value.trim() || null,
+    producer_name: producerName,
     bio: document.getElementById('ep-bio')?.value.trim() || null,
     updated_at: new Date().toISOString()
   };

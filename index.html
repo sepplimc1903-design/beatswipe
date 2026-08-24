@@ -55,31 +55,31 @@
   </script>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>BeatSwipe – Free Swipe Portfolio for Producers</title>
-  <meta name="description" content="Your bio link. Their next beat. Free swipe portfolio for producers — fans swipe, save favorites, and buy from your store.">
+  <title>beatswipe.app – Free Swipe Portfolio for Producers</title>
+  <meta name="description" content="Your bio link. Their next beat. Free swipe portfolio for producers on beatswipe.app — fans swipe, save favorites, and buy from your store.">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://beatswipe.app">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://beatswipe.app">
-  <meta property="og:title" content="BeatSwipe – Free Swipe Portfolio for Producers">
-  <meta property="og:description" content="Your bio link. Their next beat. Free swipe portfolio for producers — fans swipe, save favorites, and buy from your store.">
+  <meta property="og:title" content="beatswipe.app – Free Swipe Portfolio for Producers">
+  <meta property="og:description" content="Your bio link. Their next beat. Free swipe portfolio for producers on beatswipe.app — fans swipe, save favorites, and buy from your store.">
   <meta property="og:image" content="https://beatswipe.app/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="BeatSwipe – Free Swipe Portfolio for Producers">
-  <meta name="twitter:description" content="Your bio link. Their next beat. Free swipe portfolio for producers — fans swipe, save favorites, and buy from your store.">
+  <meta name="twitter:title" content="beatswipe.app – Free Swipe Portfolio for Producers">
+  <meta name="twitter:description" content="Your bio link. Their next beat. Free swipe portfolio for producers on beatswipe.app — fans swipe, save favorites, and buy from your store.">
   <meta name="twitter:image" content="https://beatswipe.app/og-image.png">
 
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "name": "BeatSwipe",
+    "name": "beatswipe.app",
     "url": "https://beatswipe.app",
     "description": "Your bio link. Their next beat. Free swipe portfolio for producers — fans swipe, save favorites, and buy from your store."
   }
@@ -92,7 +92,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="/styles.css">
 </head>
-<body class="invite-locked">
+<body class="invite-locked land-active">
 
 <div class="bg-desktop">
   <div class="bg-grid"></div>
@@ -174,7 +174,7 @@
           <span class="dlr-stat-val dlr-stat-val--accent" id="mlrLive">0</span>
           <span class="dlr-stat-lbl">live</span>
         </div>
-        <div class="dlr-stat">
+        <div class="dlr-stat" id="mlrPendingStat" hidden>
           <span class="dlr-stat-val" id="mlrPending">0</span>
           <span class="dlr-stat-lbl">pending</span>
         </div>
@@ -229,7 +229,7 @@
   <nav class="dtb-nav" aria-label="Main navigation">
     <div class="dtb-nav-indicator" id="dtbNavIndicator" aria-hidden="true"></div>
     <button type="button" class="dtb-tab active" id="dtbHome" onclick="goTo('landScreen','navHome')">Home</button>
-    <a class="dtb-tab dtb-tab--guest" id="dtbLiveDemo" href="/p/clyriax">Live demo</a>
+    <a class="dtb-tab dtb-tab--guest" id="dtbLiveDemo" href="/p/demo">Live demo</a>
     <button type="button" class="dtb-tab dtb-tab--guest" id="dtbGetPage" onclick="openProducerSignup()">Get page</button>
     <button type="button" class="dtb-tab dtb-tab--app" id="dtbDiscover" onclick="goTo('discoverScreen','navDiscover')">Discover</button>
     <button type="button" class="dtb-tab dtb-tab--app" id="dtbCrate" onclick="goTo('crateScreen','navCrate')">Favorites</button>
@@ -262,12 +262,12 @@
           <p class="hero-sub">One link in your bio. Fans swipe your beats — skip, save, buy from your store.</p>
           <div class="hero-btns" id="producer-start">
             <button class="btn-primary" onclick="openProducerSignup()"><i class="ti ti-link"></i> Get your free page</button>
-            <a class="btn-secondary" href="/p/clyriax"><i class="ti ti-bolt"></i> See a live page</a>
+            <a class="btn-secondary" href="/p/demo"><i class="ti ti-bolt"></i> See a live page</a>
             <p class="hero-invite-hint">Invite only · DM <a href="https://instagram.com/beatswipe.app" target="_blank" rel="noopener">@beatswipe.app</a> for a code</p>
           </div>
         </div>
         <div class="hero-visual reveal-on-scroll reveal-delay-1">
-          <a class="hero-phone" href="/p/clyriax" aria-label="Open live page beatswipe.app/p/clyriax">
+          <a class="hero-phone" href="/p/demo" aria-label="Open live page beatswipe.app/p/demo">
             <span class="hero-phone-bezel">
               <span class="hero-phone-notch" aria-hidden="true"></span>
               <div class="hero-preview">
@@ -279,7 +279,7 @@
                         <div class="cover-box"></div>
                         <div style="flex:1;min-width:0">
                           <div class="track-name">Midnight Drive</div>
-                          <div class="track-by" style="color:var(--accent-mid)">by clyriax</div>
+                          <div class="track-by" style="color:var(--accent-mid)">by Demo</div>
                         </div>
                         <div class="card-head-meta">
                           <span class="type-pill type-pill--head">Beat</span>
@@ -320,7 +320,7 @@
               </div>
             </span>
           </a>
-          <p class="hero-preview-caption">What fans see from your bio · beatswipe.app/p/clyriax</p>
+          <p class="hero-preview-caption">What fans see from your bio · beatswipe.app/p/demo</p>
         </div>
       </div>
       <div class="stats-row reveal-on-scroll" id="landStatsRow" hidden>
@@ -372,8 +372,8 @@
       </div>
       <section class="land-platforms reveal-on-scroll" aria-labelledby="landPlatformsTitle">
         <div class="land-section-head land-section-head--platforms">
-          <h2 class="land-section-title" id="landPlatformsTitle">Works with your favorite platforms</h2>
-          <p class="land-section-desc">Link your store, previews, and socials from the tools you already use — no extra setup needed.</p>
+          <h2 class="land-section-title" id="landPlatformsTitle">Link the store you already use</h2>
+          <p class="land-section-desc">BeatStars, Airbit, Traktrain, or your own site. Fans tap Buy and go straight there — we take no cut.</p>
         </div>
         <div class="land-platforms-grid" role="list">
           <div class="land-platform-card" role="listitem" data-platform="beatstars" style="--platform-brand:#EB0000">
@@ -387,35 +387,6 @@
               <svg viewBox="0 0 506.36 680.25" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M-714.09,311V461.92a24.73,24.73,0,0,1-24.73,24.73h-33.59a24.73,24.73,0,0,1-24.73-24.73V335.73A24.73,24.73,0,0,1-772.41,311h58.32Z" transform="translate(1220.45 -28.37)"/><path fill="currentColor" d="M-1220.45,311V461.92a24.73,24.73,0,0,0,24.73,24.73h33.59a24.73,24.73,0,0,0,24.73-24.73V335.73A24.73,24.73,0,0,0-1162.13,311h-58.32Z" transform="translate(1220.45 -28.37)"/><path fill="currentColor" d="M-967.27,28.37c-139.83,0-253.18,113.35-253.18,253.18h43a208.8,208.8,0,0,1,61.56-148.62A208.79,208.79,0,0,1-967.27,71.37a208.8,208.8,0,0,1,148.62,61.56,208.8,208.8,0,0,1,61.56,148.62h43C-714.09,141.72-827.44,28.37-967.27,28.37Z" transform="translate(1220.45 -28.37)"/><rect fill="currentColor" x="463.36" y="253.18" width="43" height="177.57"/><rect fill="currentColor" y="253.18" width="43" height="177.57"/><rect fill="currentColor" x="144.23" y="285.79" width="43" height="145.13"/><rect fill="currentColor" x="144.23" y="470.61" width="43" height="109.33"/><rect fill="currentColor" x="231.68" y="356.49" width="43" height="122.81"/><rect fill="currentColor" x="231.68" y="518.84" width="43" height="60.96"/><rect fill="currentColor" x="231.68" y="619.46" width="43" height="60.79"/><rect fill="currentColor" x="319.13" y="285.79" width="43" height="86.82"/><rect fill="currentColor" x="319.13" y="412.31" width="43" height="94.26"/><rect fill="currentColor" x="319.13" y="546.26" width="43" height="61.52"/></svg>
             </div>
             <span class="land-platform-name">Airbit</span>
-          </div>
-          <div class="land-platform-card" role="listitem" data-platform="soundcloud" style="--platform-brand:#FF5500">
-            <div class="land-platform-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M23.999 14.165c-.052 1.796-1.612 3.169-3.4 3.169h-8.18a.68.68 0 0 1-.675-.683V7.862a.747.747 0 0 1 .452-.724s.75-.513 2.333-.513a5.364 5.364 0 0 1 2.763.755 5.433 5.433 0 0 1 2.57 3.54c.282-.08.574-.121.868-.12.884 0 1.73.358 2.347.992s.948 1.49.922 2.373ZM10.721 8.421c.247 2.98.427 5.697 0 8.672a.264.264 0 0 1-.53 0c-.395-2.946-.22-5.718 0-8.672a.264.264 0 0 1 .53 0ZM9.072 9.448c.285 2.659.37 4.986-.006 7.655a.277.277 0 0 1-.55 0c-.331-2.63-.256-5.02 0-7.655a.277.277 0 0 1 .556 0Zm-1.663-.257c.27 2.726.39 5.171 0 7.904a.266.266 0 0 1-.532 0c-.38-2.69-.257-5.21 0-7.904a.266.266 0 0 1 .532 0Zm-1.647.77a26.108 26.108 0 0 1-.008 7.147.272.272 0 0 1-.542 0 27.955 27.955 0 0 1 0-7.147.275.275 0 0 1 .55 0Zm-1.67 1.769c.421 1.865.228 3.5-.029 5.388a.257.257 0 0 1-.514 0c-.21-1.858-.398-3.549 0-5.389a.272.272 0 0 1 .543 0Zm-1.655-.273c.388 1.897.26 3.508-.01 5.412-.026.28-.514.283-.54 0-.244-1.878-.347-3.54-.01-5.412a.283.283 0 0 1 .56 0Zm-1.668.911c.4 1.268.257 2.292-.026 3.572a.257.257 0 0 1-.514 0c-.241-1.262-.354-2.312-.023-3.572a.283.283 0 0 1 .563 0Z"/></svg>
-            </div>
-            <span class="land-platform-name">SoundCloud</span>
-          </div>
-          <div class="land-platform-card" role="listitem" data-platform="youtube" style="--platform-brand:#FF0000">
-            <div class="land-platform-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-            </div>
-            <span class="land-platform-name">YouTube</span>
-          </div>
-          <div class="land-platform-card" role="listitem" data-platform="instagram" style="--platform-brand:#E1306C">
-            <div class="land-platform-icon land-platform-icon--instagram" aria-hidden="true">
-              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <linearGradient id="landIgGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-                    <stop offset="0%" stop-color="#FFDC80"/>
-                    <stop offset="25%" stop-color="#F77737"/>
-                    <stop offset="50%" stop-color="#E1306C"/>
-                    <stop offset="75%" stop-color="#C13584"/>
-                    <stop offset="100%" stop-color="#833AB4"/>
-                  </linearGradient>
-                </defs>
-                <path fill="url(#landIgGrad)" d="M7.0301.084c-1.2768.0602-2.1487.264-2.911.5634-.7888.3075-1.4575.72-2.1228 1.3877-.6652.6677-1.075 1.3368-1.3802 2.127-.2954.7638-.4956 1.6365-.552 2.914-.0564 1.2775-.0689 1.6882-.0626 4.947.0062 3.2586.0206 3.6671.0825 4.9473.061 1.2765.264 2.1482.5635 2.9107.308.7889.72 1.4573 1.388 2.1228.6679.6655 1.3365 1.0743 2.1285 1.38.7632.295 1.6361.4961 2.9134.552 1.2773.056 1.6884.069 4.9462.0627 3.2578-.0062 3.668-.0207 4.9478-.0814 1.28-.0607 2.147-.2652 2.9098-.5633.7889-.3086 1.4578-.72 2.1228-1.3881.665-.6682 1.0745-1.3378 1.3795-2.1284.2957-.7632.4966-1.636.552-2.9124.056-1.2809.0692-1.6898.063-4.948-.0063-3.2583-.021-3.6668-.0817-4.9465-.0607-1.2797-.264-2.1487-.5633-2.9117-.3084-.7889-.72-1.4568-1.3876-2.1228C21.2982 1.33 20.628.9208 19.8378.6165 19.074.321 18.2017.1197 16.9244.0645 15.6471.0093 15.236-.005 11.977.0014 8.718.0076 8.31.0215 7.0301.0839m.1402 21.6932c-1.17-.0509-1.8053-.2453-2.2287-.408-.5606-.216-.96-.4771-1.3819-.895-.422-.4178-.6811-.8186-.9-1.378-.1644-.4234-.3624-1.058-.4171-2.228-.0595-1.2645-.072-1.6442-.079-4.848-.007-3.2037.0053-3.583.0607-4.848.05-1.169.2456-1.805.408-2.2282.216-.5613.4762-.96.895-1.3816.4188-.4217.8184-.6814 1.3783-.9003.423-.1651 1.0575-.3614 2.227-.4171 1.2655-.06 1.6447-.072 4.848-.079 3.2033-.007 3.5835.005 4.8495.0608 1.169.0508 1.8053.2445 2.228.408.5608.216.96.4754 1.3816.895.4217.4194.6816.8176.9005 1.3787.1653.4217.3617 1.056.4169 2.2263.0602 1.2655.0739 1.645.0796 4.848.0058 3.203-.0055 3.5834-.061 4.848-.051 1.17-.245 1.8055-.408 2.2294-.216.5604-.4763.96-.8954 1.3814-.419.4215-.8181.6811-1.3783.9-.4224.1649-1.0577.3617-2.2262.4174-1.2656.0595-1.6448.072-4.8493.079-3.2045.007-3.5825-.006-4.848-.0608M16.953 5.5864A1.44 1.44 0 1 0 18.39 4.144a1.44 1.44 0 0 0-1.437 1.4424M5.8385 12.012c.0067 3.4032 2.7706 6.1557 6.173 6.1493 3.4026-.0065 6.157-2.7701 6.1506-6.1733-.0065-3.4032-2.771-6.1565-6.174-6.1498-3.403.0067-6.156 2.771-6.1496 6.1738M8 12.0077a4 4 0 1 1 4.008 3.9921A3.9996 3.9996 0 0 1 8 12.0077"/>
-              </svg>
-            </div>
-            <span class="land-platform-name">Instagram</span>
           </div>
           <div class="land-platform-card" role="listitem" data-platform="traktrain" style="--platform-brand:#746BFC">
             <div class="land-platform-icon" aria-hidden="true">
@@ -433,14 +404,13 @@
         <p class="land-section-desc">Common questions about producer portfolio pages.</p>
       </div>
       <div class="faq-section reveal-on-scroll">
-        <div class="faq-title faq-title-mobile">Frequently asked questions</div>
         <div class="faq-item">
           <button class="faq-q" onclick="toggleFaq(this)">Is BeatSwipe free to use?<i class="ti ti-plus"></i></button>
           <div class="faq-a">Yes — always. Your swipe portfolio page is free. Fans discover and save beats for free. They only pay when they license directly from you.</div>
         </div>
         <div class="faq-item">
-          <button class="faq-q" onclick="toggleFaq(this)">How do I license a beat?<i class="ti ti-plus"></i></button>
-          <div class="faq-a">Save a beat, then tap the buy button. It takes you straight to the producer's store — BeatStars, Splice, SoundCloud, or their own site. We don't handle payments ourselves.</div>
+          <button class="faq-q" onclick="toggleFaq(this)">How do fans buy a beat?<i class="ti ti-plus"></i></button>
+          <div class="faq-a">They save a beat, then tap Buy. It opens your store — BeatStars, Airbit, Traktrain, or your own site. We don't handle payments.</div>
         </div>
         <div class="faq-item">
           <button class="faq-q" onclick="toggleFaq(this)">How do I get my producer page?<i class="ti ti-plus"></i></button>
@@ -456,7 +426,7 @@
         </div>
         <div class="faq-item">
           <button class="faq-q" onclick="toggleFaq(this)">Does BeatSwipe take a cut from sales?<i class="ti ti-plus"></i></button>
-          <div class="faq-a">No. BeatSwipe is completely free. You buy directly from the producer at whatever price they set — we don't add any fees.</div>
+          <div class="faq-a">No. BeatSwipe is completely free. Fans buy directly from you at whatever price you set — we don't add any fees.</div>
         </div>
       </div>
       </div>
@@ -476,12 +446,12 @@
       <footer class="site-footer reveal-on-scroll">
         <span>BeatSwipe · Your bio link. Their next beat.</span>
         <nav class="site-footer-nav" id="landFooterNav" aria-label="Footer navigation">
-          <a href="/p/clyriax">Live demo</a>
-          <a onclick="openProducerSignup()">Get your page</a>
+          <a href="/p/demo">Live demo</a>
+          <a href="#signup" onclick="event.preventDefault();openProducerSignup()">Get your page</a>
         </nav>
         <div class="site-footer-legal">
-          <a onclick="openInfoModal('impressumModal')">Legal Notice</a>
-          <a onclick="openInfoModal('privacyModal')">Privacy Policy</a>
+          <a href="#legal" onclick="event.preventDefault();openInfoModal('impressumModal')">Legal Notice</a>
+          <a href="#privacy" onclick="event.preventDefault();openInfoModal('privacyModal')">Privacy Policy</a>
         </div>
       </footer>
       </div>
@@ -673,7 +643,8 @@
       <div class="field-group" id="submitBuyStore"></div>
       </div>
       <div class="my-page-add-actions">
-        <button type="button" class="submit-btn" id="submitBeatBtn" onclick="doSubmitForm()"><i class="ti ti-plus"></i> Add beat</button>
+        <button type="button" class="add-beat-btn" id="addBeatBtn" onclick="addAnotherBeat()" hidden><i class="ti ti-plus"></i> Add beat</button>
+        <button type="button" class="submit-btn" id="submitBeatBtn" onclick="doSubmitForm()"><i class="ti ti-upload"></i> Upload</button>
         <button type="button" class="btn-secondary my-page-back" onclick="hideMyPageAddBeat()" style="margin:0;width:100%;justify-content:center"><i class="ti ti-arrow-left"></i> Back to My Page</button>
       </div>
       <div class="success-msg" id="successMsg">
@@ -706,11 +677,11 @@
         <span class="portfolio-kbd-hint"><kbd>Space</kbd> play</span>
       </div>
       <div class="portfolio-foot">
-        Powered by <span style="color:var(--text-2)">BeatSwipe</span> · <a onclick="openProducerSignup()">Get your own page</a>
+        Powered by <span style="color:var(--text-2)">beatswipe.app</span> · <a href="#signup" onclick="event.preventDefault();openProducerSignup()">Get your own page</a>
         <div class="portfolio-foot-legal">
-          <a onclick="openInfoModal('impressumModal')">Legal Notice</a>
+          <a href="#legal" onclick="event.preventDefault();openInfoModal('impressumModal')">Legal Notice</a>
           <span aria-hidden="true">·</span>
-          <a onclick="openInfoModal('privacyModal')">Privacy</a>
+          <a href="#privacy" onclick="event.preventDefault();openInfoModal('privacyModal')">Privacy</a>
         </div>
       </div>
     </div>
@@ -750,10 +721,10 @@
   <div class="nav-bar">
     <div class="nav-indicator" id="navIndicator" aria-hidden="true"></div>
     <button class="nav-tab active" id="navHome" onclick="goTo('landScreen','navHome')"><i class="ti ti-home"></i>Home<div class="nav-dot"></div></button>
-    <button class="nav-tab nav-tab--guest" id="navLiveDemo" onclick="location.href='/p/clyriax'"><i class="ti ti-bolt"></i>Live<div class="nav-dot"></div></button>
+    <button class="nav-tab nav-tab--guest" id="navLiveDemo" onclick="location.href='/p/demo'"><i class="ti ti-bolt"></i>Live<div class="nav-dot"></div></button>
     <button class="nav-tab nav-tab--guest" id="navGetPage" onclick="openProducerSignup()"><i class="ti ti-link"></i>Get page<div class="nav-dot"></div></button>
     <button class="nav-tab nav-tab--app" id="navDiscover" onclick="goTo('discoverScreen','navDiscover')"><i class="ti ti-headphones"></i>Discover<div class="nav-dot"></div></button>
-    <button class="nav-tab nav-tab--app" id="navCrate" onclick="goTo('crateScreen','navCrate')"><i class="ti ti-shopping-cart"></i>Favorites<div class="nav-dot"></div></button>
+    <button class="nav-tab nav-tab--app" id="navCrate" onclick="goTo('crateScreen','navCrate')"><i class="ti ti-flame"></i>Favorites<div class="nav-dot"></div></button>
     <button class="nav-tab nav-tab--app" id="navSubmit" onclick="goTo('submitScreen','navSubmit')"><i class="ti ti-link"></i>My Page<div class="nav-dot"></div></button>
     <button class="nav-tab nav-tab--app" id="navProfile" onclick="goTo('profileScreen','navProfile')"><i class="ti ti-user"></i>Profile<div class="nav-dot"></div></button>
   </div>
@@ -784,7 +755,7 @@
         <h3>Business purpose</h3>
         <p>BeatSwipe is a free web platform for music producers to share swipeable beat portfolios via bio links. Fans can discover beats, save favorites, and purchase directly from producers' external stores.</p>
         <h3>Disclaimer</h3>
-        <p>BeatSwipe is a discovery and showcase platform only. We are not a party to license or purchase agreements between buyers and producers. All transactions take place directly on linked third-party platforms (e.g. BeatStars, Splice). We do not guarantee the availability, quality, or legality of user-uploaded content.</p>
+        <p>BeatSwipe is a discovery and showcase platform only. We are not a party to license or purchase agreements between buyers and producers. All transactions take place directly on linked third-party platforms (e.g. BeatStars, Airbit, Traktrain). We do not guarantee the availability, quality, or legality of user-uploaded content.</p>
         <h3>Copyright &amp; content</h3>
         <p>BeatSwipe branding, design, and code are protected by copyright. Beats, samples, and preview audio remain the property of their respective producers. Producers are responsible for ensuring they have the rights to upload and distribute their content.</p>
         <h3>Terms of use</h3>
@@ -875,7 +846,7 @@
         <p>You can clear local data in your browser or via Profile → Clear local data. Signing out removes your login session. To delete your account and all associated data, use Profile → Settings → Delete account.</p>
 
         <h3>8. Embedded content &amp; external links</h3>
-        <p>Beat previews may load from YouTube or SoundCloud when you play or swipe a card. Those providers may receive technical data (e.g. IP address, device info) under their own policies. Buy links (BeatStars, Splice, etc.) take you to third-party sites we do not control.</p>
+        <p>Beat previews may load from YouTube or SoundCloud when you play or swipe a card. Those providers may receive technical data (e.g. IP address, device info) under their own policies. Buy links (BeatStars, Airbit, Traktrain, etc.) take you to third-party sites we do not control.</p>
 
         <h3>9. Retention</h3>
         <ul>
@@ -1034,7 +1005,7 @@
               <div class="onboard-demo-art"><i class="ti ti-music"></i></div>
               <div class="onboard-demo-meta">
                 <div class="onboard-demo-title">Midnight Drive</div>
-                <div class="onboard-demo-sub">clyriax · 140 BPM</div>
+                <div class="onboard-demo-sub">Demo · 140 BPM</div>
               </div>
               <div class="onboard-demo-actions">
                 <div class="onboard-demo-act onboard-demo-act--skip"><i class="ti ti-x"></i></div>
@@ -1048,7 +1019,7 @@
         <div class="onboard-slide">
           <div class="onboard-icon"><i class="ti ti-shopping-cart"></i></div>
           <div class="onboard-title">They buy from <span>your store</span></div>
-          <div class="onboard-desc">Saved beats keep a Buy button to BeatStars, Airbit, or your site. We take no cut.</div>
+          <div class="onboard-desc">Saved beats keep a Buy button to BeatStars, Airbit, Traktrain, or your site. We take no cut.</div>
           <div class="onboard-demo onboard-demo--stack">
             <div class="onboard-fav-row">
               <div class="onboard-demo-art onboard-demo-art--sm"><i class="ti ti-music"></i></div>
@@ -1121,13 +1092,12 @@
     <div class="cookie-inner">
       <div class="cookie-text">
         We only use essential storage (login session). No tracking or advertising cookies.
-        <a onclick="openLegalModal('impressumModal')">Legal Notice</a>
+        <a href="#legal" onclick="event.preventDefault();openLegalModal('impressumModal')">Legal Notice</a>
         ·
-        <a onclick="openLegalModal('privacyModal')">Privacy Policy</a>
+        <a href="#privacy" onclick="event.preventDefault();openLegalModal('privacyModal')">Privacy Policy</a>
       </div>
       <div class="cookie-btns">
-        <button class="cookie-decline" onclick="closeCookie(false)">Essential only</button>
-        <button class="cookie-accept" onclick="closeCookie(true)">Got it ✓</button>
+        <button type="button" class="cookie-accept" onclick="closeCookie()">Got it</button>
       </div>
     </div>
   </div>
