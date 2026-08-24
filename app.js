@@ -180,9 +180,27 @@ function hasInviteAccess() {
   try { return localStorage.getItem('bs_invite') === '1'; } catch(e) { return false; }
 }
 
-function showInviteGate(screenId, navId, producerName) {
+function isProducerInviteIntent() {
+  try { return sessionStorage.getItem('bs_producer_signup_intent') === '1'; } catch (e) { return false; }
+}
+
+function setInviteGateCopy(producerMode) {
+  const desc = document.getElementById('inviteGateDesc');
+  const submit = document.querySelector('.invite-gate-submit');
+  if (producerMode) {
+    if (desc) desc.textContent = 'BeatSwipe is invite-only. Enter your code to get your free swipe page for the bio.';
+    if (submit) submit.textContent = 'Get my page';
+  } else {
+    if (desc) desc.textContent = 'BeatSwipe is in private beta. Enter your invite code to unlock Discover, Favorites, and My Page.';
+    if (submit) submit.textContent = 'Enter BeatSwipe';
+  }
+}
+
+function showInviteGate(screenId, navId, producerName, opts) {
   _invitePending = { screenId, navId };
   _invitePendingProducer = producerName || null;
+  const producerMode = !!(opts && opts.producer) || isProducerInviteIntent();
+  setInviteGateCopy(producerMode);
   const gate = document.getElementById('inviteGate');
   const err = document.getElementById('inviteCodeErr');
   const input = document.getElementById('inviteCodeInput');
@@ -196,11 +214,37 @@ function closeInviteGate() {
   document.getElementById('inviteGate')?.classList.remove('open');
   _invitePending = null;
   _invitePendingProducer = null;
+  try { sessionStorage.removeItem('bs_producer_signup_intent'); } catch (e) {}
+  setInviteGateCopy(false);
   goTo('landScreen', 'navHome');
 }
 
 function closeInviteIfBackdrop(e) {
   if (e.target === document.getElementById('inviteGate')) closeInviteGate();
+}
+
+/** Guest chrome: hide gated nav; footer shows live demo + get page. */
+function syncGuestChrome() {
+  const locked = !hasInviteAccess();
+  document.body.classList.toggle('invite-locked', locked);
+  const footNav = document.getElementById('landFooterNav');
+  if (footNav) {
+    if (locked) {
+      footNav.innerHTML =
+        '<a href="/p/clyriax">Live demo</a>' +
+        '<a onclick="openProducerSignup()">Get your page</a>';
+    } else {
+      footNav.innerHTML =
+        '<a onclick="goTo(\'discoverScreen\',\'navDiscover\')">Discover</a>' +
+        '<a onclick="goTo(\'crateScreen\',\'navCrate\')">Favorites</a>' +
+        '<a onclick="goTo(\'submitScreen\',\'navSubmit\')">My Page</a>' +
+        '<a onclick="goTo(\'profileScreen\',\'navProfile\')">Profile</a>';
+    }
+  }
+  const active = document.querySelector('.nav-tab.active');
+  if (active?.id) {
+    requestAnimationFrame(() => requestAnimationFrame(() => updateNavIndicator(active.id)));
+  }
 }
 
 // Producer funnel — /p/ Done CTA, footer, landing hero
@@ -222,13 +266,8 @@ function openProducerSignup() {
     return;
   }
   if (!hasInviteAccess()) {
-    try { sessionStorage.setItem('bs_producer_intent', '1'); } catch (e) {}
-    const onLand = document.getElementById('landScreen')?.classList.contains('active') && !_portfolioMode;
-    if (onLand) {
-      scrollProducerCtaIfIntent();
-      return;
-    }
-    goTo('landScreen', 'navHome');
+    try { sessionStorage.setItem('bs_producer_signup_intent', '1'); } catch (e) {}
+    showInviteGate('profileScreen', 'navProfile', null, { producer: true });
     return;
   }
   try { sessionStorage.setItem('bs_producer_signup_intent', '1'); } catch (e) {}
@@ -248,12 +287,23 @@ function submitInviteCode() {
   try { localStorage.setItem('bs_invite', '1'); } catch(e) {}
   const pending = _invitePending;
   const producer = _invitePendingProducer;
+  const wantsProducer = isProducerInviteIntent();
   document.getElementById('inviteGate')?.classList.remove('open');
   _invitePending = null;
   _invitePendingProducer = null;
+  syncGuestChrome();
   if (producer) openProducerProfile(producer);
-  else if (pending) goTo(pending.screenId, pending.navId);
+  else if (pending) {
+    if (wantsProducer) setAuthMode('signup');
+    goTo(pending.screenId, pending.navId);
+  } else if (wantsProducer) {
+    setAuthMode('signup');
+    goTo('profileScreen', 'navProfile');
+  }
 }
+
+if (document.body) syncGuestChrome();
+else document.addEventListener('DOMContentLoaded', syncGuestChrome, { once: true });
 
 let _listEnterNext = false;
 
@@ -729,6 +779,7 @@ function renderDiscoverHint() {
 }
 
 async function initApp() {
+  syncGuestChrome();
   initAuthFromStorage();
   await Promise.race([_authInitReady, sleep(3000)]);
   if (_authRecoveryFromUrl || _authCodeInUrl || _authHashTokenInUrl) {

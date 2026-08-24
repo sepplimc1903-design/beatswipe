@@ -84,7 +84,7 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 - **`/p/` done screen (swipe complete):** Gäste bleiben auf `/p/`. Saves in `crate` (RAM/guest). **Desktop (≥1100px):** Liste + Preview-Split; erster Beat vorausgewählt; **Producer-CTA** in `.portfolio-done-side` unter Preview (nicht unter dem Grid). **Mobile:** nur Liste → Tap öffnet Preview (`portfolio-done-preview-open`, `backPortfolioDoneList()`); Buy **unter** Karte (`buildCratePreviewHTML(beat, { prominentBuy: true })`); Done-CTA volle Breite unter Liste. Merge `_portfolioBeats` in `getPortfolioSavedBeats()`. Replay/Guest in `.portfolio-done-foot`. **Nicht** `#portfolioSidePanel` für Done-Player.
 - **Profile laptop:** zentriert (`--w-page`); Bio-Link-Sidebar rechts daneben (Flex, kein `fixed`/Overlap) ab 1100px
 - **Vercel static:** kein `public/`-Ordner (sonst 404 auf `index.html` in `vercel dev`); kein `middleware.js` — Bot-OG via `vercel.json` Rewrite
-- **Producer funnel:** `openProducerSignup()` in `app.js` — eingeloggt → `submitScreen`; Gast ohne Invite → Landing `#producer-start` scroll (`bs_producer_intent`); Gast mit Invite → Signup → nach `SIGNED_IN` My Page (`bs_producer_signup_intent`). Alle „Get your page“-CTAs nutzen das (Done, Footer, Side-Panel, Landing, My Page guest).
+- **Producer funnel:** `openProducerSignup()` in `app.js` — eingeloggt → `submitScreen`; Gast ohne Invite → Invite-Gate (Producer-Copy, `bs_producer_signup_intent`) — **nicht** Landing-Scroll; Gast mit Invite → Signup → nach `SIGNED_IN` My Page. Gäste ohne Invite: Nav/Footer nur Home · Live (`/p/clyriax`) · Get page (`body.invite-locked` + `syncGuestChrome()`). Alle „Get your page“-CTAs nutzen das.
 - **Producer stats:** `trackPortfolioEvent()` in `app.js`; Preview zählt nicht; View dedup `sessionStorage bs_pv_${slug}`; Buy via `data-portfolio-buy` auf `/p/`
 - **QR code:** `openPortfolioQR()` in `portfolio.js` — CDN `cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js` (**nicht** `qrcode@1.5.4/build/…` — 404)
 - **Moderation:** `api/moderate-beats.js` + `moderate.js`; Admin-Emails via `BEATSWIPE_ADMIN_EMAILS` (Default: `svetina.luca@gmail.com`, `hellobeatswipe@gmail.com`); Profile → Settings → Moderation
@@ -96,20 +96,19 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 - **Portfolio social icons:** `buildPortfolioSocialsHTML()` — Instagram-Gradient braucht **eindeutige** `linearGradient`-IDs pro Instanz (Header + Sidepanel = 2×); sonst leerer Button. TikTok = Mehrfarben-SVG (nicht `ti-brand-tiktok`).
 - **Portfolio swipe glow (Preview/`/p/`):** `#cardGlow` als Sibling **hinter** `.portfolio-surface` (glasiger Hintergrund) → kaum sichtbar; Discover-Card fast transparent. Versuch Glow in Surface → zurückgesetzt; noch offen wenn wieder angehen.
 
-## Aktuell (2026-07-08)
+## Aktuell (2026-08-24)
 
-- **Live:** Private Beta aktiv (`INVITE_GATE_PAUSED = false`). Apple-Redesign: schwarz/grau, Accent `#0A84FF` — Landing + `/p/` poliert.
-- **Lokal (noch nicht gepusht):** Discover-Filter Accordion (Genre / Key / BPM); Landing „Works with your favorite platforms"; Profile Links TikTok, Spotify, Airbit (7 Felder) + farbige Social-Buttons auf `/p/`; **MP3-Upload:** Buy-Link Pflicht pro Track + Store-Picker (BeatStars, Airbit, Traktrain, Website); **`og-image.png`** neu mit Slogan „Your bio link. Their next beat." (`marketing/og-image.html`, `node scripts/render-og-image.mjs`).
-- **Supabase:** `profiles-social-links.sql` (tiktok, spotify, airbit) — **einmal ausführen** vor Profile-Save.
-- **Marketing:** `marketing/` uncommitted (Avatar, IG-Posts). Glow-Fix Preview/`/p/` versucht → zurückgesetzt (noch offen).
+- **Live:** Private Beta (`INVITE_GATE_PAUSED = false`). Producer-Funnel: „Get your free page“ öffnet Invite-Gate (nicht Scroll-Loop). Landing-Secondary = Live-Demo `/p/clyriax` (nicht Discover). Gäste: Nav/Footer Home · Live · Get page. Invite-Gate-Copy Producer vs App. Traktrain-Logo auf Landing als zentriertes TT.
+- **Schon live (vorher):** Discover-Filter, Platforms-Strip, Profile-Socials, MP3 Buy-Picker, OG mit Slogan.
+- **Offen:** `/p/` Swipe-Glow schwächer als Discover. Desktop-Leere um Karten — Stretch/Orbit/Stage-Versuche verworfen.
+- **Marketing:** `marketing/` Avatar + IG-Posts noch lokal. Supabase `profiles-social-links.sql` einmal ausführen falls noch nicht.
 
 ## Nächster Schritt
 
-1. **Supabase:** `profiles-social-links.sql` ausführen
-2. **Lokal testen** — Discover-Filter, Profile-Links/`/p/` Socials, MP3 Buy-Picker, OG (`localhost:3000/og-image.png`)
-3. **Ein Push** (wenn Luca sagt): Filter + Platforms + Profile + MP3 Buy + OG
-4. **Luca:** Profilbild `marketing/beatswipe-profile-avatar-blue.png` hochladen · IG-Posts posten
-5. **Producer outreach:** 2–3 Producer — Invite + `/p/clyriax` Demo
+1. Live checken nach Vercel: Landing CTA → Invite; Guest-Nav; `/p/clyriax`
+2. **Producer outreach:** 2–3 Producer — Invite + Demo
+3. **Luca:** Profilbild + IG-Posts
+4. Später: Invite-Gate pausieren wenn Beta zu Ende (`INVITE_GATE_PAUSED = true`)
 
 ## Rules pflegen (Agent)
 

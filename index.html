@@ -92,7 +92,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="/styles.css">
 </head>
-<body>
+<body class="invite-locked">
 
 <div class="bg-desktop">
   <div class="bg-grid"></div>
@@ -228,10 +228,12 @@
   <nav class="dtb-nav" aria-label="Main navigation">
     <div class="dtb-nav-indicator" id="dtbNavIndicator" aria-hidden="true"></div>
     <button type="button" class="dtb-tab active" id="dtbHome" onclick="goTo('landScreen','navHome')">Home</button>
-    <button type="button" class="dtb-tab" id="dtbDiscover" onclick="goTo('discoverScreen','navDiscover')">Discover</button>
-    <button type="button" class="dtb-tab" id="dtbCrate" onclick="goTo('crateScreen','navCrate')">Favorites</button>
-    <button type="button" class="dtb-tab" id="dtbSubmit" onclick="goTo('submitScreen','navSubmit')">My Page</button>
-    <button type="button" class="dtb-tab" id="dtbProfile" onclick="goTo('profileScreen','navProfile')">Profile</button>
+    <a class="dtb-tab dtb-tab--guest" id="dtbLiveDemo" href="/p/clyriax">Live demo</a>
+    <button type="button" class="dtb-tab dtb-tab--guest" id="dtbGetPage" onclick="openProducerSignup()">Get page</button>
+    <button type="button" class="dtb-tab dtb-tab--app" id="dtbDiscover" onclick="goTo('discoverScreen','navDiscover')">Discover</button>
+    <button type="button" class="dtb-tab dtb-tab--app" id="dtbCrate" onclick="goTo('crateScreen','navCrate')">Favorites</button>
+    <button type="button" class="dtb-tab dtb-tab--app" id="dtbSubmit" onclick="goTo('submitScreen','navSubmit')">My Page</button>
+    <button type="button" class="dtb-tab dtb-tab--app" id="dtbProfile" onclick="goTo('profileScreen','navProfile')">Profile</button>
   </nav>
   <div class="dtb-auth" id="dtbAuth">
     <button type="button" class="dtb-signin" onclick="goTo('profileScreen','navProfile')">Sign in</button>
@@ -258,15 +260,16 @@
           <h1 class="hero-title">Your swipe page for the <span>bio</span></h1>
           <p class="hero-sub">One link in your bio. Fans swipe your beats — skip, save, buy from your store.</p>
           <div class="hero-btns" id="producer-start">
-            <button class="btn-primary" onclick="openProducerSignup()"><i class="ti ti-upload"></i> Get your free page</button>
-            <button class="btn-secondary" onclick="goTo('discoverScreen','navDiscover')"><i class="ti ti-headphones"></i> Discover beats</button>
+            <button class="btn-primary" onclick="openProducerSignup()"><i class="ti ti-link"></i> Get your free page</button>
+            <a class="btn-secondary" href="/p/clyriax"><i class="ti ti-bolt"></i> See a live page</a>
+            <p class="hero-invite-hint">Invite only · DM <a href="https://instagram.com/beatswipe.app" target="_blank" rel="noopener">@beatswipe.app</a> for a code</p>
           </div>
           <a class="hero-live-card" href="/p/clyriax">
             <div class="hero-live-card-icon"><i class="ti ti-bolt"></i></div>
             <div class="hero-live-card-body">
-              <div class="hero-live-card-title">See a live page</div>
+              <div class="hero-live-card-title">Live demo</div>
               <div class="hero-live-card-url">beatswipe.app/p/clyriax</div>
-              <div class="hero-live-card-hint">What fans see from your bio link</div>
+              <div class="hero-live-card-hint">What fans see from your bio link — try the swipe</div>
             </div>
             <i class="ti ti-chevron-right hero-live-card-arrow"></i>
           </a>
@@ -425,9 +428,9 @@
             <span class="land-platform-name">Instagram</span>
           </div>
           <div class="land-platform-card" role="listitem" data-platform="traktrain" style="--platform-brand:#746BFC">
-            <div class="land-platform-icon land-platform-icon--traktrain" aria-hidden="true">
-              <svg viewBox="0 0 120 20" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Traktrain">
-                <text x="0" y="16" fill="currentColor" font-family="Arial Black, Helvetica Neue, Arial, sans-serif" font-size="14" font-weight="900" letter-spacing="0.6">TRAKTRAIN</text>
+            <div class="land-platform-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Traktrain">
+                <text x="12" y="16.5" text-anchor="middle" fill="currentColor" font-family="system-ui, -apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="800" letter-spacing="-0.6">TT</text>
               </svg>
             </div>
             <span class="land-platform-name">Traktrain</span>
@@ -451,7 +454,7 @@
         </div>
         <div class="faq-item">
           <button class="faq-q" onclick="toggleFaq(this)">How do I get my producer page?<i class="ti ti-plus"></i></button>
-          <div class="faq-a">Sign up free, add your beats on My Page, and share beatswipe.app/p/yourname in your bio once they're approved — usually within 48h. Upload short previews only (YouTube, SoundCloud, or MP3 ~30–60s) — not full masters. Add buy links to BeatStars, Splice, or your store for the full beat.</div>
+          <div class="faq-a">Private beta — DM <a href="https://instagram.com/beatswipe.app" target="_blank" rel="noopener">@beatswipe.app</a> for an invite code, then create your free account, add beats on My Page, and share beatswipe.app/p/yourname in your bio once they're approved (usually within 48h). Upload short previews only (YouTube, SoundCloud, or MP3 ~30–60s) — not full masters. Add buy links to your store for the full beat.</div>
         </div>
         <div class="faq-item">
           <button class="faq-q" onclick="toggleFaq(this)">Do I need an account?<i class="ti ti-plus"></i></button>
@@ -473,19 +476,18 @@
           <div class="cta-banner-inner">
             <div class="cta-banner-copy">
               <div class="cta-banner-title">Ready for your bio link?</div>
-              <div class="cta-banner-sub">Free forever · No cut on sales</div>
+              <div class="cta-banner-sub">Free forever · No cut · Invite only</div>
+              <div class="cta-invite-hint">No code? DM <a href="https://instagram.com/beatswipe.app" target="_blank" rel="noopener">@beatswipe.app</a></div>
             </div>
-            <button class="btn-primary cta-banner-btn" onclick="openProducerSignup()"><i class="ti ti-upload"></i> Get your free page</button>
+            <button class="btn-primary cta-banner-btn" onclick="openProducerSignup()"><i class="ti ti-link"></i> Get your free page</button>
           </div>
         </div>
       </div>
       <footer class="site-footer reveal-on-scroll">
         <span>BeatSwipe · Your bio link. Their next beat.</span>
-        <nav class="site-footer-nav" aria-label="Footer navigation">
-          <a onclick="goTo('discoverScreen','navDiscover')">Discover</a>
-          <a onclick="goTo('crateScreen','navCrate')">Favorites</a>
-          <a onclick="goTo('submitScreen','navSubmit')">My Page</a>
-          <a onclick="goTo('profileScreen','navProfile')">Profile</a>
+        <nav class="site-footer-nav" id="landFooterNav" aria-label="Footer navigation">
+          <a href="/p/clyriax">Live demo</a>
+          <a onclick="openProducerSignup()">Get your page</a>
         </nav>
         <div class="site-footer-legal">
           <a onclick="openInfoModal('impressumModal')">Legal Notice</a>
@@ -758,10 +760,12 @@
   <div class="nav-bar">
     <div class="nav-indicator" id="navIndicator" aria-hidden="true"></div>
     <button class="nav-tab active" id="navHome" onclick="goTo('landScreen','navHome')"><i class="ti ti-home"></i>Home<div class="nav-dot"></div></button>
-    <button class="nav-tab" id="navDiscover" onclick="goTo('discoverScreen','navDiscover')"><i class="ti ti-headphones"></i>Discover<div class="nav-dot"></div></button>
-    <button class="nav-tab" id="navCrate" onclick="goTo('crateScreen','navCrate')"><i class="ti ti-shopping-cart"></i>Favorites<div class="nav-dot"></div></button>
-    <button class="nav-tab" id="navSubmit" onclick="goTo('submitScreen','navSubmit')"><i class="ti ti-link"></i>My Page<div class="nav-dot"></div></button>
-    <button class="nav-tab" id="navProfile" onclick="goTo('profileScreen','navProfile')"><i class="ti ti-user"></i>Profile<div class="nav-dot"></div></button>
+    <button class="nav-tab nav-tab--guest" id="navLiveDemo" onclick="location.href='/p/clyriax'"><i class="ti ti-bolt"></i>Live<div class="nav-dot"></div></button>
+    <button class="nav-tab nav-tab--guest" id="navGetPage" onclick="openProducerSignup()"><i class="ti ti-link"></i>Get page<div class="nav-dot"></div></button>
+    <button class="nav-tab nav-tab--app" id="navDiscover" onclick="goTo('discoverScreen','navDiscover')"><i class="ti ti-headphones"></i>Discover<div class="nav-dot"></div></button>
+    <button class="nav-tab nav-tab--app" id="navCrate" onclick="goTo('crateScreen','navCrate')"><i class="ti ti-shopping-cart"></i>Favorites<div class="nav-dot"></div></button>
+    <button class="nav-tab nav-tab--app" id="navSubmit" onclick="goTo('submitScreen','navSubmit')"><i class="ti ti-link"></i>My Page<div class="nav-dot"></div></button>
+    <button class="nav-tab nav-tab--app" id="navProfile" onclick="goTo('profileScreen','navProfile')"><i class="ti ti-user"></i>Profile<div class="nav-dot"></div></button>
   </div>
 
   <!-- IMPRESSUM MODAL -->
@@ -1113,10 +1117,10 @@
     <div class="invite-gate-sheet" onclick="event.stopPropagation()">
       <div class="invite-gate-icon"><i class="ti ti-lock"></i></div>
       <div class="invite-gate-title">Private Beta</div>
-      <div class="invite-gate-desc">BeatSwipe is in private beta. Enter your invite code to start discovering beats.</div>
+      <div class="invite-gate-desc" id="inviteGateDesc">BeatSwipe is invite-only. Enter your code to get your free swipe page for the bio.</div>
       <input type="text" class="invite-gate-input" id="inviteCodeInput" placeholder="Invite code" autocomplete="off" autocapitalize="off" spellcheck="false" onkeydown="if(event.key==='Enter')submitInviteCode()">
       <div class="invite-gate-err" id="inviteCodeErr">Invalid code. DM us on Instagram for access.</div>
-      <button type="button" class="invite-gate-submit" onclick="submitInviteCode()">Enter BeatSwipe</button>
+      <button type="button" class="invite-gate-submit" onclick="submitInviteCode()">Get my page</button>
       <button type="button" class="invite-gate-back" onclick="closeInviteGate()">Back to Home</button>
       <div class="invite-gate-foot">No code yet? DM us on <a href="https://instagram.com/beatswipe.app" target="_blank" rel="noopener">@beatswipe.app</a> for access.</div>
     </div>

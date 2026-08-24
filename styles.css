@@ -577,6 +577,16 @@
     }
     .dtb-tab:hover { color: var(--text-2); }
     .dtb-tab.active { color: var(--text); font-weight: 600; }
+    a.dtb-tab { text-decoration: none; box-sizing: border-box; }
+    /* Guest (no invite): Home + Live + Get page. Invite unlocked: full app tabs. */
+    .nav-tab--guest,
+    .dtb-tab--guest { display: none; }
+    body.invite-locked .nav-tab--guest { display: flex; flex-direction: column; }
+    body.invite-locked .dtb-tab--guest { display: flex; }
+    body.invite-locked .nav-tab--app,
+    body.invite-locked .dtb-tab--app { display: none; }
+    body:not(.invite-locked) .nav-tab--guest,
+    body:not(.invite-locked) .dtb-tab--guest { display: none; }
     .dtb-auth { justify-self: end; display: flex; align-items: center; }
     .dtb-signin {
       padding: 8px 18px; border-radius: 100px;
@@ -2094,6 +2104,23 @@
     }
     .hero-sub { font-size: 15px; color: var(--text-2); line-height: 1.65; margin-bottom: 28px; max-width: 420px; margin-inline: auto; }
     .hero-btns { display: flex; flex-direction: column; gap: 10px; }
+    a.btn-secondary { text-decoration: none; box-sizing: border-box; }
+    .hero-invite-hint {
+      margin: 4px 0 0;
+      font-size: 12px;
+      color: var(--text-3);
+      line-height: 1.45;
+    }
+    .hero-invite-hint a { color: var(--accent-mid); text-decoration: none; }
+    .hero-invite-hint a:hover { text-decoration: underline; }
+    .cta-invite-hint {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--text-3);
+      line-height: 1.4;
+    }
+    .cta-invite-hint a { color: var(--accent-mid); text-decoration: none; }
+    .cta-invite-hint a:hover { text-decoration: underline; }
     .hero-live-card {
       display: flex;
       align-items: center;
@@ -2316,15 +2343,6 @@
     .land-platform-icon--airbit svg {
       width: 30px;
       height: auto;
-    }
-    .land-platform-icon--traktrain {
-      width: auto;
-      min-width: 88px;
-      height: 22px;
-    }
-    .land-platform-icon--traktrain svg {
-      width: auto;
-      height: 20px;
     }
     .land-platform-name {
       font-size: 12px;
