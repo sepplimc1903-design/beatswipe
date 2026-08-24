@@ -73,7 +73,7 @@ const DEMO_PORTFOLIO_BEATS = [
     key: 'D Min',
     genre: 'R&B',
     color: '#7C5CFF',
-    mp3: 'https://cdn.pixabay.com/audio/2022/03/10/audio_c8c8a73467.mp3',
+    mp3: 'https://cdn.pixabay.com/audio/2023/07/24/audio_65d744b9d0.mp3',
     buy: 'https://airbit.com'
   },
   {
