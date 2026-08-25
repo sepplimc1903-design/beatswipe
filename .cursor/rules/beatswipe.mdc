@@ -103,12 +103,12 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 - **`/p/` mobile overflow:** `#portfolioPageInner` ist CSS-Grid (`min-width: auto`) — nowrap-Titel in der Done-Liste weiten die Spalte über den Viewport, `overflow-x: hidden` clippt dann links/rechts. Handy: Grid-Items `min-width: 0; max-width: 100%`. Glow auf Mobile nicht 120%+ (sonst ~20px Seiten-Scroll). Platform-Grid auf Home nicht als Horizontal-Carousel (leakt Page-Scroll).
 - **`/p/` mobile header:** Bio ausblenden (nicht line-clamp) — am Handy nicht lesbar. Desktop: Bio in der Sidepanel. Display-Name Demo = `Demo`, Slug bleibt `/p/demo`.
 
-- **Landing ambient:** `body.land-active` + `html:not(.portfolio-route-boot)` — true black + blue bloom (Insta-v2). White aurora bleibt auf App-Pages und `/p/`. Nie Landing-Blau auf Portfolio.
+- **App ambient:** `html:not(.portfolio-route-boot) body:not(.portfolio-active)` — true black + blue bloom (Insta-v2) auf Landing **und** App-Pages. White aurora nur auf `/p/` (`portfolio-active` / `portfolio-route-boot`). Nie Landing-Blau auf Portfolio.
 
 ## Aktuell (2026-08-25)
 
 - **Live:** Private Beta. Upload sofort auf `/p/`. Buy-Link Pflicht. Landing-Stats versteckt bis ≥8 Beats / ≥3 Producer.
-- **Look:** Landing an Insta-v2 (true black + blue bloom). Stores nur BeatStars / Airbit / Traktrain. Generated Covers; `/p/` Vignette + Swipe-Glow; Hero → `/p/demo`.
+- **Look:** App (Home, Discover, Favorites, My Page, Profile) = Insta-v2 true black + blue bloom. `/p/` bleibt White-Aurora + Vignette + Swipe-Glow. Stores nur BeatStars / Airbit / Traktrain. Generated Covers; Hero → `/p/demo`.
 - **Demo:** `beatswipe.app/p/demo` öffentlich (Pixabay, Display-Name Demo). `/p/clyriax` bleibt Lucas echte Page.
 - **Analytics:** Vercel Web Analytics (HTML-Script, cookieless). Dashboard: `/` vs `/p/*`.
 - **Insta:** Carousel bereit (`marketing/insta-v2/ig/`) — Caption `/p/demo`. DM: erst fragen, dann Demo, dann Key. Alte lila Posts in `insta-posts/` nicht verwenden.
