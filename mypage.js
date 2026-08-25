@@ -17,6 +17,16 @@ function titleFromFilename(name) {
   return t || 'Untitled';
 }
 
+function formatFileSize(bytes) {
+  if (!bytes) return '';
+  if (bytes < 1024 * 1024) return Math.max(1, Math.round(bytes / 1024)) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1).replace(/\.0$/, '') + ' MB';
+}
+
+function isQueueItemReady(item) {
+  return !!(item.title?.trim() && item.genre && item.type && item.buyPlatform && String(item.buyLink || '').trim());
+}
+
 function resetAddBeatForm() {
   ['f-title', 'f-bpm', 'f-key', 'f-preview'].forEach(id => {
     const el = document.getElementById(id);
@@ -36,14 +46,7 @@ function syncSubmitBtnLabel() {
   const uploadBtn = document.getElementById('submitBeatBtn');
   const pt = document.getElementById('f-preview-type')?.value;
   const n = _mp3Queue.length;
-  const showAdd = pt === 'MP3' && !!currentUser;
-  if (addBtn) {
-    addBtn.hidden = !showAdd;
-    if (!addBtn.dataset.loading) {
-      addBtn.disabled = n >= MAX_MP3_QUEUE;
-      addBtn.innerHTML = '<i class="ti ti-plus"></i> Add beat';
-    }
-  }
+  if (addBtn) addBtn.hidden = true;
   if (uploadBtn && !uploadBtn.disabled) {
     if (pt === 'MP3' && n > 1) {
       uploadBtn.innerHTML = `<i class="ti ti-upload"></i> Upload all ${n} beats`;
@@ -51,6 +54,22 @@ function syncSubmitBtnLabel() {
       uploadBtn.innerHTML = '<i class="ti ti-upload"></i> Upload';
     }
   }
+}
+
+function selectPreviewType(type) {
+  const pt = document.getElementById('f-preview-type');
+  if (!pt || pt.value === type) return;
+  pt.value = type;
+  updatePreviewLabel();
+}
+
+function syncPreviewTypeCards() {
+  const type = document.getElementById('f-preview-type')?.value || '';
+  document.querySelectorAll('.preview-type-card').forEach(btn => {
+    const on = btn.dataset.type === type;
+    btn.classList.toggle('active', on);
+    btn.setAttribute('aria-checked', on ? 'true' : 'false');
+  });
 }
 
 function addAnotherBeat() {
@@ -83,24 +102,26 @@ function updatePreviewLabel() {
   mp3Group.style.display = 'none';
   if (titleGroup) titleGroup.style.display = 'none';
 
-  const buyStore = document.getElementById('submitBuyStore');
-  if (buyStore) buyStore.style.display = 'none';
-
-  if (!type) return;
+  syncPreviewTypeCards();
+  if (!type) {
+    syncQueueFormLayout();
+    syncOptionalBuyStore('');
+    return;
+  }
 
   if (type === 'YouTube') {
     urlGroup.style.display = 'block';
     if (titleGroup) titleGroup.style.display = 'block';
     label.textContent = 'YouTube Link *';
     input.placeholder = 'https://youtube.com/watch?v=...';
-    hint.textContent = 'Fans swipe the preview, then tap through to this YouTube link.';
+    hint.textContent = 'Fans swipe this video as the preview.';
     clearMp3Queue();
   } else if (type === 'SoundCloud') {
     urlGroup.style.display = 'block';
     if (titleGroup) titleGroup.style.display = 'block';
     label.textContent = 'SoundCloud Link *';
     input.placeholder = 'https://soundcloud.com/you/track';
-    hint.textContent = 'Public track page or share link. Fans tap through to SoundCloud — private tracks will not play.';
+    hint.textContent = 'Public track page or share link. Private tracks will not play.';
     clearMp3Queue();
   } else if (type === 'MP3') {
     mp3Group.style.display = 'block';
@@ -110,7 +131,7 @@ function updatePreviewLabel() {
     const loggedInEl = document.getElementById('uploadLoggedIn');
     if (currentUser) {
       loginHint.style.display  = 'none';
-      loggedInEl.style.display = 'block';
+      loggedInEl.style.display = 'flex';
       if (!_mp3Queue.length) resetUploadUI();
     } else {
       loginHint.style.display  = 'block';
@@ -119,6 +140,7 @@ function updatePreviewLabel() {
   }
   syncSubmitBtnLabel();
   syncQueueFormLayout();
+  syncOptionalBuyStore(type);
 }
 
 const SUBMIT_GENRES = ['Trap','Drill','R&B','Lo-Fi','Afrobeats','Synthwave','Acoustic','Boom Bap','Other'];
@@ -215,40 +237,82 @@ function buyStorePlaceholder(platformId) {
   return BUY_STORE_PLATFORMS.find(p => p.id === platformId)?.placeholder || 'https://...';
 }
 
-function buildBuyStoreFieldHtml({ wrapId, platform, buyLink }) {
-  const pills = BUY_STORE_PLATFORMS.map(p =>
+function buildBuyStoreFieldHtml({ wrapId, platform, buyLink, optional }) {
+  const nonePill = optional
+    ? `<button type="button" class="buy-store-pill filter-pill${!platform ? ' active' : ''}" data-platform="" onclick="selectQueueBuyPlatform('${wrapId}', '')">No store</button>`
+    : '';
+  const pills = nonePill + BUY_STORE_PLATFORMS.map(p =>
     `<button type="button" class="buy-store-pill filter-pill${platform === p.id ? ' active' : ''}" data-platform="${p.id}" onclick="selectQueueBuyPlatform('${wrapId}', '${p.id}')">${p.label}</button>`
   ).join('');
   const showInput = !!platform;
+  const label = optional
+    ? 'Buy link <span class="field-optional">(optional)</span>'
+    : 'Where can people buy this beat? *';
+  const pickHint = optional
+    ? 'Optional — skip if fans should open the preview.'
+    : 'Select where you sell this beat.';
   return `
-    <div class="buy-store-field" data-buy-wrap="${wrapId}">
-      <label class="field-label">Where can people buy this beat? *</label>
+    <div class="buy-store-field${optional ? ' buy-store-field--optional' : ''}" data-buy-wrap="${wrapId}">
+      <label class="field-label">${label}</label>
       <div class="buy-store-pills filter-pills" role="list">${pills}</div>
       <input type="url" class="buy-store-input" value="${escHtml(buyLink || '')}" placeholder="${escHtml(buyStorePlaceholder(platform))}"
         style="display:${showInput ? 'block' : 'none'}" oninput="updateQueueField('${wrapId}', 'buyLink', this.value)">
       <div class="buy-store-hint" style="display:${showInput ? 'block' : 'none'}">Paste the track page — fans leave BeatSwipe to buy there.</div>
-      <div class="buy-store-pick-hint" style="display:${showInput ? 'none' : 'block'}">Select where you sell this beat.</div>
+      <div class="buy-store-pick-hint" style="display:${showInput ? 'none' : 'block'}">${pickHint}</div>
     </div>`;
 }
 
+function syncOptionalBuyStore(previewType) {
+  const buyStore = document.getElementById('submitBuyStore');
+  if (!buyStore) return;
+  if (previewType !== 'YouTube' && previewType !== 'SoundCloud') {
+    buyStore.style.display = 'none';
+    return;
+  }
+  buyStore.style.display = 'block';
+  const wrap = buyStore.querySelector('[data-buy-wrap="single"]');
+  if (!wrap || !wrap.classList.contains('buy-store-field--optional')) {
+    const state = wrap ? getBuyWrapState('single') : { platform: '', buyLink: '' };
+    mountBuyStoreField('submitBuyStore', {
+      wrapId: 'single',
+      platform: state.platform,
+      buyLink: state.buyLink,
+      optional: true
+    });
+  }
+  const pickHint = buyStore.querySelector('.buy-store-pick-hint');
+  if (pickHint) {
+    pickHint.textContent = previewType === 'YouTube'
+      ? 'Optional — skip if fans should open YouTube.'
+      : 'Optional — skip if fans should open SoundCloud.';
+  }
+}
+
 function selectQueueBuyPlatform(wrapId, platform) {
-  const item = _mp3Queue.find(q => q.id === wrapId);
-  if (item) item.buyPlatform = platform;
   const wrap = document.querySelector(`[data-buy-wrap="${wrapId}"]`);
   if (!wrap) return;
+  const item = _mp3Queue.find(q => q.id === wrapId);
+  if (item) item.buyPlatform = platform;
   wrap.querySelectorAll('.buy-store-pill').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.platform === platform);
+    btn.classList.toggle('active', (btn.dataset.platform || '') === (platform || ''));
   });
   const input = wrap.querySelector('.buy-store-input');
   const hint = wrap.querySelector('.buy-store-hint');
   const pickHint = wrap.querySelector('.buy-store-pick-hint');
+  const showInput = !!platform;
   if (input) {
-    input.style.display = 'block';
+    input.style.display = showInput ? 'block' : 'none';
     input.placeholder = buyStorePlaceholder(platform);
-    if (!input.value.trim()) input.focus();
+    if (!showInput) {
+      input.value = '';
+      if (item) item.buyLink = '';
+    } else if (!input.value.trim()) {
+      input.focus();
+    }
   }
-  if (hint) hint.style.display = 'block';
-  if (pickHint) pickHint.style.display = 'none';
+  if (hint) hint.style.display = showInput ? 'block' : 'none';
+  if (pickHint) pickHint.style.display = showInput ? 'none' : 'block';
+  refreshQueueItemChrome(wrapId);
 }
 
 function genreSelectHtml(selected, id, onchange) {
@@ -263,17 +327,19 @@ function typeSelectHtml(selected, id, onchange) {
   return `<select id="${id}" onchange="${onchange}"><option value="">Select type...</option>${opts}</select>`;
 }
 
-function buildQueueSummary(item, index) {
-  const parts = [item.title?.trim() || 'Untitled'];
-  if (item.bpm) parts.push(item.bpm + ' BPM');
-  if (item.genre) parts.push(item.genre);
-  return `Track ${index + 1} · ${parts.join(' · ')}`;
+function syncQueueFormLayout() {
+  const type = document.getElementById('f-preview-type')?.value;
+  const showDetails = type === 'YouTube' || type === 'SoundCloud';
+  const details = document.getElementById('submitDetailsCard');
+  const singleFields = document.getElementById('submitSingleFields');
+  if (details) details.style.display = showDetails ? 'flex' : 'none';
+  if (singleFields) singleFields.style.display = showDetails ? 'block' : 'none';
+  syncUploadDropState();
 }
 
-function syncQueueFormLayout() {
-  const isMp3 = document.getElementById('f-preview-type')?.value === 'MP3';
-  const singleFields = document.getElementById('submitSingleFields');
-  if (singleFields) singleFields.style.display = isMp3 ? 'none' : 'block';
+function syncUploadDropState() {
+  const drop = document.getElementById('uploadDrop');
+  if (drop) drop.classList.toggle('has-files', _mp3Queue.length > 0);
 }
 
 function validateMp3File(file) {
@@ -299,15 +365,23 @@ function renderUploadQueue() {
   }
   wrap.style.display = 'flex';
   _mp3File = _mp3Queue[0].file;
-  wrap.innerHTML = _mp3Queue.map((item, index) => {
+  const n = _mp3Queue.length;
+  const kicker = `<div class="upload-queue-kicker">${n} preview${n === 1 ? '' : 's'} · add title, genre and store for each</div>`;
+  wrap.innerHTML = kicker + _mp3Queue.map((item, index) => {
     const openClass = item.expanded ? ' open' : '';
     const chev = item.expanded ? 'ti-chevron-down' : 'ti-chevron-right';
+    const ready = isQueueItemReady(item);
+    const size = formatFileSize(item.file.size);
     return `
     <div class="upload-queue-acc${openClass}" data-id="${item.id}">
       <button type="button" class="upload-queue-head" onclick="toggleQueueExpand('${item.id}')">
+        <span class="upload-queue-num">${index + 1}</span>
+        <span class="upload-queue-head-text">
+          <span class="upload-queue-summary" id="summary-${item.id}">${escHtml(item.title?.trim() || 'Untitled')}</span>
+          <span class="upload-queue-file">${escHtml(item.file.name)}${size ? ' · ' + size : ''}</span>
+        </span>
+        <span class="upload-queue-status ${ready ? 'is-ready' : 'is-todo'}" id="qstatus-${item.id}">${ready ? 'Ready' : 'Details'}</span>
         <i class="ti upload-queue-chevron ${chev}"></i>
-        <span class="upload-queue-summary" id="summary-${item.id}">${escHtml(buildQueueSummary(item, index))}</span>
-        <span class="upload-queue-file">${escHtml(item.file.name)}</span>
       </button>
       <div class="upload-queue-body" style="display:${item.expanded ? 'block' : 'none'}">
         <div class="upload-queue-fields">
@@ -318,23 +392,25 @@ function renderUploadQueue() {
           </div>
           <div class="upload-queue-row">
             <div>
-              <label class="field-label">BPM <span style="color:var(--text-3);font-weight:400">(optional)</span></label>
+              <label class="field-label">Genre *</label>
+              ${genreSelectHtml(item.genre, 'qg-' + item.id, `updateQueueField('${item.id}', 'genre', this.value)`)}
+            </div>
+            <div>
+              <label class="field-label">Type *</label>
+              ${typeSelectHtml(item.type, 'qt-' + item.id, `updateQueueField('${item.id}', 'type', this.value)`)}
+            </div>
+          </div>
+          <div class="upload-queue-row">
+            <div>
+              <label class="field-label">BPM <span class="field-optional">(optional)</span></label>
               <input type="number" value="${escHtml(item.bpm || '')}" placeholder="140" min="${BPM_MIN}" max="${BPM_MAX}" step="1"
                 oninput="updateQueueField('${item.id}', 'bpm', this.value)">
             </div>
             <div>
-              <label class="field-label">Key <span style="color:var(--text-3);font-weight:400">(optional)</span></label>
+              <label class="field-label">Key <span class="field-optional">(optional)</span></label>
               <input type="text" value="${escHtml(item.key || '')}" placeholder="F# Min"
                 oninput="updateQueueField('${item.id}', 'key', this.value)">
             </div>
-          </div>
-          <div>
-            <label class="field-label">Genre *</label>
-            ${genreSelectHtml(item.genre, 'qg-' + item.id, `updateQueueField('${item.id}', 'genre', this.value)`)}
-          </div>
-          <div>
-            <label class="field-label">Type *</label>
-            ${typeSelectHtml(item.type, 'qt-' + item.id, `updateQueueField('${item.id}', 'type', this.value)`)}
           </div>
           ${buildBuyStoreFieldHtml({ wrapId: item.id, platform: item.buyPlatform || '', buyLink: item.buyLink || '' })}
           <button type="button" class="upload-queue-remove" onclick="removeQueueItem('${item.id}')"><i class="ti ti-trash"></i> Remove</button>
@@ -346,15 +422,25 @@ function renderUploadQueue() {
   syncSubmitBtnLabel();
 }
 
+function refreshQueueItemChrome(id) {
+  const item = _mp3Queue.find(q => q.id === id);
+  if (!item) return;
+  const titleEl = document.getElementById('summary-' + id);
+  if (titleEl) titleEl.textContent = item.title?.trim() || 'Untitled';
+  const statusEl = document.getElementById('qstatus-' + id);
+  if (statusEl) {
+    const ready = isQueueItemReady(item);
+    statusEl.textContent = ready ? 'Ready' : 'Details';
+    statusEl.classList.toggle('is-ready', ready);
+    statusEl.classList.toggle('is-todo', !ready);
+  }
+}
+
 function updateQueueField(id, field, value) {
   const item = _mp3Queue.find(q => q.id === id);
   if (!item) return;
   item[field] = value;
-  if (field === 'title' || field === 'bpm' || field === 'genre') {
-    const idx = _mp3Queue.findIndex(q => q.id === id);
-    const el = document.getElementById('summary-' + id);
-    if (el && idx >= 0) el.textContent = buildQueueSummary(item, idx);
-  }
+  refreshQueueItemChrome(id);
 }
 
 function toggleQueueExpand(id) {
@@ -476,6 +562,7 @@ function resetUploadUI() {
     newInput.onchange = handleFileSelect;
     oldInput.parentNode.replaceChild(newInput, oldInput);
   }
+  syncUploadDropState();
 }
 
 async function getSupabaseAccessToken() {
@@ -670,6 +757,7 @@ async function doSubmitForm() {
   if (!title) { showToast('Please enter a track title.', 'error'); return; }
 
   let previewUrl = '';
+  let buyLinkOverride = '';
   if (previewType === 'YouTube' || previewType === 'SoundCloud') {
     previewUrl = document.getElementById('f-preview')?.value.trim() || '';
     if (previewType === 'SoundCloud' && typeof extractSoundCloudUrl === 'function') {
@@ -677,6 +765,13 @@ async function doSubmitForm() {
     }
     const previewErr = validatePreviewUrl(previewType, previewUrl);
     if (previewErr) { showToast(previewErr, 'error'); return; }
+    const buyState = getBuyWrapState('single');
+    if (buyState.platform || buyState.buyLink) {
+      const plat = buyState.platform || detectBuyPlatform(buyState.buyLink);
+      const buyErr = validateBuyLink(buyState.buyLink, plat);
+      if (buyErr) { showToast(buyErr, 'error'); return; }
+      buyLinkOverride = normalizeBuyLink(buyState.buyLink);
+    }
   }
 
   setSubmitBtnLoading(true, 'Publishing...');
@@ -690,7 +785,7 @@ async function doSubmitForm() {
       type,
       previewType,
       previewUrl,
-      buyLink: previewUrl
+      buyLink: buyLinkOverride || previewUrl
     });
 
     finishSubmitSuccess(1);
@@ -1502,7 +1597,7 @@ function showMyPageAddBeat() {
   if (currentUser) {
     const loggedIn = document.getElementById('uploadLoggedIn');
     const loginHint = document.getElementById('uploadLoginHint');
-    if (loggedIn) loggedIn.style.display = 'block';
+    if (loggedIn) loggedIn.style.display = 'flex';
     if (loginHint) loginHint.style.display = 'none';
   }
   updatePreviewLabel();

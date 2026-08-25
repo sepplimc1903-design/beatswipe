@@ -1622,8 +1622,20 @@
         flex: none;
       }
       body.mypage-active #myPageAddBeat .submit-scroll {
-        padding: 0 var(--px) 28px;
+        padding: 0 0 40px;
       }
+      body.mypage-add-open .add-beat-top { padding: 8px 0 0; }
+      body.mypage-add-open #submitScreen .site-page-head {
+        padding-top: 6px;
+        padding-bottom: 18px;
+      }
+      body.mypage-add-open .add-card {
+        padding: 20px 20px 22px;
+        margin-bottom: 16px;
+      }
+      body.mypage-add-open .preview-type-card { min-height: 96px; padding: 14px 8px; }
+      body.mypage-add-open .preview-type-name { font-size: 13px; }
+      body.mypage-add-open .preview-type-desc { font-size: 11px; }
       body.mypage-active #myPageMain,
       body.mypage-active .my-page-main-col {
         overflow: visible;
@@ -2845,6 +2857,128 @@
     .submit-header { padding: var(--py) var(--px) 14px; flex-shrink: 0; }
     .submit-title { font-size: 20px; font-weight: 700; margin-bottom: 5px; }
     .submit-sub { font-size: 13px; color: var(--text-2); line-height: 1.55; }
+    .preview-type-select {
+      position: absolute;
+      width: 1px; height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+    }
+    .add-beat-top { flex-shrink: 0; padding: 10px var(--px) 0; }
+    .add-beat-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin: 0 0 4px;
+      padding: 6px 2px;
+      background: none;
+      border: none;
+      color: var(--text-2);
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: color 0.15s;
+    }
+    .add-beat-back:hover { color: var(--text); }
+    .add-beat-back i { font-size: 18px; }
+    #myPageAddBeat .site-page-head {
+      display: block;
+      padding: 4px 0 14px;
+    }
+    #myPageAddBeat .site-page-title { margin-bottom: 6px; }
+    #myPageAddBeat .site-page-desc { max-width: 42em; }
+    .add-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      background: rgba(255,255,255,0.03);
+      border: 0.5px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 16px 16px 18px;
+      margin-bottom: 16px;
+    }
+    .add-card-kicker {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent-mid);
+      margin-bottom: 4px;
+    }
+    .add-card-lead {
+      font-size: 13px;
+      color: var(--text-2);
+      line-height: 1.45;
+      margin-bottom: 14px;
+    }
+    .add-card-source { margin-top: 16px; }
+    #preview-mp3-hint { display: none; }
+    #uploadLoggedIn {
+      display: flex;
+      flex-direction: column;
+    }
+    #uploadLoggedIn .upload-queue { order: 1; margin-top: 0; }
+    #uploadLoggedIn .upload-drop.has-files { order: 2; margin-top: 10px; }
+    #uploadLoggedIn .upload-progress-wrap { order: 3; }
+    #uploadLoggedIn .upload-error { order: 4; }
+    .add-card-source.field-group { margin-bottom: 0; }
+    .add-card .field-group:last-child { margin-bottom: 0; }
+    .add-card .field-row > * { min-width: 0; }
+    .field-hint {
+      font-size: 12px;
+      color: var(--text-3);
+      line-height: 1.45;
+      margin-top: 6px;
+    }
+    .field-optional { color: var(--text-3); font-weight: 400; }
+    .preview-type-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .preview-type-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      min-height: 88px;
+      padding: 12px 6px 11px;
+      background: rgba(255,255,255,0.03);
+      border: 0.5px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      color: var(--text-2);
+      cursor: pointer;
+      font-family: inherit;
+      text-align: center;
+      transition: border-color 0.18s, background 0.18s, color 0.18s, box-shadow 0.18s;
+    }
+    .preview-type-card:hover {
+      border-color: rgba(10,132,255,0.35);
+      background: rgba(10,132,255,0.08);
+      color: var(--text);
+    }
+    .preview-type-card.active {
+      border-color: var(--accent);
+      background: var(--accent-light);
+      color: var(--text);
+      box-shadow: 0 0 0 3px rgba(10,132,255,0.16);
+    }
+    .preview-type-icon {
+      width: 32px; height: 32px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(10,132,255,0.12);
+      color: var(--accent-mid);
+      font-size: 18px;
+      margin-bottom: 2px;
+    }
+    .preview-type-icon--yt { background: rgba(255,59,48,0.12); color: #ff6b63; }
+    .preview-type-icon--sc { background: rgba(255,85,0,0.12); color: #ff7a33; }
+    .preview-type-name { font-size: 12px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; line-height: 1.2; }
+    .preview-type-desc { font-size: 10px; color: var(--text-3); line-height: 1.25; }
+    .preview-type-card.active .preview-type-desc { color: var(--text-2); }
     .submit-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 var(--px) 20px; min-height: 0; }
     #myPageMain,
     #myPageAddBeat {
@@ -2870,7 +3004,7 @@
     .submit-btn { width: 100%; padding: 14px; border-radius: 16px; background: var(--accent); border: none; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 6px; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
     .submit-btn:hover { opacity: 0.88; }
     .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-    .my-page-add-actions { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+    .my-page-add-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
     .my-page-add-actions .submit-btn { margin-top: 0; }
     .add-beat-btn {
       width: 100%; padding: 14px; border-radius: 16px;
@@ -4852,11 +4986,30 @@
 
     /* ── MOBILE MICRO-INTERACTIONS (<900px) ── */
     @media (max-width: 899px) {
-      .upload-drop-title--desk { display: none; }
-      .upload-drop-title--mobile { display: inline; }
+      .upload-drop:not(.has-files) .upload-drop-title--desk { display: none; }
+      .upload-drop:not(.has-files) .upload-drop-title--mobile { display: inline; }
+      #myPageAddBeat .buy-store-pills {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      #myPageAddBeat .buy-store-pill {
+        display: flex;
+        width: 100%;
+        justify-content: center;
+        padding: 10px 10px;
+        border-radius: 12px;
+        font-size: 13px;
+      }
+      #myPageAddBeat .buy-store-field--optional .buy-store-pill[data-platform=""] {
+        grid-column: 1 / -1;
+      }
       #submitScreen .site-page-head {
         display: block;
         padding: 16px var(--px) 10px;
+      }
+      #myPageAddBeat .site-page-head {
+        padding: 4px 0 14px;
       }
       #submitScreen .site-page-title {
         font-size: 22px;
@@ -6175,66 +6328,136 @@
 
     /* ── MP3 FILE UPLOAD ── */
     .upload-drop {
-      border: 1.5px dashed var(--border-2); border-radius: 14px;
-      background: var(--bg-2); padding: 22px 16px;
+      border: 1.5px dashed rgba(10,132,255,0.38); border-radius: 16px;
+      background: rgba(10,132,255,0.05); padding: 26px 16px;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 8px; cursor: pointer; transition: border-color 0.2s, background 0.2s;
+      gap: 10px; cursor: pointer; transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
       text-align: center; position: relative;
     }
-    .upload-drop:hover, .upload-drop.dragover { border-color: var(--accent); background: var(--accent-light); }
-    .upload-drop input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
-    .upload-drop i { font-size: 28px; color: var(--accent-mid); }
-    .upload-drop-title { font-size: 14px; font-weight: 600; color: var(--text); }
-    .upload-drop-title--mobile { display: none; }
-    .upload-drop-sub { font-size: 12px; color: var(--text-3); }
-    .upload-file-selected { display: flex; align-items: center; gap: 10px; background: var(--accent-light); border: 0.5px solid rgba(244,63,94,0.3); border-radius: 12px; padding: 12px 14px; margin-top: 8px; }
+    .upload-drop:hover, .upload-drop.dragover {
+      border-color: var(--accent);
+      background: var(--accent-light);
+      box-shadow: 0 0 0 3px rgba(10,132,255,0.12);
+    }
+    .upload-drop-icon {
+      width: 48px; height: 48px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(10,132,255,0.14);
+      color: var(--accent-mid);
+      flex-shrink: 0;
+    }
+    .upload-drop-icon i { font-size: 24px; }
+    .upload-drop-copy { display: flex; flex-direction: column; gap: 4px; align-items: center; min-width: 0; }
+    .upload-drop-title { font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.3; }
+    .upload-drop-title--mobile,
+    .upload-drop-title--more { display: none; }
+    .upload-drop-sub { font-size: 12px; color: var(--text-3); line-height: 1.4; }
+    .upload-drop.has-files {
+      flex-direction: row;
+      justify-content: flex-start;
+      text-align: left;
+      padding: 12px 14px;
+      gap: 12px;
+      background: rgba(255,255,255,0.03);
+      border-style: solid;
+      border-color: rgba(255,255,255,0.1);
+    }
+    .upload-drop.has-files .upload-drop-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+    }
+    .upload-drop.has-files .upload-drop-icon i { font-size: 18px; }
+    .upload-drop.has-files .upload-drop-copy { align-items: flex-start; }
+    .upload-drop.has-files .upload-drop-title--desk,
+    .upload-drop.has-files .upload-drop-title--mobile { display: none; }
+    .upload-drop.has-files .upload-drop-title--more { display: inline; }
+    .upload-drop.has-files .upload-drop-sub { display: none; }
+    .upload-login-hint {
+      background: rgba(255,255,255,0.03);
+      border: 0.5px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 22px 16px;
+      text-align: center;
+    }
+    .upload-login-hint i { font-size: 26px; color: var(--accent-mid); display: block; margin-bottom: 8px; }
+    .upload-login-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .upload-login-sub { font-size: 13px; color: var(--text-2); margin-bottom: 14px; line-height: 1.5; }
+    .upload-login-btn { width: auto; margin: 0 auto; padding: 11px 20px; }
+    .upload-file-selected { display: flex; align-items: center; gap: 10px; background: var(--accent-light); border: 0.5px solid rgba(10,132,255,0.28); border-radius: 12px; padding: 12px 14px; margin-top: 8px; }
     .upload-file-selected i { font-size: 20px; color: var(--accent-mid); flex-shrink: 0; }
     .upload-file-name { font-size: 13px; font-weight: 500; color: var(--accent-mid); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .upload-file-size { font-size: 11px; color: var(--text-3); flex-shrink: 0; }
     .upload-remove { background: none; border: none; color: var(--text-3); cursor: pointer; font-size: 16px; padding: 0 0 0 6px; flex-shrink: 0; transition: color 0.15s; }
     .upload-remove:hover { color: #f87171; }
-    .upload-progress-wrap { margin-top: 8px; display: none; }
-    .upload-progress-bar { height: 4px; background: var(--border-2); border-radius: 100px; overflow: hidden; }
-    .upload-progress-fill { height: 100%; background: var(--accent-mid); border-radius: 100px; width: 0%; transition: width 0.2s linear; }
-    .upload-progress-lbl { font-size: 11px; color: var(--text-3); margin-top: 5px; text-align: center; }
-    .upload-error { font-size: 12px; color: #f87171; margin-top: 6px; display: none; }
-    .upload-queue { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
-    .upload-queue-acc {
-      background: rgba(255,255,255,0.03); border: 0.5px solid var(--border-2);
-      border-radius: 12px; overflow: hidden;
+    .upload-progress-wrap { margin-top: 12px; display: none; }
+    .upload-progress-bar { height: 6px; background: rgba(255,255,255,0.08); border-radius: 100px; overflow: hidden; }
+    .upload-progress-fill { height: 100%; background: var(--accent); border-radius: 100px; width: 0%; transition: width 0.2s linear; }
+    .upload-progress-lbl { font-size: 12px; color: var(--text-2); margin-top: 8px; text-align: center; }
+    .upload-error { font-size: 12px; color: #f87171; margin-top: 8px; display: none; line-height: 1.4; }
+    .upload-queue { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+    .upload-queue-kicker {
+      font-size: 12px; font-weight: 600; color: var(--text-2); line-height: 1.4;
+      padding: 0 2px;
     }
-    .upload-queue-acc.open { border-color: rgba(10,132,255,0.22); }
+    .upload-queue-acc {
+      background: rgba(0,0,0,0.22); border: 0.5px solid rgba(255,255,255,0.08);
+      border-radius: 14px; overflow: hidden;
+    }
+    .upload-queue-acc.open { border-color: rgba(10,132,255,0.35); background: rgba(10,132,255,0.06); }
     .upload-queue-head {
-      width: 100%; display: flex; align-items: center; gap: 8px;
+      width: 100%; display: flex; align-items: center; gap: 10px;
       padding: 12px 12px; background: none; border: none; cursor: pointer;
-      color: var(--text); text-align: left;
+      color: var(--text); text-align: left; font-family: inherit;
     }
     .upload-queue-head:hover { background: rgba(255,255,255,0.03); }
+    .upload-queue-num {
+      width: 26px; height: 26px; border-radius: 8px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(10,132,255,0.16); color: var(--accent-mid);
+      font-size: 12px; font-weight: 700;
+    }
+    .upload-queue-head-text {
+      flex: 1; min-width: 0;
+      display: flex; flex-direction: column; gap: 2px;
+    }
     .upload-queue-chevron { font-size: 16px; color: var(--text-3); flex-shrink: 0; }
     .upload-queue-summary {
-      flex: 1; min-width: 0; font-size: 13px; font-weight: 600;
+      font-size: 14px; font-weight: 600;
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
     .upload-queue-file {
-      font-size: 11px; color: var(--text-3); flex-shrink: 0; max-width: 38%;
+      font-size: 11px; color: var(--text-3);
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
-    .upload-queue-body { padding: 0 12px 12px; display: none; }
+    .upload-queue-status {
+      flex-shrink: 0;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 4px 8px; border-radius: 100px;
+    }
+    .upload-queue-status.is-todo {
+      background: rgba(251,191,36,0.12); color: #fbbf24;
+    }
+    .upload-queue-status.is-ready {
+      background: rgba(34,197,94,0.14); color: #4ade80;
+    }
+    .upload-queue-body { padding: 0 12px 14px; display: none; }
     .upload-queue-acc.open .upload-queue-body { display: block; }
-    .upload-queue-fields { display: flex; flex-direction: column; gap: 10px; }
-    .upload-queue-fields .field-label { font-size: 11px; margin-bottom: 4px; }
+    .upload-queue-fields { display: flex; flex-direction: column; gap: 12px; }
+    .upload-queue-fields .field-label { font-size: 11px; margin-bottom: 5px; }
     .upload-queue-fields input,
     .upload-queue-fields select {
       width: 100%; background: var(--bg-2); border: 0.5px solid var(--border-2);
-      border-radius: 8px; padding: 8px 10px; color: var(--text); font-size: 14px;
+      border-radius: 12px; padding: 10px 12px; color: var(--text); font-size: 14px;
     }
     .upload-queue-fields input:focus,
-    .upload-queue-fields select:focus { outline: none; border-color: var(--accent-mid); }
+    .upload-queue-fields select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(10,132,255,0.18); }
     .upload-queue-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .upload-queue-row > * { min-width: 0; }
     .upload-queue-remove {
-      margin-top: 4px; align-self: flex-start;
+      margin-top: 2px; align-self: flex-start;
       background: none; border: none; color: #f87171;
-      font-size: 12px; cursor: pointer; padding: 4px 0; display: inline-flex; align-items: center; gap: 4px;
+      font-size: 13px; font-weight: 600; cursor: pointer; padding: 8px 0;
+      display: inline-flex; align-items: center; gap: 6px; font-family: inherit;
     }
     .upload-queue-remove:hover { color: #fca5a5; }
     .buy-store-field { display: flex; flex-direction: column; gap: 8px; }
@@ -6248,7 +6471,25 @@
     .buy-store-input:focus { outline: none; border-color: var(--accent-mid); }
     .buy-store-hint,
     .buy-store-pick-hint {
-      font-size: 11px; color: var(--text-3); line-height: 1.4;
+      font-size: 12px; color: var(--text-3); line-height: 1.45;
+    }
+    #myPageAddBeat .buy-store-input {
+      border-radius: 12px;
+      padding: 11px 13px;
+    }
+    #myPageAddBeat .buy-store-pills { margin-bottom: 2px; }
+    @media (max-width: 379px) {
+      .preview-type-desc { display: none; }
+      .preview-type-card { min-height: 74px; padding: 10px 4px; }
+      .upload-queue-status {
+        width: 8px; height: 8px; padding: 0; overflow: hidden;
+        text-indent: -99px; border-radius: 50%;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .preview-type-card,
+      .upload-drop,
+      .add-beat-back { transition: none; }
     }
     .batch-apply-row { margin-top: 10px; }
     .batch-apply-row .btn-secondary {

@@ -15,6 +15,7 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 - **Brand URL immer** `beatswipe.app` — nie nur „BeatSwipe" ohne TLD (Verwechslung mit **beatswipe.net**)
 - Slogan: **Your bio link. Their next beat.**
 - Product: „Your swipe page for the bio" / „Free swipe portfolio for producers"
+- **Insta-DM (Producer, EN):** Kein Link in Nachricht 1 (wirkt wie Scam). Erst fragen (Interesse / private beta key). Nach Ja: nur `https://beatswipe.app/p/demo`. Key `BEATSWIPE25` erst wenn sie ihn wollen — nicht Homepage + Demo + Code + Schritte in einer Bubble. URLs immer mit `https://`.
 - **Konkurrenz:** `beatswipe.net` live seit 25.06.2026 — TikTok-Feed, free downloads, collab; **anderes Produkt** als unsere Producer-`/p/`-Pages. Kontakt dort: `legal@beatswipe.com`. Wir: AT/EU, `hellobeatswipe@gmail.com`, `@beatswipe.app`
 
 ## Product (Phase 1)
@@ -23,7 +24,7 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 - **Home:** Landing + tool marketing; Discover/Favorites exist but invite-gated
 - **Onboarding:** Invite code from Luca (DM) — gated: Discover, Favorites, My Page, Profile. Open: Landing, `/p/*`
 - **Monetization:** none now (student). No cut on beat sales.
-- **Mobile-first** (Instagram traffic). `/p/` keeps beat glow, not app purple wash.
+- **Mobile-first** (Instagram traffic). App-Pages = Landing-Look (true black + blue bloom). `/p/` keeps white aurora + swipe glow, not app blue.
 
 ## Code layout
 
@@ -60,6 +61,7 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 - Auth/profiles: Supabase (RLS on). Favorites: `api/crate.js` + service role
 - Submit: `/api/submit-beat` → Supabase (`mypage.js`); MP3 previews: Storage bucket `beats`
 - UI: English, „Favorites" not Crate, dark-only, glass cards, neutral `.wbar` waveform
+- **Analytics:** Vercel Web Analytics — HTML-Script in `index.html` (`/_vercel/insights/script.js`), **kein** Next.js / `@vercel/analytics`. Cookieless; Privacy + Cookie-Banner erwähnen das. Dashboard: `/` vs `/p/*`.
 
 ## Critical pitfalls (don’t re-break)
 
@@ -90,8 +92,8 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 - **QR code:** `openPortfolioQR()` in `portfolio.js` — CDN `cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js` (**nicht** `qrcode@1.5.4/build/…` — 404)
 - **Moderation:** `api/moderate-beats.js` + `moderate.js`; Admin-Emails via `BEATSWIPE_ADMIN_EMAILS` (Default: `svetina.luca@gmail.com`, `hellobeatswipe@gmail.com`); Profile → Settings → Moderation
 - **Legal:** Impressum + Privacy in Modals; Links auf Landing (Footer mobile+desktop), `/p/` Footer, Cookie-Banner, Profile Settings; `openLegalModal()` mit Tabs — **z-index 450** (über Cookie-Banner 350); Landing-Footer mobile: `#landScreen .site-footer` nicht global `display:none`
-- **Landing hero demo:** Discover-like card (waveform + skip/save) — **keine** SKIP/SAVE-Stempel; `initHeroDemoCard()` in `app.js`. Topbar black-fade wie andere Seiten via `body:not(.portfolio-active) .bg-desktop::before` (site-scroll inkl. Landing)
-- **Landing bg:** `portfolio-ambient` **nicht** global auf Laptop — nur `portfolio-active` / `/p/` boot
+- **Landing hero demo:** Discover-like card (waveform + skip/save) — **keine** SKIP/SAVE-Stempel; `initHeroDemoCard()` in `app.js`. Topbar black-fade via `body:not(.portfolio-active) .bg-desktop::before`
+- **Landing bg:** `portfolio-ambient` **nicht** global auf Laptop — nur `portfolio-active` / `/p/` boot. Discover-Ambient-Glow = blau (`rgba(10,132,255,…)`) wie Homepage, nicht weiß.
 - **`.site-page-head` / `.land-section-head` unsichtbar am Laptop:** alte Regel `.site-page-head, .hero-visual, .land-section-head { display:none; }` stand **ohne** Media Query nach den 900px-„show"-Regeln → gewann immer (gleiche Spezifität, später im File). Fix: in `@media (max-width: 899px)` verschoben. Bei neuen globalen `display:none`-Defaults immer prüfen, ob sie **vor** den Desktop-Overrides stehen oder selbst media-gated sind. **Umkehrfall (2026-07-05):** `.faq-title-mobile` hatte eine **globale** `display:block`-Regel (id+2 Klassen, spät im File) → schlug das media-gated Desktop-`display:none` → doppelter FAQ-Titel am Laptop. Merke: „mobile-only" sichtbare Elemente ihre `display:block`-Regel **in** die Mobile-Query legen, nicht global. **Landing-Mobile:** dieselbe Hide-Regel hat How it works / Platforms / FAQ ohne Titel gelassen — `#landScreen .land-section-head { display:block }` in der Mobile-Query; kein `.faq-title-mobile`.
 - **Sidebar-Höhe uneinheitlich (Profile/Favorites vs. My Page):** Profile/Favorites rendern `.site-page-head` **außerhalb** vom Grid (Sidebar startet auf Höhe vom ersten Content), My Page rendert den Titel **innerhalb** der Hauptspalte per JS (`mypage.js`, mehrere `render...()`-Funktionen) → Sidebar sonst auf Höhe vom Titel-Text statt Content. Fix: `renderMyPageSidePanel()` misst `#myPageMain .site-page-head` Höhe zur Laufzeit und setzt sie als `margin-top` auf `#myPageSidePanel`.
 - **Portfolio social icons:** `buildPortfolioSocialsHTML()` — Instagram-Gradient braucht **eindeutige** `linearGradient`-IDs pro Instanz (Header + Sidepanel = 2×); sonst leerer Button. TikTok = Mehrfarben-SVG (nicht `ti-brand-tiktok`).
@@ -107,20 +109,20 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 
 ## Aktuell (2026-08-25)
 
-- **Live:** Private Beta. Upload sofort auf `/p/`. Buy-Link Pflicht. Landing-Stats versteckt bis ≥8 Beats / ≥3 Producer.
-- **Look:** App (Home, Discover, Favorites, My Page, Profile) = Insta-v2 true black + blue bloom. `/p/` bleibt White-Aurora + Vignette + Swipe-Glow. Stores nur BeatStars / Airbit / Traktrain. Generated Covers; Hero → `/p/demo`.
+- **Live:** Private Beta. Upload sofort auf `/p/`. Buy-Link Pflicht bei MP3, optional bei YouTube/SoundCloud. Landing-Stats versteckt bis ≥8 Beats / ≥3 Producer.
+- **Upload:** Type-Karten (MP3 / YouTube / SoundCloud), Queue mit Details/Ready. Title auf Laptop sichtbar.
+- **Look:** App-Pages = Homepage (true black + blue bloom). `/p/` = White-Aurora + Vignette + Swipe-Glow. Stores BeatStars / Airbit / Traktrain. Generated Covers; Hero → `/p/demo`.
 - **Demo:** `beatswipe.app/p/demo` öffentlich (Pixabay, Display-Name Demo). `/p/clyriax` bleibt Lucas echte Page.
-- **Analytics:** Vercel Web Analytics (HTML-Script, cookieless). Dashboard: `/` vs `/p/*`.
-- **Insta:** Carousel bereit (`marketing/insta-v2/ig/`) — Caption `/p/demo`. DM: erst fragen, dann Demo, dann Key. Alte lila Posts in `insta-posts/` nicht verwenden.
-- **Offen:** Testdaten auf `/p/clyriax`. Carousel noch nicht gepostet.
+- **Analytics:** Vercel Web Analytics live (HTML-Script, cookieless).
+- **Insta:** Carousel bereit (`marketing/insta-v2/ig/`) — Caption `/p/demo`. DM: fragen → Demo → Key. Alte lila Posts in `insta-posts/` nicht verwenden.
+- **Offen:** Testdaten auf `/p/clyriax`. Carousel noch nicht gepostet. Producer-DMs noch nicht raus.
 
 ## Nächster Schritt
 
-1. Live prüfen: `beatswipe.app` öffnen, dann Vercel Analytics (kein Get-Started mehr)
-2. Insta-Carousel posten (`marketing/insta-v2/ig/` — Caption `/p/demo`)
-3. Testdaten auf My Page runter (`wtf`, 2 BPM, `tiktok.com` …)
-4. Echte Beats auf `/p/clyriax` — 2–3 Producer per DM anschreiben (Demo erst nach Antwort)
-5. Später: Invite-Gate pausieren (`INVITE_GATE_PAUSED = true`)
+1. Insta-Carousel posten (`marketing/insta-v2/ig/` — Caption `/p/demo`)
+2. Testdaten auf My Page runter (`wtf`, 2 BPM, `tiktok.com` …)
+3. Echte Beats auf `/p/clyriax` — dann 2–3 Producer per DM (erst fragen, kein Link in Nachricht 1)
+4. Später: Invite-Gate pausieren (`INVITE_GATE_PAUSED = true`)
 
 ## Rules pflegen (Agent)
 

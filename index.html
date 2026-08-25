@@ -550,106 +550,129 @@
       <aside class="my-page-side-panel" id="myPageSidePanel" aria-label="Page actions" hidden></aside>
     </div>
     <div id="myPageAddBeat" style="display:none">
-    <div class="submit-header" style="padding-top:0">
-      <button type="button" class="my-page-back" onclick="hideMyPageAddBeat()"><i class="ti ti-arrow-left"></i> Back to My Page</button>
-      <div class="submit-title">Add new beat</div>
-      <div class="submit-sub">Short preview only (~30–60s for MP3) — not the full beat. Goes live on your page as soon as you add it.</div>
+    <div class="add-beat-top">
+      <button type="button" class="add-beat-back" onclick="hideMyPageAddBeat()"><i class="ti ti-arrow-left"></i> My Page</button>
+      <div class="site-page-head">
+        <h1 class="site-page-title">Add new beat</h1>
+        <p class="site-page-desc">Goes live on your page right away. Use a short preview — not the full beat.</p>
+      </div>
     </div>
     <div class="submit-scroll" id="submitForm">
       <input type="hidden" id="f-producer">
-      <div class="field-group">
-        <label class="field-label">Preview type *</label>
-        <select id="f-preview-type" onchange="updatePreviewLabel()">
-          <option value="">Select type...</option>
-          <option value="YouTube">YouTube</option>
-          <option value="SoundCloud">SoundCloud</option>
-          <option value="MP3">MP3 — upload preview clip</option>
-        </select>
-      </div>
+      <select id="f-preview-type" class="preview-type-select" onchange="updatePreviewLabel()" tabindex="-1" aria-hidden="true">
+        <option value="">Select type...</option>
+        <option value="YouTube">YouTube</option>
+        <option value="SoundCloud">SoundCloud</option>
+        <option value="MP3">MP3 — upload preview clip</option>
+      </select>
 
-      <!-- URL preview (YouTube / SoundCloud) -->
-      <div class="field-group" id="preview-url-group" style="display:none">
-        <label class="field-label" id="preview-url-label">Preview URL *</label>
-        <input type="url" id="f-preview" placeholder="https://...">
-        <div id="preview-hint" style="font-size:11px;color:var(--text-3);margin-top:5px"></div>
-      </div>
-
-      <!-- MP3 File Upload -->
-      <div class="field-group" id="preview-mp3-group" style="display:none">
-        <label class="field-label">MP3 preview *</label>
-        <div id="preview-mp3-hint" style="font-size:11px;color:var(--text-3);margin-top:5px;margin-bottom:10px">Preview only — short clip (~30–60s), not the full beat.</div>
-
-        <!-- shown when NOT logged in -->
-        <div id="uploadLoginHint" style="display:none;background:var(--bg-2);border:0.5px solid var(--border-2);border-radius:14px;padding:18px 16px;text-align:center">
-          <i class="ti ti-lock" style="font-size:26px;color:var(--accent-mid);display:block;margin-bottom:8px"></i>
-          <div style="font-size:14px;font-weight:600;margin-bottom:4px">Account required</div>
-          <div style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.5">Create a free account to upload MP3 preview clips (~30–60s).</div>
-          <button onclick="goTo('profileScreen','navProfile')" style="padding:10px 22px;border-radius:10px;background:var(--accent);border:none;color:#fff;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
-            <i class="ti ti-user"></i> Create account
+      <section class="add-card">
+        <div class="add-card-kicker">Preview</div>
+        <p class="add-card-lead">How fans hear this beat while they swipe.</p>
+        <div class="preview-type-grid" role="radiogroup" aria-label="Preview type">
+          <button type="button" class="preview-type-card" role="radio" aria-checked="false" data-type="MP3" onclick="selectPreviewType('MP3')">
+            <span class="preview-type-icon"><i class="ti ti-file-music"></i></span>
+            <span class="preview-type-name">MP3 clip</span>
+            <span class="preview-type-desc">Upload 30–60s</span>
+          </button>
+          <button type="button" class="preview-type-card" role="radio" aria-checked="false" data-type="YouTube" onclick="selectPreviewType('YouTube')">
+            <span class="preview-type-icon preview-type-icon--yt"><i class="ti ti-brand-youtube"></i></span>
+            <span class="preview-type-name">YouTube</span>
+            <span class="preview-type-desc">Paste a video</span>
+          </button>
+          <button type="button" class="preview-type-card" role="radio" aria-checked="false" data-type="SoundCloud" onclick="selectPreviewType('SoundCloud')">
+            <span class="preview-type-icon preview-type-icon--sc"><i class="ti ti-brand-soundcloud"></i></span>
+            <span class="preview-type-name">SoundCloud</span>
+            <span class="preview-type-desc">Paste a track</span>
           </button>
         </div>
 
-        <!-- shown when logged in -->
-        <div id="uploadLoggedIn" style="display:none">
-          <div class="upload-drop" id="uploadDrop" onclick="document.getElementById('f-mp3-file').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
-            <input type="file" id="f-mp3-file" accept="audio/mpeg,audio/mp3,.mp3,audio/*" multiple style="display:none" onchange="handleFileSelect(event)">
-            <i class="ti ti-file-music"></i>
-            <div class="upload-drop-title">
-              <span class="upload-drop-title--desk">Drop preview MP3s here or click to select</span>
-              <span class="upload-drop-title--mobile">Tap to select MP3s</span>
+        <div class="field-group add-card-source" id="preview-url-group" style="display:none">
+          <label class="field-label" id="preview-url-label">Preview URL *</label>
+          <input type="url" id="f-preview" placeholder="https://...">
+          <div class="field-hint" id="preview-hint"></div>
+        </div>
+
+        <div class="add-card-source" id="preview-mp3-group" style="display:none">
+          <p class="field-hint" id="preview-mp3-hint">Preview only — short clip (~30–60s), not the full beat.</p>
+
+          <div class="upload-login-hint" id="uploadLoginHint" style="display:none">
+            <i class="ti ti-lock"></i>
+            <div class="upload-login-title">Account required</div>
+            <div class="upload-login-sub">Create a free account to upload MP3 preview clips (~30–60s).</div>
+            <button type="button" class="submit-btn upload-login-btn" onclick="goTo('profileScreen','navProfile')">
+              <i class="ti ti-user"></i> Create account
+            </button>
+          </div>
+
+          <div id="uploadLoggedIn" style="display:none">
+            <div class="upload-drop" id="uploadDrop" onclick="document.getElementById('f-mp3-file').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+              <input type="file" id="f-mp3-file" accept="audio/mpeg,audio/mp3,.mp3,audio/*" multiple style="display:none" onchange="handleFileSelect(event)">
+              <span class="upload-drop-icon"><i class="ti ti-cloud-upload"></i></span>
+              <div class="upload-drop-copy">
+                <div class="upload-drop-title">
+                  <span class="upload-drop-title--desk">Drop preview MP3s here or click to select</span>
+                  <span class="upload-drop-title--mobile">Tap to select MP3s</span>
+                  <span class="upload-drop-title--more">Add another preview</span>
+                </div>
+                <div class="upload-drop-sub">Preview clips only · ~30–60s · MP3 · max. 15 MB</div>
+              </div>
             </div>
-            <div class="upload-drop-sub">Preview only · ~30–60s each · not full beats · max. 15 MB</div>
+            <div class="upload-queue" id="uploadQueue" style="display:none"></div>
+            <div class="upload-progress-wrap" id="uploadProgressWrap">
+              <div class="upload-progress-bar"><div class="upload-progress-fill" id="uploadProgressFill"></div></div>
+              <div class="upload-progress-lbl" id="uploadProgressLbl">Uploading...</div>
+            </div>
+            <div class="upload-error" id="uploadError"></div>
           </div>
-          <div class="upload-queue" id="uploadQueue" style="display:none"></div>
-          <div class="upload-progress-wrap" id="uploadProgressWrap">
-            <div class="upload-progress-bar"><div class="upload-progress-fill" id="uploadProgressFill"></div></div>
-            <div class="upload-progress-lbl" id="uploadProgressLbl">Uploading...</div>
+        </div>
+      </section>
+
+      <section class="add-card" id="submitDetailsCard" style="display:none">
+        <div class="add-card-kicker">Details</div>
+        <p class="add-card-lead">What fans see on the swipe card.</p>
+        <div class="field-group" id="single-title-group" style="display:none">
+          <label class="field-label">Track title *</label>
+          <input type="text" id="f-title" placeholder="e.g. Midnight Drive" maxlength="80">
+        </div>
+        <div id="submitSingleFields">
+        <div class="field-group field-row">
+          <div>
+            <label class="field-label">Genre *</label>
+            <select id="f-genre">
+              <option value="">Select genre...</option>
+              <option>Trap</option><option>Drill</option><option>R&B</option>
+              <option>Lo-Fi</option><option>Afrobeats</option><option>Synthwave</option>
+              <option>Acoustic</option><option>Boom Bap</option><option>Other</option>
+            </select>
           </div>
-          <div class="upload-error" id="uploadError"></div>
+          <div>
+            <label class="field-label">Type *</label>
+            <select id="f-type">
+              <option value="">Select type...</option>
+              <option>Full Beat</option>
+              <option>Loop</option>
+              <option>Drum Kit</option>
+              <option>Sample</option>
+            </select>
+          </div>
         </div>
-      </div>
-
-      <div class="field-group" id="single-title-group" style="display:none">
-        <label class="field-label">Track title *</label>
-        <input type="text" id="f-title" placeholder="e.g. Midnight Drive" maxlength="80">
-      </div>
-
-      <div id="submitSingleFields">
-      <div class="field-group">
-        <label class="field-label">Genre *</label>
-        <select id="f-genre">
-          <option value="">Select genre...</option>
-          <option>Trap</option><option>Drill</option><option>R&B</option>
-          <option>Lo-Fi</option><option>Afrobeats</option><option>Synthwave</option>
-          <option>Acoustic</option><option>Boom Bap</option><option>Other</option>
-        </select>
-      </div>
-      <div class="field-group">
-        <label class="field-label">Type *</label>
-        <select id="f-type">
-          <option value="">Select type...</option>
-          <option>Full Beat</option>
-          <option>Loop</option>
-          <option>Drum Kit</option>
-          <option>Sample</option>
-        </select>
-      </div>
-      <div class="field-group field-row" id="submitBpmRow">
-        <div>
-          <label class="field-label">BPM <span style="color:var(--text-3);font-weight:400">(optional)</span></label>
-          <input type="number" id="f-bpm" placeholder="140" min="40" max="240" step="1">
+        <div class="field-group field-row" id="submitBpmRow">
+          <div>
+            <label class="field-label">BPM <span class="field-optional">(optional)</span></label>
+            <input type="number" id="f-bpm" placeholder="140" min="40" max="240" step="1">
+          </div>
+          <div>
+            <label class="field-label">Key <span class="field-optional">(optional)</span></label>
+            <input type="text" id="f-key" placeholder="F# Min">
+          </div>
         </div>
-        <div>
-          <label class="field-label">Key <span style="color:var(--text-3);font-weight:400">(optional)</span></label>
-          <input type="text" id="f-key" placeholder="F# Min">
+        <div class="field-group" id="submitBuyStore"></div>
         </div>
-      </div>
-      <div class="field-group" id="submitBuyStore"></div>
-      </div>
+      </section>
       <div class="my-page-add-actions">
-        <button type="button" class="add-beat-btn" id="addBeatBtn" onclick="addAnotherBeat()" hidden><i class="ti ti-plus"></i> Add beat</button>
+        <button type="button" class="add-beat-btn" id="addBeatBtn" onclick="addAnotherBeat()" hidden><i class="ti ti-plus"></i> Add another MP3</button>
         <button type="button" class="submit-btn" id="submitBeatBtn" onclick="doSubmitForm()"><i class="ti ti-upload"></i> Upload</button>
-        <button type="button" class="btn-secondary my-page-back" onclick="hideMyPageAddBeat()" style="margin:0;width:100%;justify-content:center"><i class="ti ti-arrow-left"></i> Back to My Page</button>
       </div>
       <div class="success-msg" id="successMsg">
         <i class="ti ti-circle-check"></i>
