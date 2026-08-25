@@ -105,20 +105,21 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 
 - **Landing ambient:** `body.land-active` + `html:not(.portfolio-route-boot)` — true black + blue bloom (Insta-v2). White aurora bleibt auf App-Pages und `/p/`. Nie Landing-Blau auf Portfolio.
 
-## Aktuell (2026-08-24)
+## Aktuell (2026-08-25)
 
 - **Live:** Private Beta. Upload sofort auf `/p/`. Buy-Link Pflicht. Landing-Stats versteckt bis ≥8 Beats / ≥3 Producer.
 - **Look:** Landing an Insta-v2 (true black + blue bloom). Stores nur BeatStars / Airbit / Traktrain. Generated Covers; `/p/` Vignette + Swipe-Glow; Hero → `/p/demo`.
 - **Demo:** `beatswipe.app/p/demo` öffentlich (Pixabay, Display-Name Demo). `/p/clyriax` bleibt Lucas echte Page.
-- **Insta:** Carousel bereit (`marketing/insta-v2/ig/`) — Caption `/p/demo`. Alte lila Posts in `insta-posts/` nicht verwenden.
+- **Analytics:** Vercel Web Analytics (HTML-Script, cookieless). Dashboard: `/` vs `/p/*`.
+- **Insta:** Carousel bereit (`marketing/insta-v2/ig/`) — Caption `/p/demo`. DM: erst fragen, dann Demo, dann Key. Alte lila Posts in `insta-posts/` nicht verwenden.
 - **Offen:** Testdaten auf `/p/clyriax`. Carousel noch nicht gepostet.
 
 ## Nächster Schritt
 
-1. Hard-Refresh live: `beatswipe.app/p/demo` (Swipe, Audio, Buy, Done)
-2. Insta-Carousel posten (`marketing/insta-v2/ig/` — Caption `/p/demo`, JPGs ggf. neu rendern)
+1. Live prüfen: `beatswipe.app` öffnen, dann Vercel Analytics (kein Get-Started mehr)
+2. Insta-Carousel posten (`marketing/insta-v2/ig/` — Caption `/p/demo`)
 3. Testdaten auf My Page runter (`wtf`, 2 BPM, `tiktok.com` …)
-4. Echte Beats auf `/p/clyriax` — dann 2–3 Producer anschreiben (Link: `beatswipe.app/p/demo`)
+4. Echte Beats auf `/p/clyriax` — 2–3 Producer per DM anschreiben (Demo erst nach Antwort)
 5. Später: Invite-Gate pausieren (`INVITE_GATE_PAUSED = true`)
 
 ## Rules pflegen (Agent)

@@ -91,6 +91,10 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="/styles.css">
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body class="invite-locked land-active">
 
@@ -800,7 +804,7 @@
         </p>
 
         <h3>2. Overview</h3>
-        <p>We process personal data only as needed to operate BeatSwipe — account login, producer profiles, saved favorites, and beat uploads. We do not sell your data and do not use third-party advertising or analytics trackers.</p>
+        <p>We process personal data only as needed to operate BeatSwipe — account login, producer profiles, saved favorites, and beat uploads. We do not sell your data and do not use advertising cookies or third-party ad trackers. We use Vercel Web Analytics (cookieless, anonymized page views on our own domain) to see which pages are visited.</p>
         <p>Producers see aggregate counts of portfolio page views, saves, and buy-link clicks for their own page only. These stats do not identify individual visitors and are not shared with ad networks. The public sample page (beatswipe.app/p/demo) is not tracked.</p>
 
         <h3>3. Data we collect</h3>
@@ -812,6 +816,7 @@
           <li><strong>Technical:</strong> IP address and server logs from our hosting provider (for security and operation)</li>
           <li><strong>Local storage:</strong> login session, swipe progress, cookie preference, invite flag, guest save hint (stored in your browser)</li>
           <li><strong>Portfolio stats (producers only):</strong> anonymous event counts (page views, saves, buy clicks) — no fan names or emails. Not collected on the public demo page.</li>
+          <li><strong>Site analytics:</strong> anonymized page views via Vercel Web Analytics (no cookies; visitor counts are hashed, not names or emails)</li>
           <li><strong>Session storage:</strong> one page-view count per portfolio per browser session (deduplication only); producer sign-up intent while you complete invite / sign-up</li>
         </ul>
 
@@ -820,6 +825,7 @@
           <li><strong>Account &amp; favorites:</strong> performance of our service (Art. 6(1)(b))</li>
           <li><strong>Producer profile &amp; uploads:</strong> performance of our service (Art. 6(1)(b))</li>
           <li><strong>Portfolio stats:</strong> legitimate interest in giving producers basic feedback on their page (Art. 6(1)(f)) — aggregate only, no visitor profiles</li>
+          <li><strong>Site analytics:</strong> legitimate interest in understanding which pages are used (Art. 6(1)(f)) — cookieless, anonymized, no advertising</li>
           <li><strong>Sign-up:</strong> your consent to store your email (Art. 6(1)(a))</li>
           <li><strong>Security &amp; hosting logs:</strong> legitimate interest in operating a secure service (Art. 6(1)(f))</li>
         </ul>
@@ -829,7 +835,7 @@
         <ul>
           <li><strong>Supabase</strong> — authentication, beat catalogue, database, file storage (<a href="https://supabase.com/privacy" target="_blank" rel="noopener">Privacy Policy</a>)</li>
           <li><strong>Google</strong> — optional sign-in only (<a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Privacy Policy</a>)</li>
-          <li><strong>Vercel</strong> — website hosting (<a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener">Privacy Policy</a>)</li>
+          <li><strong>Vercel</strong> — website hosting and cookieless Web Analytics (<a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener">Privacy Policy</a>, <a href="https://vercel.com/docs/analytics/privacy-policy" target="_blank" rel="noopener">Web Analytics privacy</a>)</li>
           <li><strong>jsDelivr</strong> — delivery of open-source scripts and icons (Supabase client, Tabler icons, optional QR code) (<a href="https://www.jsdelivr.com/privacy-policy-jsdelivr-net" target="_blank" rel="noopener">Privacy Policy</a>)</li>
         </ul>
 
@@ -856,6 +862,7 @@
           <li>Server logs: typically up to 30 days (hosting provider default)</li>
           <li>Beat uploads: while your account exists (new uploads go live immediately). Items held for review until approved, rejected, or deleted</li>
           <li>Portfolio stats events: retained while the producer account exists; deleted when the account is deleted</li>
+          <li>Site analytics (Vercel): aggregated page-view data in the Vercel dashboard (Hobby: typically ~1 month of history)</li>
         </ul>
 
         <h3>10. Your rights</h3>
@@ -1093,7 +1100,7 @@
   <div class="cookie-banner" id="cookieBanner">
     <div class="cookie-inner">
       <div class="cookie-text">
-        We only use essential storage (login session, swipe progress, cookie preference, invite flag). No tracking or advertising cookies.
+        We only use essential storage (login session, swipe progress, cookie preference, invite flag). No tracking or advertising cookies. Page views are measured cookieless by our host (Vercel).
         <a href="#legal" onclick="event.preventDefault();openLegalModal('impressumModal')">Legal Notice</a>
         ·
         <a href="#privacy" onclick="event.preventDefault();openLegalModal('privacyModal')">Privacy Policy</a>
