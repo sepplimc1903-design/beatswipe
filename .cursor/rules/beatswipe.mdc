@@ -24,7 +24,7 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 - **Home:** Landing + tool marketing; Discover/Favorites exist but invite-gated
 - **Onboarding:** Invite code from Luca (DM) — gated: Discover, Favorites, My Page, Profile. Open: Landing, `/p/*`
 - **Monetization:** none now (student). No cut on beat sales.
-- **Mobile-first** (Instagram traffic). App-Pages = Landing-Look (true black + blue bloom). `/p/` keeps white aurora + swipe glow, not app blue.
+- **Mobile-first** (Instagram traffic). App-Pages = Landing-Look (charcoal `#0E0E12` + blue bloom). `/p/` keeps white aurora + swipe glow, not app blue.
 
 ## Code layout
 
@@ -93,7 +93,7 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 - **Moderation:** `api/moderate-beats.js` + `moderate.js`; Admin-Emails via `BEATSWIPE_ADMIN_EMAILS` (Default: `svetina.luca@gmail.com`, `hellobeatswipe@gmail.com`); Profile → Settings → Moderation
 - **Legal:** Impressum + Privacy in Modals; Links auf Landing (Footer mobile+desktop), `/p/` Footer, Cookie-Banner, Profile Settings; `openLegalModal()` mit Tabs — **z-index 450** (über Cookie-Banner 350); Landing-Footer mobile: `#landScreen .site-footer` nicht global `display:none`
 - **Landing hero demo:** Discover-like card (waveform + skip/save) — **keine** SKIP/SAVE-Stempel; `initHeroDemoCard()` in `app.js`. Topbar black-fade via `body:not(.portfolio-active) .bg-desktop::before`
-- **Landing bg:** `portfolio-ambient` **nicht** global auf Laptop — nur `portfolio-active` / `/p/` boot. Discover-Ambient-Glow = blau (`rgba(10,132,255,…)`) wie Homepage, nicht weiß.
+- **Landing bg:** `portfolio-ambient` **nicht** global auf Laptop — nur `portfolio-active` / `/p/` boot. Discover-Laptop: **kein** Ambient-Kreis hinter der Card (`.discover-ambient` aus; `#cardGlow` idle `opacity: 0` wie `/p/`, nur beim Swipe). Handy-Discover darf Idle-Glow behalten.
 - **`.site-page-head` / `.land-section-head` unsichtbar am Laptop:** alte Regel `.site-page-head, .hero-visual, .land-section-head { display:none; }` stand **ohne** Media Query nach den 900px-„show"-Regeln → gewann immer (gleiche Spezifität, später im File). Fix: in `@media (max-width: 899px)` verschoben. Bei neuen globalen `display:none`-Defaults immer prüfen, ob sie **vor** den Desktop-Overrides stehen oder selbst media-gated sind. **Umkehrfall (2026-07-05):** `.faq-title-mobile` hatte eine **globale** `display:block`-Regel (id+2 Klassen, spät im File) → schlug das media-gated Desktop-`display:none` → doppelter FAQ-Titel am Laptop. Merke: „mobile-only" sichtbare Elemente ihre `display:block`-Regel **in** die Mobile-Query legen, nicht global. **Landing-Mobile:** dieselbe Hide-Regel hat How it works / Platforms / FAQ ohne Titel gelassen — `#landScreen .land-section-head { display:block }` in der Mobile-Query; kein `.faq-title-mobile`.
 - **Sidebar-Höhe uneinheitlich (Profile/Favorites vs. My Page):** Profile/Favorites rendern `.site-page-head` **außerhalb** vom Grid (Sidebar startet auf Höhe vom ersten Content), My Page rendert den Titel **innerhalb** der Hauptspalte per JS (`mypage.js`, mehrere `render...()`-Funktionen) → Sidebar sonst auf Höhe vom Titel-Text statt Content. Fix: `renderMyPageSidePanel()` misst `#myPageMain .site-page-head` Höhe zur Laufzeit und setzt sie als `margin-top` auf `#myPageSidePanel`.
 - **Portfolio social icons:** `buildPortfolioSocialsHTML()` — Instagram-Gradient braucht **eindeutige** `linearGradient`-IDs pro Instanz (Header + Sidepanel = 2×); sonst leerer Button. TikTok = Mehrfarben-SVG (nicht `ti-brand-tiktok`).
@@ -105,13 +105,13 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 - **`/p/` mobile overflow:** `#portfolioPageInner` ist CSS-Grid (`min-width: auto`) — nowrap-Titel in der Done-Liste weiten die Spalte über den Viewport, `overflow-x: hidden` clippt dann links/rechts. Handy: Grid-Items `min-width: 0; max-width: 100%`. Glow auf Mobile nicht 120%+ (sonst ~20px Seiten-Scroll). Platform-Grid auf Home nicht als Horizontal-Carousel (leakt Page-Scroll).
 - **`/p/` mobile header:** Bio ausblenden (nicht line-clamp) — am Handy nicht lesbar. Desktop: Bio in der Sidepanel. Display-Name Demo = `Demo`, Slug bleibt `/p/demo`.
 
-- **App ambient:** `html:not(.portfolio-route-boot) body:not(.portfolio-active)` — true black + blue bloom (Insta-v2) auf Landing **und** App-Pages. White aurora nur auf `/p/` (`portfolio-active` / `portfolio-route-boot`). Nie Landing-Blau auf Portfolio.
+- **App ambient:** `html:not(.portfolio-route-boot) body:not(.portfolio-active)` — charcoal `#0E0E12` + blue bloom auf Landing **und** App-Pages (nicht reines `#000`). White aurora nur auf `/p/` (`portfolio-active` / `portfolio-route-boot`). Nie Landing-Blau auf Portfolio.
 
 ## Aktuell (2026-08-25)
 
 - **Live:** Private Beta. Upload sofort auf `/p/`. Buy-Link Pflicht bei MP3, optional bei YouTube/SoundCloud. Landing-Stats versteckt bis ≥8 Beats / ≥3 Producer.
 - **Upload:** Type-Karten (MP3 / YouTube / SoundCloud), Queue mit Details/Ready. Title auf Laptop sichtbar.
-- **Look:** App-Pages = Homepage (true black + blue bloom). `/p/` = White-Aurora + Vignette + Swipe-Glow. Stores BeatStars / Airbit / Traktrain. Generated Covers; Hero → `/p/demo`.
+- **Look:** App-Pages = Homepage (charcoal `#0E0E12` + blue bloom, nicht reines Schwarz). `/p/` = White-Aurora + Vignette + Swipe-Glow. Discover-Laptop ohne Ambient-Kreis hinter der Card. Stores BeatStars / Airbit / Traktrain. Generated Covers; Hero → `/p/demo`.
 - **Demo:** `beatswipe.app/p/demo` öffentlich (Pixabay, Display-Name Demo). `/p/clyriax` bleibt Lucas echte Page.
 - **Analytics:** Vercel Web Analytics live (HTML-Script, cookieless).
 - **Insta:** Carousel bereit (`marketing/insta-v2/ig/`) — Caption `/p/demo`. DM: fragen → Demo → Key. Alte lila Posts in `insta-posts/` nicht verwenden.

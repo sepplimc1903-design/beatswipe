@@ -1856,7 +1856,7 @@ function renderCard(opts) {
     if (!glow) return;
     glow.style.transition = '';
     glow.style.transform = 'translate(-50%, -50%) scale(1)';
-    glow.style.opacity = _portfolioMode ? '0' : '0.32';
+    glow.style.opacity = (_portfolioMode || !isMobileUI()) ? '0' : '0.32';
     glow.classList.remove('glow-toward-save', 'glow-toward-skip');
   }
 

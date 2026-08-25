@@ -752,23 +752,9 @@
         filter: blur(56px);
         opacity: 0.62;
       }
-      body.discover-active .discover-ambient {
-        display: block;
-        position: fixed;
-        top: var(--topbar-h); left: 0; right: 0; bottom: 0;
-        z-index: 0;
-      }
+      body.discover-active .discover-ambient,
       body.discover-active .discover-ambient-glow {
-        display: block;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: min(78vw, 980px);
-        height: min(70vh, 760px);
-        transform: translate(-50%, -50%);
-        background: radial-gradient(ellipse at center, rgba(10,132,255,0.16) 0%, rgba(10,132,255,0.05) 46%, transparent 74%);
-        filter: blur(10px);
-        pointer-events: none;
+        display: none;
       }
       .discover-side-hint {
         position: absolute;
@@ -898,7 +884,7 @@
         top: 46%;
         width: 82%;
         height: 58%;
-        opacity: 0.32;
+        opacity: 0;
         filter: blur(52px);
       }
       body.discover-active #discoverScreen .card-glow.glow-toward-save,
@@ -2118,9 +2104,12 @@
     .wordmark b { color: var(--accent-mid); }
     .top-badge { font-size: 11px; color: var(--text-2); background: rgba(255,255,255,0.06); padding: 3px 10px; border-radius: 100px; font-weight: 600; }
 
-    /* App chrome — homepage true black + blue bloom. Never on /p/. */
+    /* App chrome — homepage + app pages. A tick off pure black so it isn't a cave. Never on /p/. */
+    html:not(.portfolio-route-boot) body:not(.portfolio-active) {
+      background: #0E0E12;
+    }
     html:not(.portfolio-route-boot) body:not(.portfolio-active) .bg-desktop {
-      background: #000000;
+      background: #0E0E12;
     }
     html:not(.portfolio-route-boot) body:not(.portfolio-active) .bg-desktop::before {
       animation: none;
@@ -2130,20 +2119,22 @@
       left: 0;
       border-radius: 0;
       background:
-        radial-gradient(ellipse 90% 50% at 50% 16%, rgba(10,132,255,0.16) 0%, transparent 64%),
-        radial-gradient(ellipse 62% 32% at 50% 100%, rgba(10,132,255,0.07) 0%, transparent 72%);
+        radial-gradient(ellipse 100% 42% at 50% -4%, rgba(255,255,255,0.06) 0%, transparent 70%),
+        radial-gradient(ellipse 90% 50% at 50% 16%, rgba(10,132,255,0.24) 0%, transparent 64%),
+        radial-gradient(ellipse 62% 34% at 50% 100%, rgba(10,132,255,0.11) 0%, transparent 72%);
     }
     html:not(.portfolio-route-boot) body:not(.portfolio-active) .bg-desktop::after { display: none; }
     @media (min-width: 900px) {
       html:not(.portfolio-route-boot) body:not(.portfolio-active) .bg-desktop::before {
         background:
           linear-gradient(180deg,
-            #000000 0%,
-            rgba(0,0,0,0.92) 12px,
-            rgba(0,0,0,0.4) 36px,
+            #0E0E12 0%,
+            rgba(14,14,18,0.92) 12px,
+            rgba(14,14,18,0.4) 36px,
             transparent 72px),
-          radial-gradient(ellipse 80% 52% at 50% 20%, rgba(10,132,255,0.15) 0%, transparent 64%),
-          radial-gradient(ellipse 58% 30% at 50% 100%, rgba(10,132,255,0.06) 0%, transparent 72%);
+          radial-gradient(ellipse 100% 42% at 50% -4%, rgba(255,255,255,0.055) 0%, transparent 70%),
+          radial-gradient(ellipse 80% 52% at 50% 20%, rgba(10,132,255,0.22) 0%, transparent 64%),
+          radial-gradient(ellipse 58% 32% at 50% 100%, rgba(10,132,255,0.10) 0%, transparent 72%);
       }
     }
 
