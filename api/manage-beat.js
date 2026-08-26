@@ -1,5 +1,5 @@
 import { getServiceRoleKey, getSupabaseUrl, getSupabaseAnonKey } from './_env.js';
-import { coverStorageTarget, normalizeCoverUrl } from './_cover.js';
+import { coverStorageTarget, normalizeCoverUrl, storeCoverImage } from './_cover.js';
 
 function serviceHeaders(prefer) {
   const key = getServiceRoleKey();
@@ -12,7 +12,7 @@ function serviceHeaders(prefer) {
   };
 }
 
-async function getProducerFromToken(token) {
+async function getAuth(token) {
   const anon = getSupabaseAnonKey();
   if (!anon) return null;
   const url = getSupabaseUrl();
@@ -26,9 +26,9 @@ async function getProducerFromToken(token) {
     `${url}/rest/v1/profiles?id=eq.${user.id}&select=producer_name&limit=1`,
     { headers: { Authorization: `Bearer ${token}`, apikey: anon, Accept: 'application/json' } }
   );
-  if (!profRes.ok) return null;
+  if (!profRes.ok) return { userId: user.id, producer: null };
   const rows = await profRes.json();
-  return rows[0]?.producer_name?.trim() || null;
+  return { userId: user.id, producer: rows[0]?.producer_name?.trim() || null };
 }
 
 async function deleteStorageObject(bucket, objectPath) {
@@ -101,10 +101,16 @@ export default async function handler(req, res) {
   const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
   if (!token) return res.status(401).json({ error: 'Unauthorized' });
 
-  const producer = await getProducerFromToken(token);
-  if (!producer) return res.status(403).json({ error: 'Producer profile required' });
+  const auth = await getAuth(token);
+  if (!auth?.producer) return res.status(403).json({ error: 'Producer profile required' });
+  const producer = auth.producer;
 
   const { action, beatId, fields } = req.body || {};
+  if (action === 'upload-cover') {
+    const stored = await storeCoverImage(auth.userId, req.body?.mime, req.body?.image);
+    if (stored.status !== 200) return res.status(stored.status).json({ error: stored.error });
+    return res.status(200).json({ ok: true, url: stored.url });
+  }
   if (!beatId) return res.status(400).json({ error: 'beatId required' });
 
   const row = await getBeatRow(beatId);

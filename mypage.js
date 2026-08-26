@@ -700,13 +700,14 @@ async function coverBlobToPng(blob) {
 
 async function postCoverBlob(blob) {
   const accessToken = await getSupabaseAccessToken();
-  const res = await fetch('/api/upload-cover', {
+  const res = await fetch('/api/manage-beat', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
+      action: 'upload-cover',
       mime: blob.type || 'image/jpeg',
       image: await blobToBase64(blob)
     })
