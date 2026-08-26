@@ -1407,15 +1407,18 @@ initApp().then(() => {
   initOnboard();
   initCookie();
   maybeResumeProducerSetup();
-  if (hasProducerSetupIntent() && currentUser) {
+  if (currentUser && hasProducerSetupIntent()) {
+    maybeResumeProducerSetup();
+    setTimeout(maybeResumeProducerSetup, 0);
     setTimeout(maybeResumeProducerSetup, 250);
     setTimeout(maybeResumeProducerSetup, 1000);
   }
   if (isDesktop() && !_portfolioMode) {
     syncDesktopScrollMode();
-    const onDiscover = document.getElementById('discoverScreen')?.classList.contains('active');
     const onMyPage = document.getElementById('submitScreen')?.classList.contains('active');
-    if (!onDiscover && !onMyPage && !hasProducerSetupIntent()) {
+    if (onMyPage || hasProducerSetupIntent()) {
+      if (onMyPage || currentUser) maybeResumeProducerSetup();
+    } else if (!document.getElementById('discoverScreen')?.classList.contains('active')) {
       setActiveNav('navHome');
       initScrollReveal();
     }

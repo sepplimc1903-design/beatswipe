@@ -307,8 +307,24 @@ const PRODUCER_SETUP_STEPS = ['Invite', 'Account', 'Name', 'Beat', 'Link'];
 let _skipOnboardTour = false;
 let _producerSetupFromUrl = false;
 
+function setProducerSetupCookie(on) {
+  try {
+    document.cookie = on
+      ? 'bs_setup=1; path=/; max-age=7200; SameSite=Lax'
+      : 'bs_setup=; path=/; max-age=0; SameSite=Lax';
+  } catch (e) {}
+}
+
+function hasProducerSetupCookie() {
+  try { return /(?:^|; )bs_setup=1(?:;|$)/.test(document.cookie); } catch (e) { return false; }
+}
+
+function grantInviteAccessQuiet() {
+  try { localStorage.setItem('bs_invite', '1'); } catch (e) {}
+}
+
 function hasProducerSetupIntent() {
-  if (_producerSetupFromUrl) return true;
+  if (_producerSetupFromUrl || hasProducerSetupCookie()) return true;
   try {
     if (localStorage.getItem(PRODUCER_SETUP_KEY) === '1') return true;
     if (localStorage.getItem(PRODUCER_SETUP_INTENT_LEGACY) === '1') {
@@ -326,6 +342,8 @@ function hasProducerSetupIntent() {
 }
 
 function setProducerSetupIntent() {
+  _skipOnboardTour = true;
+  setProducerSetupCookie(true);
   try {
     localStorage.setItem(PRODUCER_SETUP_KEY, '1');
     localStorage.removeItem(PRODUCER_SETUP_INTENT_LEGACY);
@@ -335,6 +353,7 @@ function setProducerSetupIntent() {
 
 function clearProducerSetupIntent() {
   _producerSetupFromUrl = false;
+  setProducerSetupCookie(false);
   try {
     localStorage.removeItem(PRODUCER_SETUP_KEY);
     localStorage.removeItem(PRODUCER_SETUP_INTENT_LEGACY);
@@ -466,23 +485,29 @@ function openProducerSignup() {
 }
 
 function maybeResumeProducerSetup() {
-  if (_portfolioMode) return;
-  if (_passwordRecoveryActive || _authRecoveryFromUrl) return;
-  if (!hasProducerSetupIntent()) return;
-  if (!currentUser) return;
+  if (_portfolioMode) return false;
+  if (_passwordRecoveryActive || _authRecoveryFromUrl) return false;
+  if (!currentUser) return false;
+  if (!hasProducerSetupIntent()) return false;
+
   hushOnboardTour();
-  if (typeof isMyPageOnboarded === 'function' && isMyPageOnboarded()) {
-    clearProducerSetupIntent();
+  document.getElementById('onboardBackdrop')?.classList.remove('open');
+  document.getElementById('inviteGate')?.classList.remove('open');
+  setProducerSetupIntent();
+  if (!hasInviteAccess()) {
+    grantInviteAccessQuiet();
+    syncGuestChrome();
   }
-  if (document.getElementById('submitScreen')?.classList.contains('active')) {
-    if (typeof renderMyPage === 'function') void renderMyPage();
-    return;
-  }
-  if (typeof renderMyPage !== 'function') {
+
+  const finished = typeof isMyPageOnboarded === 'function' && isMyPageOnboarded();
+  if (finished) clearProducerSetupIntent();
+
+  if (typeof applyGoTo !== 'function') {
     setTimeout(maybeResumeProducerSetup, 0);
-    return;
+    return true;
   }
-  goTo('submitScreen', 'navSubmit');
+  applyGoTo('submitScreen', 'navSubmit');
+  return true;
 }
 
 function submitInviteCode() {
@@ -2716,14 +2741,11 @@ const _authHashTokenInUrl = !!_bootAuthParams.hash.get('access_token');
 
 function restoreProducerSetupFromAuthQuery(query) {
   if (!query) return;
-  if (query.get('bs_setup') === '1') {
-    _producerSetupFromUrl = true;
+  if (query.get('bs_setup') === '1') _producerSetupFromUrl = true;
+  if (query.get('bs_setup') === '1' || hasProducerSetupCookie()) {
     setProducerSetupIntent();
-    _skipOnboardTour = true;
   }
-  if (query.get('bs_inv') === '1') {
-    try { localStorage.setItem('bs_invite', '1'); } catch (e) {}
-  }
+  if (query.get('bs_inv') === '1') grantInviteAccessQuiet();
 }
 restoreProducerSetupFromAuthQuery(_bootAuthParams.query);
 if (document.body) syncGuestChrome();
@@ -2886,6 +2908,13 @@ supa.auth.onAuthStateChange(async (event, session) => {
   if (currentUser) {
     if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
       maybeResumeProducerSetup();
+      if (
+        currentUser &&
+        hasProducerSetupIntent() &&
+        document.getElementById('landScreen')?.classList.contains('active')
+      ) {
+        applyGoTo('submitScreen', 'navSubmit');
+      }
     }
     if (event === 'SIGNED_IN') {
       const merged = await mergePendingGuestCrate();
@@ -2901,6 +2930,13 @@ supa.auth.onAuthStateChange(async (event, session) => {
     if (isDiscoverScreenActive()) renderCard();
     if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
       maybeResumeProducerSetup();
+      if (
+        hasProducerSetupIntent() &&
+        document.getElementById('landScreen')?.classList.contains('active') &&
+        typeof applyGoTo === 'function'
+      ) {
+        applyGoTo('submitScreen', 'navSubmit');
+      }
     }
   } else {
     renderProfile();
