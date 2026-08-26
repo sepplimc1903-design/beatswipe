@@ -163,7 +163,7 @@ const _SITE_META = {
   title: 'BeatSwipe – Free Swipe Portfolio for Producers',
   description: 'Your bio link. Their next beat. Free swipe portfolio for producers — fans swipe, save favorites, and buy from your store.',
   url: 'https://beatswipe.app',
-  image: 'https://beatswipe.app/og-image.png?v=2'
+  image: 'https://beatswipe.app/og-image.png?v=3'
 };
 
 function setHeadMeta(nameOrProp, content, isProperty) {
