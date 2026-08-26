@@ -551,7 +551,7 @@
     </div>
     <div id="myPageAddBeat" style="display:none">
     <div class="add-beat-top">
-      <button type="button" class="add-beat-back" onclick="hideMyPageAddBeat()"><i class="ti ti-arrow-left"></i> My Page</button>
+      <button type="button" class="add-beat-back" onclick="hideMyPageAddBeat()"><i class="ti ti-arrow-left"></i> <span id="addBeatBackLabel">My Page</span></button>
       <div class="site-page-head">
         <h1 class="site-page-title">Add new beat</h1>
         <p class="site-page-desc">Goes live on your page right away. Use a short preview — not the full beat.</p>
@@ -600,7 +600,7 @@
             <i class="ti ti-lock"></i>
             <div class="upload-login-title">Account required</div>
             <div class="upload-login-sub">Create a free account to upload MP3 preview clips (~30–60s).</div>
-            <button type="button" class="submit-btn upload-login-btn" onclick="goTo('profileScreen','navProfile')">
+            <button type="button" class="submit-btn upload-login-btn" onclick="openProducerSignup()">
               <i class="ti ti-user"></i> Create account
             </button>
           </div>
@@ -1114,6 +1114,7 @@
   <div class="invite-gate-backdrop" id="inviteGate" onclick="closeInviteIfBackdrop(event)">
     <div class="invite-gate-sheet" onclick="event.stopPropagation()">
       <div class="invite-gate-icon"><i class="ti ti-lock"></i></div>
+      <div id="inviteSetupStepper" class="invite-setup-stepper" hidden></div>
       <div class="invite-gate-title">Private Beta</div>
       <div class="invite-gate-desc" id="inviteGateDesc">BeatSwipe is invite-only. Enter your code to get your free swipe page for the bio.</div>
       <input type="text" class="invite-gate-input" id="inviteCodeInput" placeholder="Invite code" autocomplete="off" autocapitalize="off" spellcheck="false" onkeydown="if(event.key==='Enter')submitInviteCode()">
@@ -1405,6 +1406,7 @@ initApp().then(() => {
   if (_authRecoveryFromUrl && !_passwordRecoveryActive) resolveAuthCallbackFromUrl();
   initOnboard();
   initCookie();
+  maybeResumeProducerSetup();
   if (isDesktop() && !_portfolioMode) {
     syncDesktopScrollMode();
     if (!document.getElementById('discoverScreen')?.classList.contains('active')) {
@@ -1420,8 +1422,9 @@ initApp().then(() => {
 });
 
 function toggleDsgvo() {
-  const cb = document.getElementById('authDsgvo');
-  const box = document.getElementById('dsgvoBox');
+  const root = document.querySelector('.screen.active') || document;
+  const cb = root.querySelector('#authDsgvo') || document.getElementById('authDsgvo');
+  const box = root.querySelector('#dsgvoBox') || document.getElementById('dsgvoBox');
   if (!cb || !box) return;
   cb.checked = !cb.checked;
   box.classList.toggle('checked', cb.checked);

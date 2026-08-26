@@ -301,26 +301,80 @@ function hasInviteAccess() {
   try { return localStorage.getItem('bs_invite') === '1'; } catch(e) { return false; }
 }
 
-function isProducerInviteIntent() {
-  try { return sessionStorage.getItem('bs_producer_signup_intent') === '1'; } catch (e) { return false; }
+const PRODUCER_SETUP_KEY = 'bs_producer_setup';
+const PRODUCER_SETUP_INTENT_LEGACY = 'bs_producer_signup_intent';
+const PRODUCER_SETUP_STEPS = ['Invite', 'Account', 'Name', 'Beat', 'Link'];
+let _skipOnboardTour = false;
+
+function hasProducerSetupIntent() {
+  try {
+    if (localStorage.getItem(PRODUCER_SETUP_KEY) === '1') return true;
+    if (localStorage.getItem(PRODUCER_SETUP_INTENT_LEGACY) === '1') {
+      localStorage.setItem(PRODUCER_SETUP_KEY, '1');
+      localStorage.removeItem(PRODUCER_SETUP_INTENT_LEGACY);
+      return true;
+    }
+    if (sessionStorage.getItem(PRODUCER_SETUP_INTENT_LEGACY) === '1') {
+      localStorage.setItem(PRODUCER_SETUP_KEY, '1');
+      sessionStorage.removeItem(PRODUCER_SETUP_INTENT_LEGACY);
+      return true;
+    }
+  } catch (e) {}
+  return false;
+}
+
+function setProducerSetupIntent() {
+  try {
+    localStorage.setItem(PRODUCER_SETUP_KEY, '1');
+    localStorage.removeItem(PRODUCER_SETUP_INTENT_LEGACY);
+    sessionStorage.removeItem(PRODUCER_SETUP_INTENT_LEGACY);
+  } catch (e) {}
+}
+
+function clearProducerSetupIntent() {
+  try {
+    localStorage.removeItem(PRODUCER_SETUP_KEY);
+    localStorage.removeItem(PRODUCER_SETUP_INTENT_LEGACY);
+    sessionStorage.removeItem(PRODUCER_SETUP_INTENT_LEGACY);
+  } catch (e) {}
+}
+
+function producerSetupStepperHTML(stepIndex) {
+  const i = Math.max(0, Math.min(stepIndex, PRODUCER_SETUP_STEPS.length - 1));
+  const label = PRODUCER_SETUP_STEPS[i];
+  const dots = PRODUCER_SETUP_STEPS.map((name, idx) => {
+    const cls = idx < i ? 'is-done' : (idx === i ? 'is-active' : '');
+    return `<div class="setup-step-dot ${cls}" title="${name}"></div>`;
+  }).join('');
+  return `<div class="setup-stepper" role="progressbar" aria-valuemin="1" aria-valuemax="5" aria-valuenow="${i + 1}" aria-label="Step ${i + 1} of 5: ${label}">${dots}</div>
+    <span class="my-page-step-pill">Step ${i + 1} of 5 · ${label}</span>`;
 }
 
 function setInviteGateCopy(producerMode) {
   const desc = document.getElementById('inviteGateDesc');
   const submit = document.querySelector('.invite-gate-submit');
+  const stepper = document.getElementById('inviteSetupStepper');
   if (producerMode) {
     if (desc) desc.textContent = 'BeatSwipe is invite-only. Enter your code to get your free swipe page for the bio.';
     if (submit) submit.textContent = 'Get my page';
+    if (stepper) {
+      stepper.hidden = false;
+      stepper.innerHTML = producerSetupStepperHTML(0);
+    }
   } else {
     if (desc) desc.textContent = 'BeatSwipe is in private beta. Enter your invite code to unlock Discover, Favorites, and My Page.';
     if (submit) submit.textContent = 'Enter BeatSwipe';
+    if (stepper) {
+      stepper.hidden = true;
+      stepper.innerHTML = '';
+    }
   }
 }
 
 function showInviteGate(screenId, navId, producerName, opts) {
   _invitePending = { screenId, navId };
   _invitePendingProducer = producerName || null;
-  const producerMode = !!(opts && opts.producer) || isProducerInviteIntent();
+  const producerMode = !!(opts && opts.producer);
   setInviteGateCopy(producerMode);
   const gate = document.getElementById('inviteGate');
   const err = document.getElementById('inviteCodeErr');
@@ -335,7 +389,6 @@ function closeInviteGate() {
   document.getElementById('inviteGate')?.classList.remove('open');
   _invitePending = null;
   _invitePendingProducer = null;
-  try { sessionStorage.removeItem('bs_producer_signup_intent'); } catch (e) {}
   setInviteGateCopy(false);
   goTo('landScreen', 'navHome');
 }
@@ -381,19 +434,49 @@ function scrollProducerCtaIfIntent() {
   });
 }
 
+function hushOnboardTour() {
+  _skipOnboardTour = true;
+  document.getElementById('onboardBackdrop')?.classList.remove('open');
+}
+
+function leavePortfolioForApp() {
+  if (typeof exitPortfolioMode === 'function' && _portfolioMode) exitPortfolioMode();
+  document.documentElement.classList.remove('portfolio-route-boot');
+  document.body.classList.remove('portfolio-active');
+  try { history.replaceState(null, '', '/'); } catch (e) {}
+}
+
 function openProducerSignup() {
+  leavePortfolioForApp();
+  hushOnboardTour();
   if (currentUser) {
     goTo('submitScreen', 'navSubmit');
     return;
   }
+  setProducerSetupIntent();
+  setAuthMode('signup');
   if (!hasInviteAccess()) {
-    try { sessionStorage.setItem('bs_producer_signup_intent', '1'); } catch (e) {}
-    showInviteGate('profileScreen', 'navProfile', null, { producer: true });
+    showInviteGate('submitScreen', 'navSubmit', null, { producer: true });
     return;
   }
-  try { sessionStorage.setItem('bs_producer_signup_intent', '1'); } catch (e) {}
+  goTo('submitScreen', 'navSubmit');
+}
+
+function maybeResumeProducerSetup() {
+  if (typeof renderMyPage !== 'function') return;
+  if (_portfolioMode) return;
+  if (_passwordRecoveryActive || _authRecoveryFromUrl) return;
+  if (!hasProducerSetupIntent() || !currentUser) return;
+  if (typeof isMyPageOnboarded === 'function' && isMyPageOnboarded()) {
+    clearProducerSetupIntent();
+    return;
+  }
+  if (document.getElementById('submitScreen')?.classList.contains('active')) {
+    void renderMyPage();
+    return;
+  }
   setAuthMode('signup');
-  goTo('profileScreen', 'navProfile');
+  goTo('submitScreen', 'navSubmit');
 }
 
 function submitInviteCode() {
@@ -408,18 +491,17 @@ function submitInviteCode() {
   try { localStorage.setItem('bs_invite', '1'); } catch(e) {}
   const pending = _invitePending;
   const producer = _invitePendingProducer;
-  const wantsProducer = isProducerInviteIntent();
+  const wantsProducer = hasProducerSetupIntent();
   document.getElementById('inviteGate')?.classList.remove('open');
   _invitePending = null;
   _invitePendingProducer = null;
   syncGuestChrome();
   if (producer) openProducerProfile(producer);
-  else if (pending) {
-    if (wantsProducer) setAuthMode('signup');
-    goTo(pending.screenId, pending.navId);
-  } else if (wantsProducer) {
+  else if (wantsProducer) {
     setAuthMode('signup');
-    goTo('profileScreen', 'navProfile');
+    goTo('submitScreen', 'navSubmit');
+  } else if (pending) {
+    goTo(pending.screenId, pending.navId);
   }
 }
 
@@ -617,11 +699,14 @@ const ONBOARD_STEPS = 4;
 function initOnboard() {
   if (localStorage.getItem('bs_onboarded')) return;
   if (_portfolioMode) return;
+  if (_skipOnboardTour || hasProducerSetupIntent()) return;
   document.querySelectorAll('.onboard-demo-art').forEach((el, i) => {
     el.innerHTML = beatCoverHTML(HERO_DEMO_FALLBACK, '', 'ob' + i);
   });
   setTimeout(() => {
-    document.getElementById('onboardBackdrop').classList.add('open');
+    if (_skipOnboardTour || hasProducerSetupIntent() || _portfolioMode) return;
+    if (localStorage.getItem('bs_onboarded')) return;
+    document.getElementById('onboardBackdrop')?.classList.add('open');
   }, 500);
 }
 
@@ -2788,13 +2873,8 @@ supa.auth.onAuthStateChange(async (event, session) => {
     renderCrate();
     renderDiscoverHint();
     if (isDiscoverScreenActive()) renderCard();
-    if (event === 'SIGNED_IN') {
-      try {
-        if (sessionStorage.getItem('bs_producer_signup_intent') === '1') {
-          sessionStorage.removeItem('bs_producer_signup_intent');
-          goTo('submitScreen', 'navSubmit');
-        }
-      } catch (e) {}
+    if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+      maybeResumeProducerSetup();
     }
   } else {
     renderProfile();
@@ -2803,6 +2883,63 @@ supa.auth.onAuthStateChange(async (event, session) => {
 
 // ─── PROFILE RENDER ───────────────────────────────────────────────────────
 let authMode = 'login'; // 'login' | 'signup' | 'forgot'
+
+function authEl(id) {
+  const active = document.querySelector('.screen.active');
+  return active?.querySelector('#' + id) || document.getElementById(id);
+}
+
+function buildAuthBoxHTML(opts) {
+  const setup = !!(opts && opts.setup);
+  const boxClass = setup ? 'auth-box auth-box--setup' : 'auth-box profile-glass';
+  if (authMode === 'forgot') {
+    return `
+        <div class="${boxClass}">
+          <div class="auth-title">Reset password</div>
+          <div class="auth-sub">Enter your account email. We'll send you a link to choose a new password.</div>
+          <div class="auth-field">
+            <input type="email" id="authEmail" placeholder="your@email.com" style="width:100%">
+          </div>
+          <button class="auth-btn" onclick="handleForgotPassword()" id="authBtn">
+            <i class="ti ti-mail"></i> Send reset link
+          </button>
+          <button type="button" class="auth-back-link" onclick="setAuthMode('login')">← Back to sign in</button>
+          <div class="auth-msg" id="authMsg"></div>
+        </div>`;
+  }
+  return `
+        <div class="${boxClass}">
+          <div class="profile-tabs profile-tabs--auth">
+            <button class="profile-tab ${authMode==='login'?'active':''}" onclick="setAuthMode('login')">Sign in</button>
+            <button class="profile-tab ${authMode==='signup'?'active':''}" onclick="setAuthMode('signup')">Sign up</button>
+          </div>
+          <button type="button" class="auth-google-btn" onclick="handleGoogleAuth()" id="authGoogleBtn">
+            <i class="ti ti-brand-google"></i> Continue with Google
+          </button>
+          <div class="auth-divider" aria-hidden="true"><span>or</span></div>
+          <div class="auth-field">
+            <input type="email" id="authEmail" placeholder="your@email.com" style="width:100%">
+          </div>
+          <div class="auth-field">
+            <input type="password" id="authPass" placeholder="Password" style="width:100%">
+          </div>
+          ${authMode === 'login' ? `<button type="button" class="auth-forgot-link" onclick="setAuthMode('forgot')">Forgot password?</button>` : ''}
+          ${authMode === 'signup' ? `
+          <div class="auth-dsgvo-row">
+            <div class="auth-dsgvo-box" onclick="toggleDsgvo()" id="dsgvoBox">
+              <i class="ti ti-check" id="dsgvoCheck"></i>
+              <input type="checkbox" id="authDsgvo" style="display:none">
+            </div>
+            <label class="auth-dsgvo-label" onclick="toggleDsgvo()">
+              I accept the <a href="#privacy" onclick="event.stopPropagation();event.preventDefault();openInfoModal('privacyModal')">Privacy Policy</a> and agree that my email address will be stored.
+            </label>
+          </div>` : ''}
+          <button class="auth-btn auth-btn--secondary" onclick="handleAuth()" id="authBtn">
+            <i class="ti ti-arrow-right"></i> ${authMode === 'login' ? 'Sign in with email' : 'Create account with email'}
+          </button>
+          <div class="auth-msg" id="authMsg"></div>
+        </div>`;
+}
 
 function openResetPasswordModal() {
   const msg = document.getElementById('resetPassMsg');
@@ -3067,50 +3204,7 @@ function renderProfile() {
           <div class="profile-guest-title">Join BeatSwipe</div>
           <div class="profile-guest-sub">Sync Favorites across devices and build your swipe page.</div>
         </div>
-        <div class="auth-box profile-glass">
-          ${authMode === 'forgot' ? `
-          <div class="auth-title">Reset password</div>
-          <div class="auth-sub">Enter your account email. We'll send you a link to choose a new password.</div>
-          <div class="auth-field">
-            <input type="email" id="authEmail" placeholder="your@email.com" style="width:100%">
-          </div>
-          <button class="auth-btn" onclick="handleForgotPassword()" id="authBtn">
-            <i class="ti ti-mail"></i> Send reset link
-          </button>
-          <button type="button" class="auth-back-link" onclick="setAuthMode('login')">← Back to sign in</button>
-          <div class="auth-msg" id="authMsg"></div>
-          ` : `
-          <div class="profile-tabs profile-tabs--auth">
-            <button class="profile-tab ${authMode==='login'?'active':''}" onclick="setAuthMode('login')">Sign in</button>
-            <button class="profile-tab ${authMode==='signup'?'active':''}" onclick="setAuthMode('signup')">Sign up</button>
-          </div>
-          <button type="button" class="auth-google-btn" onclick="handleGoogleAuth()" id="authGoogleBtn">
-            <i class="ti ti-brand-google"></i> Continue with Google
-          </button>
-          <div class="auth-divider" aria-hidden="true"><span>or</span></div>
-          <div class="auth-field">
-            <input type="email" id="authEmail" placeholder="your@email.com" style="width:100%">
-          </div>
-          <div class="auth-field">
-            <input type="password" id="authPass" placeholder="Password" style="width:100%">
-          </div>
-          ${authMode === 'login' ? `<button type="button" class="auth-forgot-link" onclick="setAuthMode('forgot')">Forgot password?</button>` : ''}
-          ${authMode === 'signup' ? `
-          <div class="auth-dsgvo-row">
-            <div class="auth-dsgvo-box" onclick="toggleDsgvo()" id="dsgvoBox">
-              <i class="ti ti-check" id="dsgvoCheck"></i>
-              <input type="checkbox" id="authDsgvo" style="display:none">
-            </div>
-            <label class="auth-dsgvo-label" onclick="toggleDsgvo()">
-              I accept the <a href="#privacy" onclick="event.stopPropagation();event.preventDefault();openInfoModal('privacyModal')">Privacy Policy</a> and agree that my email address will be stored.
-            </label>
-          </div>` : ''}
-          <button class="auth-btn auth-btn--secondary" onclick="handleAuth()" id="authBtn">
-            <i class="ti ti-arrow-right"></i> ${authMode === 'login' ? 'Sign in with email' : 'Create account with email'}
-          </button>
-          <div class="auth-msg" id="authMsg"></div>
-          `}
-        </div>
+        ${buildAuthBoxHTML()}
         <div class="legal-links">
           <a class="legal-link" href="#legal" onclick="event.preventDefault();openInfoModal('impressumModal')">Legal Notice <i class="ti ti-chevron-right"></i></a>
           <a class="legal-link" href="#privacy" onclick="event.preventDefault();openInfoModal('privacyModal')">Privacy Policy <i class="ti ti-chevron-right"></i></a>
@@ -3135,16 +3229,19 @@ function switchProfileTab(tab) {
 function setAuthMode(mode) {
   authMode = mode;
   renderProfile();
+  if (!currentUser && document.getElementById('submitScreen')?.classList.contains('active') && typeof renderMyPage === 'function') {
+    void renderMyPage();
+  }
 }
 
 async function handleAuth() {
-  const email = document.getElementById('authEmail')?.value.trim();
-  const pass = document.getElementById('authPass')?.value;
-  const btn = document.getElementById('authBtn');
-  const msg = document.getElementById('authMsg');
+  const email = authEl('authEmail')?.value.trim();
+  const pass = authEl('authPass')?.value;
+  const btn = authEl('authBtn');
+  const msg = authEl('authMsg');
   if (!email || !pass) { if(msg) msg.textContent = 'Please fill in all fields.'; return; }
   if (authMode === 'signup') {
-    const dsgvo = document.getElementById('authDsgvo');
+    const dsgvo = authEl('authDsgvo');
     if (!dsgvo?.checked) {
       if(msg) { msg.className = 'auth-msg error'; msg.textContent = 'Please accept the Privacy Policy to continue.'; }
       return;
@@ -3153,6 +3250,7 @@ async function handleAuth() {
   if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Loading...'; }
 
   stashGuestCrateForAuthRedirect();
+  if (hasProducerSetupIntent()) setProducerSetupIntent();
 
   let error;
   if (authMode === 'login') {
@@ -3166,23 +3264,24 @@ async function handleAuth() {
     if (msg) { msg.className = 'auth-msg error'; msg.textContent = error.message; }
     if (btn) { btn.disabled = false; btn.innerHTML = `<i class="ti ti-arrow-right"></i> ${authMode === 'login' ? 'Sign in with email' : 'Create account with email'}`; }
   } else if (authMode === 'signup') {
-    if (msg) { msg.className = 'auth-msg success'; msg.textContent = 'Check your email to confirm your account!'; }
+    if (msg) { msg.className = 'auth-msg success'; msg.textContent = 'Check your email to confirm your account. This page will continue setup after you confirm.'; }
     if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-arrow-right"></i> Create account with email'; }
   }
 }
 
 async function handleGoogleAuth() {
-  const msg = document.getElementById('authMsg');
+  const msg = authEl('authMsg');
   if (authMode === 'signup') {
-    const dsgvo = document.getElementById('authDsgvo');
+    const dsgvo = authEl('authDsgvo');
     if (!dsgvo?.checked) {
       if (msg) { msg.className = 'auth-msg error'; msg.textContent = 'Please accept the Privacy Policy to continue.'; }
       return;
     }
   }
-  const btn = document.getElementById('authGoogleBtn');
+  const btn = authEl('authGoogleBtn');
   if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Redirecting…'; }
   stashGuestCrateForAuthRedirect();
+  if (hasProducerSetupIntent()) setProducerSetupIntent();
   const { error } = await supa.auth.signInWithOAuth({
     provider: 'google',
     options: { redirectTo: getAuthRedirectUrl() }
@@ -3194,9 +3293,9 @@ async function handleGoogleAuth() {
 }
 
 async function handleForgotPassword() {
-  const email = document.getElementById('authEmail')?.value.trim();
-  const btn = document.getElementById('authBtn');
-  const msg = document.getElementById('authMsg');
+  const email = authEl('authEmail')?.value.trim();
+  const btn = authEl('authBtn');
+  const msg = authEl('authMsg');
   if (!email || !email.includes('@')) {
     if (msg) { msg.className = 'auth-msg error'; msg.textContent = 'Please enter a valid email address.'; }
     return;

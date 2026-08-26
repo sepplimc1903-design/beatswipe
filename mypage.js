@@ -1191,6 +1191,7 @@ function isMyPageOnboarded() {
   if (!currentUser) return false;
   const key = myPageStorageKey('page_setup');
   if (key && localStorage.getItem(key) === '1') return true;
+  if (typeof hasProducerSetupIntent === 'function' && hasProducerSetupIntent()) return false;
   const name = _userProfile?.producer_name?.trim();
   if (name && getMyLiveBeats().length >= 1) {
     if (key) localStorage.setItem(key, '1');
@@ -1824,8 +1825,15 @@ function updateMyPageLeftRail() {
   const pendingStat = document.getElementById('mlrPendingStat');
   if (pendingStat) pendingStat.hidden = pendingCount === 0;
   if (stepEl) {
-    if (!currentUser) stepEl.textContent = 'Sign in';
-    else if (!isMyPageOnboarded()) stepEl.textContent = `Step ${_myPageObStep + 1} of 3`;
+    if (!currentUser) {
+      stepEl.textContent = (typeof hasProducerSetupIntent === 'function' && hasProducerSetupIntent())
+        ? 'Step 2 of 5'
+        : 'Sign in';
+    }
+    else if (!isMyPageOnboarded()) {
+      const step = _myPageObStep === 0 ? 3 : (_myPageObStep === 1 ? 4 : 5);
+      stepEl.textContent = `Step ${step} of 5`;
+    }
     else stepEl.textContent = 'Live';
   }
 }
@@ -1869,6 +1877,8 @@ function showMyPageAddBeat() {
   document.body.classList.add('mypage-add-open');
   const prodEl = document.getElementById('f-producer');
   if (prodEl) prodEl.value = _userProfile?.producer_name || '';
+  const backLabel = document.getElementById('addBeatBackLabel');
+  if (backLabel) backLabel.textContent = isMyPageOnboarded() ? 'My Page' : 'Back';
   const successMsg = document.getElementById('successMsg');
   if (successMsg) successMsg.style.display = 'none';
   clearMp3Queue();
@@ -1907,7 +1917,10 @@ async function saveOnboardingProfile() {
   const name = document.getElementById('ob-name')?.value.trim();
   const bio = document.getElementById('ob-bio')?.value.trim();
   if (!name) { showToast('Producer name is required.', 'error'); return; }
-  if (typeof isDemoPortfolioSlug === 'function' && isDemoPortfolioSlug(name)) {
+  const slug = typeof portfolioSlugFromName === 'function'
+    ? decodeURIComponent(portfolioSlugFromName(name))
+    : name;
+  if (typeof isDemoPortfolioSlug === 'function' && (isDemoPortfolioSlug(name) || isDemoPortfolioSlug(slug))) {
     showToast('“demo” is reserved for the public sample page. Pick another name.', 'error');
     return;
   }
@@ -1964,21 +1977,28 @@ function finishMyPageOnboarding() {
   const pending = getMyPendingBeats().length;
   const total = live + pending;
   if (total < 1) {
-    showToast('Add at least one beat before finishing setup.', 'error');
+    showToast('Add at least one beat before continuing.', 'error');
     return;
   }
-  if (total < 3) {
-    if (!confirm('We recommend at least 3 beats before sharing your link. Finish anyway?')) return;
-  }
-  markMyPageOnboarded();
   _myPageObStep = 2;
   renderMyPage();
 }
 
 function completeMyPageOnboarding() {
   markMyPageOnboarded();
+  if (typeof clearProducerSetupIntent === 'function') clearProducerSetupIntent();
+  try { localStorage.setItem('bs_onboarded', '1'); } catch (e) {}
   _myPageObStep = 0;
   renderMyPage();
+}
+
+function updateOnboardingSlugPreview() {
+  const name = document.getElementById('ob-name')?.value.trim() || '';
+  const slug = name && typeof portfolioSlugFromName === 'function'
+    ? decodeURIComponent(portfolioSlugFromName(name))
+    : 'yourname';
+  const el = document.getElementById('ob-slug');
+  if (el) el.textContent = 'beatswipe.app/p/' + slug;
 }
 
 function renderMyPageBeatRows(opts) {
@@ -2072,10 +2092,13 @@ function renderMyPageDashboard(stagger) {
 function renderMyPageOnboarding(stagger) {
   const name = _userProfile?.producer_name?.trim() || '';
   const bio = _userProfile?.bio?.trim() || '';
-  const slug = name ? portfolioSlugFromName(name) : 'yourname';
+  const slug = name && typeof portfolioSlugFromName === 'function'
+    ? decodeURIComponent(portfolioSlugFromName(name))
+    : 'yourname';
   const live = getMyLiveBeats().length;
   const pending = getMyPendingBeats().length;
   const total = live + pending;
+  const stepper = typeof producerSetupStepperHTML === 'function' ? producerSetupStepperHTML : () => '';
 
   if (_myPageObStep === 0) {
     return `
@@ -2084,12 +2107,12 @@ function renderMyPageOnboarding(stagger) {
         <p class="site-page-desc">Set up your producer portfolio in a few steps.</p>
       </div>
       <div class="submit-scroll">
-        <span class="my-page-step-pill">Step 1 of 3</span>
+        ${stepper(2)}
         <div class="submit-title" style="margin-bottom:6px">Create your page</div>
         <div class="submit-sub" style="margin-bottom:18px">Fans see this at the top of your swipe page.</div>
         <div class="field-group">
           <label class="field-label">Producer name *</label>
-          <input type="text" id="ob-name" value="${escHtml(name)}" placeholder="Your alias">
+          <input type="text" id="ob-name" value="${escHtml(name)}" placeholder="Your alias" oninput="updateOnboardingSlugPreview()">
         </div>
         <div class="field-group">
           <label class="field-label">Bio</label>
@@ -2097,7 +2120,7 @@ function renderMyPageOnboarding(stagger) {
         </div>
         <div class="field-group">
           <label class="field-label">Your link</label>
-          <div style="font-size:14px;color:var(--accent-mid);font-weight:600;padding:10px 0">beatswipe.app/p/${escHtml(slug)}</div>
+          <div id="ob-slug" style="font-size:14px;color:var(--accent-mid);font-weight:600;padding:10px 0">beatswipe.app/p/${escHtml(slug)}</div>
         </div>
         <button type="button" class="submit-btn" id="obSaveBtn" onclick="saveOnboardingProfile()">Continue</button>
       </div>`;
@@ -2110,13 +2133,13 @@ function renderMyPageOnboarding(stagger) {
         <p class="site-page-desc">Add preview clips to your portfolio — not full masters.</p>
       </div>
       <div class="submit-scroll">
-        <span class="my-page-step-pill">Step 2 of 3</span>
+        ${stepper(3)}
         <div class="submit-title" style="margin-bottom:6px">Add your beats</div>
-        <div class="my-page-hint"><strong>Min. 3 beats</strong> recommended before you share your link in your bio. Upload short previews only (~30–60s for MP3) — not full masters. Beats go live on your page right away.</div>
+        <div class="my-page-hint"><strong>Add at least one beat</strong> to finish setup. 3 is recommended before you share your link in your bio. Upload short previews only (~30–60s for MP3) — not full masters. Beats go live on your page right away.</div>
         <div style="font-size:13px;color:var(--text-2);margin-bottom:12px">${total} beat${total === 1 ? '' : 's'} added${live ? ` (${live} live)` : ''}</div>
         <button type="button" class="submit-btn my-page-add-btn" onclick="showMyPageAddBeat()" style="margin-bottom:10px"><i class="ti ti-plus"></i> Add beat</button>
         ${renderMyPageBeatRows({ sortable: false, stagger })}
-        <button type="button" class="btn-secondary" onclick="finishMyPageOnboarding()" style="width:100%;justify-content:center;padding:13px;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;border:0.5px solid var(--border-2);background:none;color:var(--text);margin-top:10px">Finish setup</button>
+        <button type="button" class="submit-btn" onclick="finishMyPageOnboarding()" style="margin-top:10px">Continue</button>
       </div>`;
   }
 
@@ -2124,13 +2147,13 @@ function renderMyPageOnboarding(stagger) {
   return `
     <div class="site-page-head">
       <h1 class="site-page-title">You're all set</h1>
-      <p class="site-page-desc">Your page is ready — add beats and they go live immediately.</p>
+      <p class="site-page-desc">Copy your bio link — then manage beats on My Page.</p>
     </div>
     <div class="submit-scroll" style="text-align:center;padding-top:12px">
-      <span class="my-page-step-pill">Step 3 of 3</span>
+      ${stepper(4)}
       <div class="my-page-ready-icon"><i class="ti ti-circle-check"></i></div>
       <div class="submit-title" style="margin-bottom:8px">Your page is ready</div>
-      <div class="submit-sub" style="margin-bottom:20px;max-width:280px;margin-inline:auto">Share your link once you have a few beats. They go live as soon as you add them.</div>
+      <div class="submit-sub" style="margin-bottom:20px;max-width:280px;margin-inline:auto">Share beatswipe.app/p/yourname in your Instagram bio. Add more beats anytime — they go live immediately.</div>
       ${url ? `
       <div class="my-page-link-box" style="text-align:left">
         <div class="my-page-link-label">Your bio link</div>
@@ -2156,18 +2179,28 @@ async function renderMyPage() {
   main.style.display = 'flex';
 
   if (!currentUser) {
-    main.innerHTML = `
+    const setup = typeof hasProducerSetupIntent === 'function' && hasProducerSetupIntent();
+    const stepper = setup && typeof producerSetupStepperHTML === 'function'
+      ? producerSetupStepperHTML(1)
+      : '';
+    const authBox = typeof buildAuthBoxHTML === 'function' ? buildAuthBoxHTML({ setup: true }) : '';
+    main.innerHTML = setup ? `
+      <div class="site-page-head">
+        <h1 class="site-page-title">Get your free page</h1>
+        <p class="site-page-desc">Create an account to claim your swipe page. Google is fastest.</p>
+      </div>
+      <div class="submit-scroll my-page-setup">
+        ${stepper}
+        ${authBox}
+      </div>` : `
       <div class="site-page-head">
         <h1 class="site-page-title">My Page</h1>
         <p class="site-page-desc">Your free swipe portfolio for your bio.</p>
       </div>
-      <div class="my-page-login">
-        <i class="ti ti-link" style="font-size:48px;color:var(--accent-mid)"></i>
-        <div style="font-size:18px;font-weight:700">Sign in to get your page</div>
-        <div style="font-size:14px;color:var(--text-2);line-height:1.6;max-width:300px">Create a free account, add preview clips (~30–60s), and share one link in your Instagram bio.</div>
-        <button onclick="openProducerSignup()" style="padding:13px 28px;border-radius:14px;background:var(--accent);border:none;color:#fff;font-size:15px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px">
-          <i class="ti ti-user"></i> Sign in / Create account
-        </button>
+      <div class="submit-scroll my-page-setup">
+        <div class="submit-title" style="margin-bottom:6px">Sign in to get your page</div>
+        <div class="submit-sub" style="margin-bottom:18px">Create a free account, add preview clips (~30–60s), and share one link in your Instagram bio.</div>
+        ${authBox}
       </div>`;
     updateMyPageLeftRail();
     renderMyPageSidePanel();
@@ -2177,9 +2210,15 @@ async function renderMyPage() {
   const stagger = typeof window.takeListEnter === 'function' && window.takeListEnter();
 
   if (!isMyPageOnboarded()) {
-    if (_userProfile?.producer_name?.trim() && _myPageObStep === 0) _myPageObStep = 1;
+    if (_myPageObStep === 0) {
+      const hasName = !!_userProfile?.producer_name?.trim();
+      const beatCount = getMyLiveBeats().length + getMyPendingBeats().length;
+      if (hasName && beatCount >= 1) _myPageObStep = 2;
+      else if (hasName) _myPageObStep = 1;
+    }
     main.innerHTML = renderMyPageOnboarding(stagger);
   } else {
+    if (typeof clearProducerSetupIntent === 'function') clearProducerSetupIntent();
     _myPageObStep = 0;
     main.innerHTML = renderMyPageDashboard(stagger);
   }

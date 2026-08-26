@@ -87,7 +87,7 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 - **`/p/` done screen (swipe complete):** Gäste bleiben auf `/p/`. Saves in `crate` (RAM/guest). **Desktop (≥1100px):** Liste + Preview-Split; erster Beat vorausgewählt; **Producer-CTA** in `.portfolio-done-side` unter Preview (nicht unter dem Grid). **Mobile:** nur Liste → Tap öffnet Preview (`portfolio-done-preview-open`, `backPortfolioDoneList()`); Buy **unter** Karte (`buildCratePreviewHTML(beat, { prominentBuy: true })`); Done-CTA volle Breite unter Liste. Merge `_portfolioBeats` in `getPortfolioSavedBeats()`. Replay/Guest in `.portfolio-done-foot`. **Nicht** `#portfolioSidePanel` für Done-Player.
 - **Profile laptop:** zentriert (`--w-page`); Bio-Link-Sidebar rechts daneben (Flex, kein `fixed`/Overlap) ab 1100px
 - **Vercel static:** kein `public/`-Ordner (sonst 404 auf `index.html` in `vercel dev`); kein `middleware.js` — Bot-OG via `vercel.json` Rewrite
-- **Producer funnel:** `openProducerSignup()` in `app.js` — eingeloggt → `submitScreen`; Gast ohne Invite → Invite-Gate (Producer-Copy, `bs_producer_signup_intent`) — **nicht** Landing-Scroll; Gast mit Invite → Signup → nach `SIGNED_IN` My Page. Gäste ohne Invite: Nav/Footer nur Home · Live (`/p/demo`) · Get page (`body.invite-locked` + `syncGuestChrome()`). Alle „Get your page“-CTAs nutzen das.
+- **Producer funnel:** `openProducerSignup()` — one My Page tunnel (invite → account → name → beat → copy link). Gast ohne Invite → Invite-Gate (Producer-Copy, `localStorage bs_producer_setup`). Gast mit Invite → Account auf My Page (nicht Profile). `SIGNED_IN` / Reload resumed den Tunnel solange Setup nicht fertig. Get-page überspringt das 4-Slide-Tutorial. Eingeloggt + fertiges Setup → `submitScreen` Dashboard. Gäste ohne Invite: Nav/Footer nur Home · Live (`/p/demo`) · Get page. Alle „Get your page“-CTAs nutzen das.
 - **Public demo `/p/demo`:** hardcoded Pixabay-MP3s in `portfolio.js` (`DEMO_PORTFOLIO_*`). Kein View/Save/Buy-Tracking, keine Crate-DB. Slug `demo` reserved. `/p/clyriax` bleibt Lucas echte Page. My Page **Preview** = `{ preview: true }` der eigenen Beats — nicht die Demo.
 - **Producer stats:** `trackPortfolioEvent()` in `app.js`; Preview zählt nicht; View dedup `sessionStorage bs_pv_${slug}`; Buy via `data-portfolio-buy` auf `/p/`
 - **QR code:** `openPortfolioQR()` in `portfolio.js` — CDN `cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js` (**nicht** `qrcode@1.5.4/build/…` — 404)
@@ -112,19 +112,18 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 
 ## Aktuell (2026-08-26)
 
-- **Live:** Private Beta. Bio-Popover Handy schon live (`ad9fd74`). Dieser Push: Play/Pause-Fix + Waveform freeze.
-- **Handy `/p/`:** Bio 1-Zeile, Read more = Overlay. Erster Tap startet Beat; Play pausiert und startet wieder; Pause lässt Waveform still.
+- **Live:** Private Beta. Bio-Popover Handy schon live (`ad9fd74`). Play/Pause-Fix + Waveform freeze.
+- **Producer setup:** Ein Tunnel von „Get your free page“: Invite → Account (Google first) → Name → mind. 1 Beat → Copy-Link → My Page. Intent in `localStorage bs_producer_setup` (überlebt Email-Confirm). Tutorial nicht vor Get page.
 - **Cover:** Optional Add/Edit. `/api/manage-beat` `upload-cover` → Bucket `covers`. **SQL in Supabase noch nicht bestätigt.**
-- **OG / Mark:** `og-image.png?v=5`; Mark = B-Tile `favicon.png?v=2` (abgerundetes Quadrat 6px). Demo `/p/demo`, Lucas `/p/clyriax`.
-- **Insta:** Carousel bereit (`marketing/insta-v2/ig/`) — Caption `/p/demo`. DM: fragen → Demo → Key.
+- **OG / Mark:** `og-image.png?v=5`; Mark = B-Tile `favicon.png?v=2`. Demo `/p/demo`, Lucas `/p/clyriax`.
 - **Offen:** Cover-SQL. Testdaten `/p/clyriax`. Carousel nicht gepostet. Producer-DMs. TikTok-Clip.
 
 ## Nächster Schritt
 
-1. Supabase SQL: `supabase/beats-cover-url.sql` + `supabase/covers-bucket.sql`
-2. Insta-Carousel posten (`marketing/insta-v2/ig/` — Caption `/p/demo`)
-3. Testdaten auf My Page runter (`wtf`, 2 BPM, `tiktok.com` …)
-4. Echte Beats auf `/p/clyriax` — dann 2–3 Producer per DM (erst fragen, kein Link in Nachricht 1)
+1. Preview dieses Producer-Tunnels (Incognito: Get page → Invite → Account → My Page, nicht Profile)
+2. Supabase SQL: `supabase/beats-cover-url.sql` + `supabase/covers-bucket.sql`
+3. Insta-Carousel posten (`marketing/insta-v2/ig/` — Caption `/p/demo`)
+4. Testdaten auf My Page runter; echte Beats auf `/p/clyriax`
 5. Später: Invite-Gate pausieren (`INVITE_GATE_PAUSED = true`)
 
 ## Rules pflegen (Agent)

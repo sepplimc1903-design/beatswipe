@@ -3051,6 +3051,30 @@
       text-transform: uppercase; color: var(--text-2); background: rgba(255,255,255,0.06);
       padding: 5px 12px; border-radius: 100px; margin-bottom: 4px;
     }
+    .setup-stepper {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      margin: 0 0 12px;
+    }
+    .setup-step-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--border-2);
+      transition: width 0.22s cubic-bezier(0.22,1,0.36,1), background 0.22s ease, border-radius 0.22s ease;
+    }
+    .setup-step-dot.is-done { background: var(--accent); }
+    .setup-step-dot.is-active {
+      width: 18px; border-radius: 4px; background: var(--accent-mid);
+    }
+    .invite-setup-stepper { margin: 0 0 14px; }
+    .invite-setup-stepper[hidden] { display: none !important; }
+    .invite-setup-stepper .my-page-step-pill { margin-bottom: 0; }
+    .auth-box--setup {
+      margin-top: 8px;
+      margin-inline: auto;
+    }
+    .my-page-setup .auth-box { max-width: 420px; }
+    @media (prefers-reduced-motion: reduce) {
+      .setup-step-dot { transition: none; }
+    }
     .my-page-link-box {
       background: var(--bg-2); border: 0.5px solid var(--border); border-radius: 14px;
       padding: 16px; margin-bottom: 14px;
