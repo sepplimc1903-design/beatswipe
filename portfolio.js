@@ -163,7 +163,7 @@ const _SITE_META = {
   title: 'BeatSwipe – Free Swipe Portfolio for Producers',
   description: 'Your bio link. Their next beat. Free swipe portfolio for producers — fans swipe, save favorites, and buy from your store.',
   url: 'https://beatswipe.app',
-  image: 'https://beatswipe.app/og-image.png'
+  image: 'https://beatswipe.app/og-image.png?v=2'
 };
 
 function setHeadMeta(nameOrProp, content, isProperty) {
@@ -192,7 +192,7 @@ function updatePortfolioMeta(producerName, profile, slug) {
   const bio = (profile?.bio || '').trim() || 'Swipe through beats, save favorites, buy directly from the producer.';
   const title = producerName + ' – BeatSwipe';
   const url = 'https://beatswipe.app/p/' + slug;
-  const image = (profile?.avatar_url && profile.avatar_url.startsWith('http')) ? profile.avatar_url : _SITE_META.image;
+  const image = _SITE_META.image;
   document.title = title;
   setHeadMeta('description', bio, false);
   setHeadMeta('og:type', 'website', true);

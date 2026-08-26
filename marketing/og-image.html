@@ -8,7 +8,7 @@
       width: 1200px;
       height: 630px;
       overflow: hidden;
-      background: #000;
+      background: #0E0E12;
       font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
       -webkit-font-smoothing: antialiased;
     }
@@ -18,9 +18,8 @@
       height: 630px;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      padding: 72px 80px;
-      background: #000;
+      justify-content: center;
+      background: #0E0E12;
       overflow: hidden;
     }
     .og::before {
@@ -28,140 +27,59 @@
       position: absolute;
       inset: 0;
       background:
-        radial-gradient(ellipse 46% 70% at 72% 50%, rgba(10,132,255,0.22) 0%, transparent 70%),
-        radial-gradient(ellipse 50% 60% at 28% 48%, rgba(255,255,255,0.06) 0%, transparent 72%),
-        radial-gradient(ellipse 80% 80% at 50% 50%, transparent 40%, rgba(0,0,0,0.55) 100%);
+        radial-gradient(ellipse 42% 58% at 50% 50%, rgba(10,132,255,0.28) 0%, transparent 68%),
+        radial-gradient(ellipse 70% 80% at 50% 50%, transparent 42%, rgba(0,0,0,0.55) 100%);
       pointer-events: none;
     }
-    .copy { position: relative; z-index: 1; max-width: 560px; }
-    .brand {
+    /* Instagram DM crops the center 630×630; keep all type inside. */
+    .safe {
+      position: relative;
+      z-index: 1;
+      width: 630px;
+      height: 630px;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 14px;
-      margin-bottom: 28px;
+      justify-content: center;
+      text-align: center;
+      padding: 48px 36px;
     }
     .mark {
-      width: 44px;
-      height: 44px;
-      border-radius: 12px;
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      margin-bottom: 22px;
     }
-    .logo { font-size: 42px; font-weight: 700; letter-spacing: -0.04em; line-height: 1; }
-    .logo-swipe { color: #409CFF; }
-    .tagline {
-      font-size: 38px;
+    .name {
+      font-size: 44px;
+      font-weight: 700;
+      letter-spacing: -0.045em;
+      line-height: 1;
+      color: #F5F5F7;
+      margin-bottom: 28px;
+    }
+    .name-swipe { color: #409CFF; }
+    .slogan {
+      font-size: 36px;
       font-weight: 600;
       letter-spacing: -0.035em;
       color: #F5F5F7;
-      line-height: 1.18;
-      margin-bottom: 16px;
+      line-height: 1.2;
     }
-    .sub {
-      font-size: 22px;
-      font-weight: 500;
-      color: rgba(255,255,255,0.5);
-      letter-spacing: -0.02em;
-    }
-    .url {
-      margin-top: 36px;
-      font-size: 20px;
-      font-weight: 500;
-      color: rgba(255,255,255,0.34);
-      letter-spacing: 0.01em;
-    }
-    .phone {
-      position: relative;
-      z-index: 1;
-      width: 300px;
-      background: #111113;
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 36px;
-      padding: 14px 12px 18px;
-      box-shadow: 0 28px 80px rgba(0,0,0,0.55);
-    }
-    .notch {
-      width: 78px;
-      height: 6px;
-      margin: 2px auto 12px;
-      border-radius: 100px;
-      background: rgba(255,255,255,0.12);
-    }
-    .card {
-      background: #1C1C1E;
-      border-radius: 16px;
-      padding: 18px 16px;
-    }
-    .head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
-    .cover { width: 52px; height: 52px; border-radius: 12px; overflow: hidden; flex-shrink: 0; }
-    .title { font-size: 18px; font-weight: 700; color: #F5F5F7; letter-spacing: -0.03em; }
-    .by { font-size: 13px; color: #409CFF; margin-top: 2px; }
-    .tags { display: flex; gap: 6px; margin-bottom: 14px; }
-    .tag {
-      font-size: 11px; color: #8E8E93; background: rgba(255,255,255,0.06);
-      border-radius: 100px; padding: 4px 9px; font-weight: 500;
-    }
-    .wave {
-      height: 42px;
-      display: flex;
-      align-items: center;
-      gap: 2px;
-      background: rgba(255,255,255,0.04);
-      border-radius: 12px;
-      padding: 8px 10px;
-    }
-    .bar { flex: 1; border-radius: 2px; background: rgba(255,255,255,0.4); }
   </style>
 </head>
 <body>
   <div class="og">
-    <div class="copy">
-      <div class="brand">
-        <img class="mark" src="../favicon.svg" alt="">
-        <div class="logo">Beat<span class="logo-swipe">Swipe</span></div>
-      </div>
-      <p class="tagline">Your bio link.<br>Their next beat.</p>
-      <p class="sub">Free swipe portfolio for producers.</p>
-      <div class="url">beatswipe.app</div>
-    </div>
-    <div class="phone">
-      <div class="notch"></div>
-      <div class="card">
-        <div class="head">
-          <svg class="cover" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#409CFF"/>
-                <stop offset="100%" stop-color="#0A0A0A"/>
-              </linearGradient>
-            </defs>
-            <rect width="80" height="80" fill="url(#g)"/>
-            <text x="40" y="50" text-anchor="middle" fill="rgba(255,255,255,0.88)" font-family="system-ui,sans-serif" font-size="28" font-weight="700">M</text>
-          </svg>
-          <div>
-            <div class="title">Midnight Drive</div>
-            <div class="by">by clyriax</div>
-          </div>
-        </div>
-        <div class="tags">
-          <span class="tag">140 BPM</span>
-          <span class="tag">F# Min</span>
-          <span class="tag">Trap</span>
-        </div>
-        <div class="wave">
-          <div class="bar" style="height:10px"></div>
-          <div class="bar" style="height:22px"></div>
-          <div class="bar" style="height:16px"></div>
-          <div class="bar" style="height:28px"></div>
-          <div class="bar" style="height:14px"></div>
-          <div class="bar" style="height:24px"></div>
-          <div class="bar" style="height:12px"></div>
-          <div class="bar" style="height:20px"></div>
-          <div class="bar" style="height:26px"></div>
-          <div class="bar" style="height:15px"></div>
-          <div class="bar" style="height:21px"></div>
-          <div class="bar" style="height:11px"></div>
-          <div class="bar" style="height:18px"></div>
-        </div>
-      </div>
+    <div class="safe">
+      <svg class="mark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <rect width="32" height="32" rx="8" fill="#0A0A0A"/>
+        <rect x="5.2" y="9.4" width="13.2" height="15.6" rx="2.6" transform="rotate(-16 5.2 9.4)" fill="#2C2C2E"/>
+        <rect x="12.4" y="7.6" width="13.6" height="16.4" rx="2.8" fill="#0A84FF"/>
+        <rect x="14.6" y="10.4" width="9.2" height="1.5" rx="0.75" fill="rgba(255,255,255,0.35)"/>
+        <rect x="14.6" y="13.4" width="6.4" height="1.5" rx="0.75" fill="rgba(255,255,255,0.22)"/>
+      </svg>
+      <div class="name">beat<span class="name-swipe">swipe</span>.app</div>
+      <p class="slogan">Your bio link.<br>Their next beat.</p>
     </div>
   </div>
 </body>

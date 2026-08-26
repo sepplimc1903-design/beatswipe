@@ -1,7 +1,7 @@
 import { getServiceRoleKey, getSupabaseUrl } from './_env.js';
 
 const SITE_URL = 'https://beatswipe.app';
-const DEFAULT_OG = `${SITE_URL}/og-image.png`;
+const DEFAULT_OG = `${SITE_URL}/og-image.png?v=2`;
 
 export function slugFromProducerName(name) {
   return encodeURIComponent(String(name).trim().toLowerCase().replace(/\s+/g, '-'));
@@ -87,9 +87,7 @@ export async function fetchPortfolioMetaBySlug(slug) {
     || 'Swipe through beats, save favorites, buy directly from the producer.';
   const title = `${profile.producer_name} – BeatSwipe`;
   const pageSlug = slugFromProducerName(profile.producer_name);
-  const image = (profile.avatar_url && profile.avatar_url.startsWith('http'))
-    ? profile.avatar_url
-    : DEFAULT_OG;
+  const image = DEFAULT_OG;
 
   return {
     title,
