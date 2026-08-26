@@ -99,30 +99,31 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 - **Portfolio social icons:** `buildPortfolioSocialsHTML()` — Instagram-Gradient braucht **eindeutige** `linearGradient`-IDs pro Instanz (Header + Sidepanel = 2×); sonst leerer Button. TikTok = Mehrfarben-SVG (nicht `ti-brand-tiktok`).
 - **Portfolio swipe glow (Preview/`/p/`):** `#portfolioCardGlow` (nicht Discover-`#cardGlow` — doppelte ID hat Preview-Glow totgemacht). Sibling **hinter** `.portfolio-surface` (glasiger Hintergrund) → schwächer als Discover. Versuch Glow in Surface → zurückgesetzt.
 - **Upload goes live immediately:** `/api/submit-beat` setzt `status: 'approved'` — Beats sofort auf `/p/`. Kein 48h-Pending als Producer-Pfad. Moderation nur für alte Pending / Takedowns. Buy-Link Pflicht nur bei **MP3**. YouTube/SoundCloud: kein Store-Picker — Preview-URL ist der Tap-through. BPM 40–240 wenn gesetzt. **SoundCloud-Preview:** Widget braucht Track-URL — Short-Links (`on.soundcloud.com`) via oEmbed nach `api.soundcloud.com/tracks/id` auflösen (`api/_soundcloud.js`); Buy/Tap bleibt der öffentliche Link. **Add-Form:** `#addBeatBtn` = weiteren MP3 in die Queue (`addAnotherBeat()`); `#submitBeatBtn` = `doSubmitForm()` / Upload. Nicht einen Plus-Button für beides. My Page left-rail „pending“ nur wenn Count > 0.
-- **Beat covers:** `beatCoverHTML(d, class, slot)` in `app.js` — Foto wenn `d.cover` / `cover_url`, sonst generated SVG. `slot` unique. Cover-Upload **nie** in den `beats`-Bucket (nur Audio-MIME → `mime type image/jpeg is not supported`). Client → `/api/manage-beat` `action: 'upload-cover'` → Bucket `covers` (JPEG/PNG/WebP). **Kein** extra `api/upload-cover.js` — Hobby max 12 Functions. Fallback `avatars/covers/`. SQL: `supabase/covers-bucket.sql` + `supabase/beats-cover-url.sql`.
+- **Hobby 12 Functions:** Nur 12 `api/*.js` ohne `_`-Prefix. Cover-Upload **nicht** als eigene Datei — `manage-beat` `action: 'upload-cover'`. Extra Endpoint → Vercel Deploy Error (Build ok, Deploying outputs fail).
+- **Beat covers:** `beatCoverHTML(d, class, slot)` in `app.js` — Foto wenn `d.cover` / `cover_url`, sonst generated SVG. `slot` unique. Cover-Upload **nie** in den `beats`-Bucket (nur Audio-MIME → `mime type image/jpeg is not supported`). Client → `/api/manage-beat` `action: 'upload-cover'` → Bucket `covers` (JPEG/PNG/WebP). Fallback `avatars/covers/`. SQL: `supabase/covers-bucket.sql` + `supabase/beats-cover-url.sql`.
 - **Wordmark + Mark:** `.dtb-logo` / `.wordmark` **kein** Flex-`gap` — Icon, „Beat“ und `<span>Swipe</span>` sind drei Items, Gap trennt das Wort. Abstand nur `.brand-mark { margin-right }`. Mark = Kreis-PNG weißes **B** auf Blau (`favicon.png`) — `border-radius: 50%`, nicht der alte Zwei-Karten-Stack, nicht das Pfad-B.
 - **OG / WhatsApp / Insta-DM:** `/p/` **nie** Avatar als `og:image` (1:1 wird beschnitten). Immer `og-image.png` 1200×630; Text nur in der **Mitte 630×630** (Insta-Chat ist fast quadratisch). Nach PNG-Change Cache-Bust `?v=N`. Bots: `api/portfolio-og.js` + `vercel.json` UA-Rewrite. Template: `marketing/og-image.html`.
 - **`/p/` Desktop-Glow:** idle `opacity: 0`; beim Swipe großer Bloom in die Leere. Wrap/slot `overflow: visible` (sonst clippt die 170%-Glow). Vignette `.portfolio-vignette`. Preview = dieselbe `#portfolioCardGlow`.
 - **`/p/` mobile overflow:** `#portfolioPageInner` ist CSS-Grid (`min-width: auto`) — nowrap-Titel in der Done-Liste weiten die Spalte über den Viewport, `overflow-x: hidden` clippt dann links/rechts. Handy: Grid-Items `min-width: 0; max-width: 100%`. Glow auf Mobile nicht 120%+ (sonst ~20px Seiten-Scroll). Platform-Grid auf Home nicht als Horizontal-Carousel (leakt Page-Scroll).
-- **`/p/` mobile header:** Bio 2-Zeilen-Clamp + „Read more“ / „Show less“ (`#portfolioBio`, `syncPortfolioBioClamp`) — nicht `display:none`. Desktop ≥1100: Bio+Socials nur in der Sidepanel. Display-Name Demo = `Demo`, Slug bleibt `/p/demo`.
+- **`/p/` mobile header:** Bio 1-Zeile + „Read more“ öffnet Overlay `#portfolioBioPopover` (nicht expandieren — Card rutscht). Desktop ≥1100: Bio+Socials nur in der Sidepanel. Display-Name Demo = `Demo`, Slug bleibt `/p/demo`.
 
 - **App ambient:** `html:not(.portfolio-route-boot) body:not(.portfolio-active)` — charcoal `#0E0E12` + blue bloom auf Landing **und** App-Pages (nicht reines `#000`). White aurora nur auf `/p/` (`portfolio-active` / `portfolio-route-boot`). Nie Landing-Blau auf Portfolio.
 
 ## Aktuell (2026-08-26)
 
-- **Live:** Private Beta. Upload sofort auf `/p/`. Buy-Link Pflicht bei MP3, optional bei YouTube/SoundCloud. Landing-Stats versteckt bis ≥8 Beats / ≥3 Producer.
-- **Mark:** Lucas Kreis-B (`favicon.png?v=1`) — weißes dickes B auf Blau, transparente Ecken, `border-radius: 50%`. Apple-Touch + OG + Demo-Avatar dasselbe Bild. Altes Pfad-B / `favicon.svg` weg.
-- **Cover:** Optional auf Add/Edit. Client → `/api/manage-beat` (`upload-cover`) → Bucket `covers` (nie `beats`). Ohne Foto: generated SVG. SQL noch in Supabase: `supabase/beats-cover-url.sql` + `supabase/covers-bucket.sql`.
-- **OG:** Zentrierte Karte `beatswipe.app` + Slogan (Mitte 630×630). Live: `og-image.png?v=5`.
+- **Live:** Private Beta, Deploy durch (`141e817`). Upload sofort auf `/p/`. Buy-Link Pflicht bei MP3, optional bei YouTube/SoundCloud. Landing-Stats versteckt bis ≥8 Beats / ≥3 Producer.
+- **Mark:** Lucas Kreis-B `favicon.png?v=1` (weiß auf Blau, transparente Ecken, `border-radius: 50%`). Apple-Touch, OG, Demo-Avatar, Topbar. `favicon.svg` weg.
+- **Cover:** Optional Add/Edit. `/api/manage-beat` `upload-cover` → Bucket `covers`. Ohne Foto: generated SVG. **SQL in Supabase noch nicht bestätigt.**
+- **OG:** `og-image.png?v=5` — Karte + Slogan, Mitte 630×630.
 - **Demo `/p/demo`:** Bio + Read more (Handy), Socials, Kreis-B-Avatar. `/p/clyriax` = Lucas Page.
-- **Look:** App-Pages = Homepage (charcoal `#0E0E12` + blue bloom). `/p/` = White-Aurora + Vignette + Swipe-Glow.
-- **Analytics:** Vercel Web Analytics live.
+- **Look:** App-Pages = charcoal `#0E0E12` + blue bloom. `/p/` = White-Aurora + Vignette + Swipe-Glow.
+- **YouTube-Upload:** Fehler an Toast + `#addBeatError` (nicht im versteckten MP3-Block).
 - **Insta:** Carousel bereit (`marketing/insta-v2/ig/`) — Caption `/p/demo`. DM: fragen → Demo → Key.
-- **Offen:** Cover-SQL in Supabase. Testdaten auf `/p/clyriax`. Carousel nicht gepostet. Producer-DMs nicht raus. TikTok-Werbeclip.
+- **Offen:** Cover-SQL. Testdaten `/p/clyriax`. Carousel nicht gepostet. Producer-DMs. TikTok-Clip.
 
 ## Nächster Schritt
 
-1. Supabase SQL: `cover_url` + Bucket `covers` (`supabase/beats-cover-url.sql`, `supabase/covers-bucket.sql`)
+1. Supabase SQL: `supabase/beats-cover-url.sql` + `supabase/covers-bucket.sql`
 2. Insta-Carousel posten (`marketing/insta-v2/ig/` — Caption `/p/demo`)
 3. Testdaten auf My Page runter (`wtf`, 2 BPM, `tiktok.com` …)
 4. Echte Beats auf `/p/clyriax` — dann 2–3 Producer per DM (erst fragen, kein Link in Nachricht 1)

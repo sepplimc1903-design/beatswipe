@@ -895,42 +895,66 @@ function updatePortfolioProgress() {
   updatePortfolioLeftRail();
 }
 
+let _portfolioBioPopoverPrevFocus = null;
+
 function togglePortfolioBio(ev) {
   ev?.preventDefault?.();
   ev?.stopPropagation?.();
+  const pop = document.getElementById('portfolioBioPopover');
+  if (pop?.classList.contains('open')) closePortfolioBioPopover();
+  else openPortfolioBioPopover();
+}
+
+function openPortfolioBioPopover() {
   const bioEl = document.getElementById('portfolioBio');
+  const pop = document.getElementById('portfolioBioPopover');
+  const textEl = document.getElementById('portfolioBioPopoverText');
+  const titleEl = document.getElementById('portfolioBioPopoverTitle');
   const moreBtn = document.getElementById('portfolioBioMore');
-  if (!bioEl || !moreBtn) return;
-  const expanded = bioEl.classList.toggle('portfolio-bio--expanded');
-  moreBtn.textContent = expanded ? 'Show less' : 'Read more';
-  moreBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-  if (!expanded) syncPortfolioBioClamp();
+  if (!bioEl || !pop || !textEl) return;
+  textEl.textContent = (bioEl.textContent || '').trim();
+  if (titleEl) titleEl.textContent = _portfolioProducer || 'Bio';
+  _portfolioBioPopoverPrevFocus = document.activeElement;
+  pop.classList.add('open');
+  moreBtn?.setAttribute('aria-expanded', 'true');
+  pop.querySelector('.modal-close')?.focus({ preventScroll: true });
+}
+
+function closePortfolioBioPopover() {
+  const pop = document.getElementById('portfolioBioPopover');
+  const moreBtn = document.getElementById('portfolioBioMore');
+  if (!pop?.classList.contains('open')) return;
+  pop.classList.remove('open');
+  moreBtn?.setAttribute('aria-expanded', 'false');
+  const prev = _portfolioBioPopoverPrevFocus;
+  _portfolioBioPopoverPrevFocus = null;
+  if (prev && typeof prev.focus === 'function' && document.contains(prev)) prev.focus();
+}
+
+function closePortfolioBioIfBackdrop(e) {
+  if (e.target?.id === 'portfolioBioPopover') closePortfolioBioPopover();
 }
 
 function syncPortfolioBioClamp() {
   const bioEl = document.getElementById('portfolioBio');
   const moreBtn = document.getElementById('portfolioBioMore');
   if (!bioEl || !moreBtn) return;
+  const popOpen = document.getElementById('portfolioBioPopover')?.classList.contains('open');
   if (!isMobileUI()) {
-    bioEl.classList.remove('portfolio-bio--expanded');
+    closePortfolioBioPopover();
     moreBtn.hidden = true;
-    moreBtn.textContent = 'Read more';
     moreBtn.setAttribute('aria-expanded', 'false');
     return;
   }
-  if (bioEl.classList.contains('portfolio-bio--expanded')) {
-    moreBtn.hidden = false;
-    moreBtn.textContent = 'Show less';
-    moreBtn.setAttribute('aria-expanded', 'true');
-    return;
-  }
   moreBtn.hidden = true;
-  moreBtn.textContent = 'Read more';
-  moreBtn.setAttribute('aria-expanded', 'false');
-  moreBtn.hidden = bioEl.scrollHeight <= bioEl.clientHeight + 1;
+  const overflows = bioEl.scrollWidth > bioEl.clientWidth + 1;
+  moreBtn.hidden = !overflows;
+  moreBtn.setAttribute('aria-expanded', popOpen && overflows ? 'true' : 'false');
+  if (popOpen && !overflows) closePortfolioBioPopover();
 }
 
 function renderPortfolioHeader(producerName, profile, color) {
+  closePortfolioBioPopover();
   const header = document.getElementById('portfolioHeader');
   if (!header) return;
   const avatarEl = profile.avatar_url
@@ -945,7 +969,7 @@ function renderPortfolioHeader(producerName, profile, color) {
         <div class="portfolio-name">${escHtml(producerName)}</div>
         <div class="portfolio-bio-block">
           <div class="portfolio-bio" id="portfolioBio">${bio}</div>
-          <button type="button" class="portfolio-bio-more" id="portfolioBioMore" hidden aria-expanded="false" onclick="togglePortfolioBio(event)">Read more</button>
+          <button type="button" class="portfolio-bio-more" id="portfolioBioMore" hidden aria-expanded="false" aria-haspopup="dialog" aria-controls="portfolioBioPopover" onclick="togglePortfolioBio(event)">Read more</button>
         </div>
         ${socials}
       </div>
@@ -1129,6 +1153,7 @@ function openProducerProfile(producerName) {
 }
 
 function exitPortfolioMode() {
+  closePortfolioBioPopover();
   resetSwipeGestureState();
   setPortfolioBackVisible(false);
   _portfolioMode = false;
@@ -1152,6 +1177,7 @@ async function handlePortfolioPopstate() {
     return;
   }
   if (_portfolioMode) {
+    closePortfolioBioPopover();
     setPortfolioBackVisible(false);
     _portfolioMode = false;
     _portfolioPreview = false;
@@ -1286,6 +1312,14 @@ function initPortfolioBuyTracking() {
   }, true);
 }
 initPortfolioBuyTracking();
+
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  const pop = document.getElementById('portfolioBioPopover');
+  if (!pop?.classList.contains('open')) return;
+  e.preventDefault();
+  closePortfolioBioPopover();
+});
 
 let _portfolioLayoutTimer;
 window.addEventListener('resize', () => {

@@ -1952,7 +1952,8 @@
         .info-modal-backdrop.open,
         .modal-backdrop.open,
         .info-modal-sheet,
-        .modal-sheet { animation: none; }
+        .modal-sheet,
+        .portfolio-bio-popover-card { animation: none; }
         body.discover-active .discover-side-hint { opacity: 0.32; }
         #heroWaveform .wbar { animation: none !important; }
         .hero-beat-card.hero-demo-live,
@@ -3652,26 +3653,26 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .portfolio-bio-block { min-width: 0; }
+    .portfolio-bio-block {
+      min-width: 0;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
     .portfolio-bio {
       font-size: 13px;
       color: var(--text-2);
       margin-top: 2px;
       line-height: 1.4;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
+      min-width: 0;
+      flex: 1;
       overflow: hidden;
-    }
-    .portfolio-bio.portfolio-bio--expanded {
-      display: block;
-      -webkit-line-clamp: unset;
-      overflow: visible;
-      white-space: normal;
+      white-space: nowrap;
+      text-overflow: ellipsis;
     }
     .portfolio-bio-more {
       display: none;
-      margin-top: 2px;
+      margin-top: 0;
       padding: 0;
       border: 0;
       background: none;
@@ -3681,8 +3682,68 @@
       font-family: inherit;
       line-height: 1.3;
       cursor: pointer;
+      flex-shrink: 0;
+      white-space: nowrap;
     }
     .portfolio-bio-more:hover { text-decoration: underline; }
+    .portfolio-bio-popover {
+      position: fixed;
+      inset: 0;
+      z-index: 420;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 22px;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .portfolio-bio-popover.open { display: flex; }
+    .portfolio-bio-popover-card {
+      width: 100%;
+      max-width: 320px;
+      max-height: min(52vh, 340px);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      background: rgba(22, 22, 28, 0.94);
+      border: 0.5px solid rgba(255,255,255,0.12);
+      border-radius: 18px;
+      box-shadow: 0 18px 48px rgba(0,0,0,0.45);
+      animation: portfolioBioPopoverIn 0.22s cubic-bezier(0.22,1,0.36,1);
+    }
+    .portfolio-bio-popover-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 14px 14px 8px 16px;
+      flex-shrink: 0;
+    }
+    .portfolio-bio-popover-title {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .portfolio-bio-popover-body {
+      padding: 0 16px 16px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--text-2);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    @keyframes portfolioBioPopoverIn {
+      from { opacity: 0; transform: scale(0.94) translateY(8px); }
+      to { opacity: 1; transform: none; }
+    }
     .portfolio-bio--skel {
       height: 14px;
       width: 72%;
@@ -3690,14 +3751,6 @@
       background: linear-gradient(90deg, var(--bg-3) 0%, rgba(255,255,255,0.07) 50%, var(--bg-3) 100%);
       background-size: 200% 100%;
       animation: skeletonShimmer 1.5s ease-in-out infinite;
-    }
-    @media (min-width: 600px) {
-      .portfolio-bio:not(.portfolio-bio--expanded) {
-        -webkit-line-clamp: 1;
-        display: block;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-      }
     }
     .portfolio-socials {
       display: flex;
@@ -4440,20 +4493,13 @@
         align-items: flex-start;
       }
       body.portfolio-active .portfolio-header .portfolio-bio {
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        white-space: normal;
-        text-overflow: unset;
-      }
-      body.portfolio-active .portfolio-header .portfolio-bio.portfolio-bio--expanded {
         display: block;
-        -webkit-line-clamp: unset;
-        overflow: visible;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       body.portfolio-active .portfolio-header .portfolio-bio-more:not([hidden]) {
-        display: inline-block;
+        display: inline;
       }
       body.portfolio-has-back.portfolio-active .portfolio-header {
         padding-top: 8px;

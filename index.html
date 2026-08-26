@@ -1224,6 +1224,16 @@
 
   <div class="bs-toast-wrap" id="bsToastWrap" aria-live="polite" role="status"></div>
 
+  <div class="portfolio-bio-popover" id="portfolioBioPopover" onclick="closePortfolioBioIfBackdrop(event)">
+    <div class="portfolio-bio-popover-card" role="dialog" aria-modal="true" aria-labelledby="portfolioBioPopoverTitle" onclick="event.stopPropagation()">
+      <div class="portfolio-bio-popover-head">
+        <div class="portfolio-bio-popover-title" id="portfolioBioPopoverTitle">Bio</div>
+        <button type="button" class="modal-close" onclick="closePortfolioBioPopover()" aria-label="Close"><i class="ti ti-x" style="font-size:14px"></i></button>
+      </div>
+      <div class="portfolio-bio-popover-body" id="portfolioBioPopoverText"></div>
+    </div>
+  </div>
+
   <div class="info-modal-backdrop" id="portfolioQrModal" onclick="closePortfolioQrIfBackdrop(event)">
     <div class="info-modal-sheet portfolio-qr-sheet" onclick="event.stopPropagation()">
       <div class="modal-handle"></div>
