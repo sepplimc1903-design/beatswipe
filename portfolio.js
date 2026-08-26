@@ -1022,11 +1022,6 @@ function renderPortfolioCard() {
   if (!useYT && !useSC) {
     const mp3 = d.mp3;
     const startMp3 = () => {
-      vizTimer = setInterval(() => {
-        document.querySelectorAll('.wbar').forEach(b => {
-          b.style.height = Math.round(Math.random() * 14 + 3) + 'px';
-        });
-      }, 600);
       loadTrack(mp3, 'portfolio');
       tryAutoplayFromGesture();
     };

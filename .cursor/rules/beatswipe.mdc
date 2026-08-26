@@ -77,6 +77,7 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 - **Portfolio card-glow:** hidden in idle (`opacity: 0`); purple/orange only while swiping — never beat `--glow-color` on `/p/`
 - **Local dev env:** `vercel dev` lädt `.env.local` nicht zuverlässig in APIs — `api/_env.js` liest `.env.local` als Fallback; Production nutzt Vercel `SUPABASE_SERVICE_ROLE_KEY`
 - **iOS autoplay:** Playback nur in User-Geste — `unlockAudioTouch` + `onStart` (swipe) → `tryAutoplayFromGesture()`; YT via `startVideo()` (`about:blank` → `&autoplay=1`); MP3 braucht `_audioUnlocked`. YT-Overlay auf iOS bis Geste sichtbar (`isIOS()`). Kein Autoplay beim allerersten Page-Load ohne Touch (Apple-Limit). Helpers: `app.js` — `maybeAutoplayPreview`, `startVideo`, `isIOS`
+- **Play button vs autoplay:** Global `touchstart`/`click` → `tryAutoplayFromGesture` raced `togglePlay()` — Pause ging, zweiter Tap pausierte sofort wieder. Skip Autoplay auf `#playBtn` / `.waveform-wrap`; `_previewPausedByUser` bis Play oder nächste Card. Pause: Waveform freeze in `setPlayState(false)` — kein 600ms-Idle-Timer (flasht).
 - **Discover desktop layout:** `--w-discover` 480px (Card capped) — Ränder via Sidebars füllen, nicht Card auf 720px strecken. Tokens: `--discover-left`, `--sidebar-w`. Left rail `#discoverLeftRail` / `updateDiscoverLeftRail()`; `desktop-crate` ab 1100px. Swipe-overflow `visible` beibehalten.
 - **YT desktop keyboard:** iframe cross-origin — `←`/`→` steuern YouTube wenn Player Fokus hat. **Nicht** `pointer-events:none` auf iframe (blockiert Scrub). Fokus-Modell: Klick auf Card → Skip/Save-Tasten; Klick in Player → Seek. `refocusSwipeShortcuts()` + `initDesktopSwipeFocus()` nach Swipe/neuer Card.
 - **Laptop page body classes:** `land-active` / `discover-active` / `crate-active` / `mypage-active` / `profile-active` — je Screen in `applyGoTo()`; nur einer aktiv. Left rails in `index.html`. **Profile ≥1100px:** kein left rail; `.profile-layout` + Sidebar als **CSS-Grid** zentriert (`grid-template-columns: minmax(0,var(--w-page)) 300px`), ganzer Block via `page-inner--wide { max-width: min(w-page+348px,100%); margin-inline:auto }` — **nicht** Hauptspalte allein zentrieren und Sidebar daneben "mitschleppen" (alte Flex+`margin-left: calc((100vw - var(--w-page))/2)`-Formel ignorierte Sidebar-Breite, saß dauerhaft 174px zu weit rechts). Portfolio entfernt alle + `site-scroll`. Sidebars meist ab 1100px.
@@ -111,13 +112,10 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 
 ## Aktuell (2026-08-26)
 
-- **Live:** Private Beta, Deploy durch (`141e817`). Upload sofort auf `/p/`. Buy-Link Pflicht bei MP3, optional bei YouTube/SoundCloud. Landing-Stats versteckt bis ≥8 Beats / ≥3 Producer.
-- **Mark:** Lucas Kreis-B `favicon.png?v=1` (weiß auf Blau, transparente Ecken, `border-radius: 50%`). Apple-Touch, OG, Demo-Avatar, Topbar. `favicon.svg` weg.
-- **Cover:** Optional Add/Edit. `/api/manage-beat` `upload-cover` → Bucket `covers`. Ohne Foto: generated SVG. **SQL in Supabase noch nicht bestätigt.**
-- **OG:** `og-image.png?v=5` — Karte + Slogan, Mitte 630×630.
-- **Demo `/p/demo`:** Bio + Read more (Handy), Socials, Kreis-B-Avatar. `/p/clyriax` = Lucas Page.
-- **Look:** App-Pages = charcoal `#0E0E12` + blue bloom. `/p/` = White-Aurora + Vignette + Swipe-Glow.
-- **YouTube-Upload:** Fehler an Toast + `#addBeatError` (nicht im versteckten MP3-Block).
+- **Live:** Private Beta. Bio-Popover Handy schon live (`ad9fd74`). Dieser Push: Play/Pause-Fix + Waveform freeze.
+- **Handy `/p/`:** Bio 1-Zeile, Read more = Overlay. Erster Tap startet Beat; Play pausiert und startet wieder; Pause lässt Waveform still.
+- **Cover:** Optional Add/Edit. `/api/manage-beat` `upload-cover` → Bucket `covers`. **SQL in Supabase noch nicht bestätigt.**
+- **OG / Mark:** `og-image.png?v=5`; Kreis-B `favicon.png?v=1`. Demo `/p/demo`, Lucas `/p/clyriax`.
 - **Insta:** Carousel bereit (`marketing/insta-v2/ig/`) — Caption `/p/demo`. DM: fragen → Demo → Key.
 - **Offen:** Cover-SQL. Testdaten `/p/clyriax`. Carousel nicht gepostet. Producer-DMs. TikTok-Clip.
 

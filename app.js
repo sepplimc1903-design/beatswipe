@@ -962,6 +962,7 @@ let vizTimer = null;    // waveform animation interval
 let isPlaying = false;
 let _audioPanel = 'discover'; // 'discover' | 'crate' | 'portfolio'
 let _audioUnlocked = false;
+let _previewPausedByUser = false;
 let _swipeDragging = false;
 let _swipeCommitted = false;
 let _pendingFlyRect = null;
@@ -973,13 +974,18 @@ function purgeOrphanSwipeNodes() {
   document.querySelectorAll('.swipe-drag-spacer').forEach(el => el.remove());
 }
 
+function isPlayToggleTarget(el) {
+  return !!el?.closest?.('#playBtn, .play-btn, .waveform-wrap, #cpPlayBtn');
+}
+
 function unlockAudio() {
   if (!_audioUnlocked) _audioUnlocked = true;
   tryAutoplayFromGesture();
 }
 
-function unlockAudioTouch() {
+function unlockAudioTouch(e) {
   _audioUnlocked = true;
+  if (isPlayToggleTarget(e?.target)) return;
   tryAutoplayFromGesture();
 }
 
@@ -1061,13 +1067,15 @@ function playMp3Preview() {
   }
 }
 
-function handleAudioGesture() {
+function handleAudioGesture(e) {
   if (!_audioUnlocked) _audioUnlocked = true;
+  if (isPlayToggleTarget(e?.target)) return;
   tryAutoplayFromGesture();
 }
 
 function tryAutoplayFromGesture() {
   if (!isAutoplayScreenActive()) return;
+  if (_previewPausedByUser) return;
   if (_portfolioMode && document.getElementById('portfolioPageInner')?.classList.contains('page-inner--swipe-done')) return;
   const media = getActiveBeatMedia();
   if (!media) return;
@@ -1103,6 +1111,7 @@ function getPlayerEl(id) {
 
 // ─── AUDIO ENGINE ─────────────────────────────────────────────────────────
 function pauseTrackForCardSwap() {
+  _previewPausedByUser = false;
   if (audio) {
     audio.pause();
     setPlayState(false);
@@ -1195,13 +1204,16 @@ function togglePlay() {
   if (isPlaying) {
     audio.pause();
     setPlayState(false);
+    if (_audioPanel !== 'crate') _previewPausedByUser = true;
   } else {
+    _previewPausedByUser = false;
     audio.play().catch(() => {});
     setPlayState(true);
   }
 }
 
 function stopTrack() {
+  _previewPausedByUser = false;
   if (audio) {
     audio.pause();
     audio.src = '';
@@ -1211,6 +1223,12 @@ function stopTrack() {
   clearInterval(vizTimer);
   stopEmbedPreview(document.getElementById('cardWrap'));
   stopEmbedPreview(document.getElementById('portfolioCardSlot'));
+}
+
+function getWaveformBars() {
+  if (_audioPanel === 'crate') return document.querySelectorAll('.cp-wbar');
+  const scope = getPlayerScope();
+  return (scope || document).querySelectorAll('.wbar');
 }
 
 function setPlayState(playing) {
@@ -1224,15 +1242,19 @@ function setPlayState(playing) {
     if (playing && icon) icon.style.marginLeft = '2px';
   }
   clearInterval(vizTimer);
-  const barSel = _audioPanel === 'crate' ? '.cp-wbar' : '.wbar';
-  vizTimer = setInterval(() => {
-    document.querySelectorAll(barSel).forEach(b => {
-      const max = playing ? 54 : 16;
-      const min = playing ? 6 : 3;
-      b.style.height = Math.round(Math.random() * max + min) + 'px';
-      b.style.opacity = playing ? '1' : '0.55';
+  vizTimer = null;
+  if (!playing) {
+    getWaveformBars().forEach(b => {
+      b.style.opacity = '0.55';
     });
-  }, playing ? 100 : 600);
+    return;
+  }
+  vizTimer = setInterval(() => {
+    getWaveformBars().forEach(b => {
+      b.style.height = Math.round(Math.random() * 54 + 6) + 'px';
+      b.style.opacity = '1';
+    });
+  }, 100);
 }
 
 let _scrubBar = null;
@@ -1573,11 +1595,6 @@ function renderCard(opts) {
 
   // Idle waveform animation (only for MP3)
   if (!useYT && !useSC) {
-    vizTimer = setInterval(() => {
-      document.querySelectorAll('.wbar').forEach(b => {
-        b.style.height = Math.round(Math.random() * 14 + 3) + 'px';
-      });
-    }, 600);
     const runLoad = () => loadTrack(d.mp3);
     if (deferAudio) setTimeout(runLoad, 120);
     else runLoad();
