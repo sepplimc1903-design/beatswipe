@@ -1,13 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="BeatSwipe profile avatar">
   <circle cx="256" cy="256" r="256" fill="#0A84FF"/>
-  <text
-    x="256"
-    y="272"
-    text-anchor="middle"
-    fill="#FFFFFF"
-    font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif"
-    font-size="290"
-    font-weight="700"
-    letter-spacing="-0.04em"
-  >B</text>
+  <g transform="translate(256 256) scale(15.4) translate(-14.55 -15.85)">
+    <g transform="translate(0.9 -0.15)">
+      <path fill="#fff" d="M8.2 6.9H16.4C21.9 6.9 25.45 9.2 25.45 12.4C25.45 14.7 23.55 16.25 20.5 16.65C24.05 17.05 26.6 19.2 26.6 22.5C26.6 25.05 24.15 26.3 16.75 26.3H8.2C7.3 26.3 6.55 25.55 6.55 24.65V8.55C6.55 7.65 7.3 6.9 8.2 6.9Z"/>
+      <path fill="#0A84FF" d="M13.9 9.65h3.2c2.55 0 4 1.05 4 2.55s-1.45 2.55-4 2.55h-3.2z"/>
+      <path fill="#0A84FF" d="M13.9 18.7h4c2.95 0 4.6 1.15 4.6 2.95s-1.65 2.95-4.6 2.95h-4z"/>
+    </g>
+  </g>
 </svg>

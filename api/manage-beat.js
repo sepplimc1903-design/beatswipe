@@ -1,4 +1,5 @@
 import { getServiceRoleKey, getSupabaseUrl, getSupabaseAnonKey } from './_env.js';
+import { coverStorageTarget, normalizeCoverUrl } from './_cover.js';
 
 function serviceHeaders(prefer) {
   const key = getServiceRoleKey();
@@ -30,11 +31,34 @@ async function getProducerFromToken(token) {
   return rows[0]?.producer_name?.trim() || null;
 }
 
+async function deleteStorageObject(bucket, objectPath) {
+  if (!objectPath) return;
+  await fetch(`${getSupabaseUrl()}/storage/v1/object/${bucket}/${objectPath}`, {
+    method: 'DELETE',
+    headers: serviceHeaders()
+  });
+}
+
+async function deleteCoverFile(coverUrl) {
+  const target = coverStorageTarget(coverUrl);
+  if (target) await deleteStorageObject(target.bucket, target.path);
+}
+
 async function getBeatRow(beatId) {
-  const res = await fetch(
-    `${getSupabaseUrl()}/rest/v1/beats?id=eq.${encodeURIComponent(beatId)}&select=id,producer,status&limit=1`,
-    { headers: serviceHeaders() }
+  const url = getSupabaseUrl();
+  const headers = serviceHeaders();
+  let res = await fetch(
+    `${url}/rest/v1/beats?id=eq.${encodeURIComponent(beatId)}&select=id,producer,status,cover_url,preview_url&limit=1`,
+    { headers }
   );
+  if (!res.ok) {
+    const errText = await res.text();
+    if (!/cover_url/i.test(errText)) return null;
+    res = await fetch(
+      `${url}/rest/v1/beats?id=eq.${encodeURIComponent(beatId)}&select=id,producer,status,preview_url&limit=1`,
+      { headers }
+    );
+  }
   if (!res.ok) return null;
   const rows = await res.json();
   return rows[0] || null;
@@ -91,6 +115,7 @@ export default async function handler(req, res) {
 
   try {
     if (action === 'delete') {
+      await deleteCoverFile(row.cover_url);
       await patchBeat(beatId, { status: 'removed' });
       return res.status(200).json({ ok: true });
     }
@@ -116,10 +141,31 @@ export default async function handler(req, res) {
         }
         updates.bpm = bpmNum;
       }
+      if (f.cover !== undefined) {
+        if (f.cover === null || f.cover === '') updates.cover_url = null;
+        else {
+          const coverUrl = normalizeCoverUrl(f.cover, getSupabaseUrl());
+          if (!coverUrl) return res.status(400).json({ error: 'Invalid cover image' });
+          updates.cover_url = coverUrl;
+        }
+      }
       if (!Object.keys(updates).length) {
         return res.status(400).json({ error: 'No fields to update' });
       }
-      await patchBeat(beatId, updates);
+      if ('cover_url' in updates && row.cover_url && updates.cover_url !== row.cover_url) {
+        await deleteCoverFile(row.cover_url);
+      }
+      try {
+        await patchBeat(beatId, updates);
+      } catch (e) {
+        if (!('cover_url' in updates) || !/cover_url/i.test(String(e.message || ''))) throw e;
+        delete updates.cover_url;
+        if (!Object.keys(updates).length) {
+          return res.status(200).json({ ok: true, coverSkipped: true });
+        }
+        await patchBeat(beatId, updates);
+        return res.status(200).json({ ok: true, coverSkipped: true });
+      }
       return res.status(200).json({ ok: true });
     }
 

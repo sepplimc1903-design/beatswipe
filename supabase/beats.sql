@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS public.beats (
   preview_url   TEXT DEFAULT '',
   preview_type  TEXT,
   buy_link      TEXT DEFAULT '',
+  cover_url     TEXT,
   color         TEXT DEFAULT '#BA7517',
   status        public.beat_status NOT NULL DEFAULT 'pending',
   sort_order    INTEGER DEFAULT 0,

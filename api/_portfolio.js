@@ -1,7 +1,7 @@
 import { getServiceRoleKey, getSupabaseUrl } from './_env.js';
 
 const SITE_URL = 'https://beatswipe.app';
-const DEFAULT_OG = `${SITE_URL}/og-image.png?v=3`;
+const DEFAULT_OG = `${SITE_URL}/og-image.png?v=5`;
 
 export function slugFromProducerName(name) {
   return encodeURIComponent(String(name).trim().toLowerCase().replace(/\s+/g, '-'));

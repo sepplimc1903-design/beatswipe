@@ -1,5 +1,6 @@
 import { getServiceRoleKey, getSupabaseUrl, getSupabaseAnonKey } from './_env.js';
 import { serviceHeaders } from './_portfolio.js';
+import { coverStorageTarget } from './_cover.js';
 
 async function getUserFromToken(token) {
   const anon = getSupabaseAnonKey();
@@ -45,7 +46,7 @@ async function removeProducerBeats(producer) {
   if (!producer) return;
   const base = getSupabaseUrl();
   const beatsRes = await fetch(
-    `${base}/rest/v1/beats?producer=eq.${encodeURIComponent(producer)}&select=id,preview_url,status`,
+    `${base}/rest/v1/beats?producer=eq.${encodeURIComponent(producer)}&select=id,preview_url,cover_url,status`,
     { headers: serviceHeaders(), cache: 'no-store' }
   );
   if (!beatsRes.ok) {
@@ -54,8 +55,10 @@ async function removeProducerBeats(producer) {
   }
   const beats = await beatsRes.json();
   for (const beat of beats) {
-    const path = storagePathFromUrl(beat.preview_url, 'beats');
-    if (path) await deleteStorageObject('beats', path);
+    const previewPath = storagePathFromUrl(beat.preview_url, 'beats');
+    if (previewPath) await deleteStorageObject('beats', previewPath);
+    const coverTarget = coverStorageTarget(beat.cover_url);
+    if (coverTarget) await deleteStorageObject(coverTarget.bucket, coverTarget.path);
   }
   await fetch(
     `${base}/rest/v1/beats?producer=eq.${encodeURIComponent(producer)}`,

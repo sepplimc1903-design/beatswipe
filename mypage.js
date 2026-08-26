@@ -4,9 +4,16 @@ let _mp3File = null;
 let _mp3PublicUrl = null;
 let _mp3Queue = [];
 let _mp3QueueId = 0;
+let _singleCoverFile = null;
+let _singleCoverPreview = '';
+let _editCoverFile = null;
+let _editCoverPreview = '';
+let _editCoverCleared = false;
 
 const MAX_FILE_MB = 15;
 const MAX_MP3_QUEUE = 10;
+const COVER_MAX_SOURCE_MB = 8;
+const COVER_MAX_PX = 800;
 const MP3_PREVIEW_HINT = 'Preview only — short clip (~30–60s), not the full beat.';
 const ALLOWED_MIME = 'audio/mpeg';
 const SUPA_BUCKET  = 'beats';
@@ -39,6 +46,7 @@ function resetAddBeatForm() {
   const pt = document.getElementById('f-preview-type');
   if (pt) pt.value = currentUser ? 'MP3' : '';
   mountBuyStoreField('submitBuyStore', { wrapId: 'single', platform: '', buyLink: '' });
+  clearSingleCover();
 }
 
 function syncSubmitBtnLabel() {
@@ -141,6 +149,7 @@ function updatePreviewLabel() {
   syncSubmitBtnLabel();
   syncQueueFormLayout();
   syncOptionalBuyStore(type);
+  renderSingleCoverPick();
 }
 
 const SUBMIT_GENRES = ['Trap','Drill','R&B','Lo-Fi','Afrobeats','Synthwave','Acoustic','Boom Bap','Other'];
@@ -209,7 +218,7 @@ function validateBpm(raw) {
 function validatePreviewUrl(type, url) {
   const trimmed = (url || '').trim();
   if (!trimmed) return 'Paste a preview link.';
-  if (type === 'YouTube' && !/(?:youtube\.com\/(?:watch\?|embed\/|shorts\/)|youtu\.be\/)/i.test(trimmed)) {
+  if (type === 'YouTube' && !/(?:youtube\.com|youtu\.be)\//i.test(trimmed)) {
     return 'Paste a YouTube video link.';
   }
   if (type === 'SoundCloud' && !/soundcloud\.com|snd\.sc\//i.test(trimmed)) {
@@ -413,6 +422,15 @@ function renderUploadQueue() {
             </div>
           </div>
           ${buildBuyStoreFieldHtml({ wrapId: item.id, platform: item.buyPlatform || '', buyLink: item.buyLink || '' })}
+          <div>
+            <label class="field-label">Cover <span class="field-optional">(optional)</span></label>
+            ${beatCoverPickHTML({
+              inputId: 'qc-' + item.id,
+              previewSrc: item.coverPreview || '',
+              onChange: `onQueueCoverPicked('${item.id}', this)`,
+              onClear: `clearQueueCover('${item.id}')`
+            })}
+          </div>
           <button type="button" class="upload-queue-remove" onclick="removeQueueItem('${item.id}')"><i class="ti ti-trash"></i> Remove</button>
         </div>
       </div>
@@ -498,6 +516,8 @@ function addFilesToQueue(fileList) {
       type: '',
       buyLink: '',
       buyPlatform: '',
+      coverFile: null,
+      coverPreview: '',
       expanded: isFirst
     });
     added++;
@@ -513,12 +533,15 @@ function addFilesToQueue(fileList) {
 }
 
 function removeQueueItem(id) {
+  const item = _mp3Queue.find(q => q.id === id);
+  if (item) revokeCoverPreview(item.coverPreview);
   _mp3Queue = _mp3Queue.filter(q => q.id !== id);
   renderUploadQueue();
   if (!_mp3Queue.length) resetUploadUI();
 }
 
 function clearMp3Queue() {
+  _mp3Queue.forEach(q => revokeCoverPreview(q.coverPreview));
   _mp3Queue = [];
   _mp3File = null;
   _mp3PublicUrl = null;
@@ -611,6 +634,204 @@ async function uploadMp3File(file, onProgress) {
   });
 }
 
+function revokeCoverPreview(url) {
+  if (url && String(url).startsWith('blob:')) URL.revokeObjectURL(url);
+}
+
+function validateCoverFile(file) {
+  if (!file) return 'Choose an image.';
+  const okType = /^image\/(jpeg|jpg|png|webp|gif)/i.test(file.type) || /\.(jpe?g|png|webp|gif)$/i.test(file.name);
+  if (!okType) return 'Use a JPG, PNG, or WebP image.';
+  if (file.size > COVER_MAX_SOURCE_MB * 1024 * 1024) return `Cover must be under ${COVER_MAX_SOURCE_MB} MB.`;
+  return null;
+}
+
+function loadImageFromFile(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Could not read that image.')); };
+    img.src = url;
+  });
+}
+
+async function fileToCoverBlob(file) {
+  const err = validateCoverFile(file);
+  if (err) throw new Error(err);
+  const img = await loadImageFromFile(file);
+  const side = Math.min(img.naturalWidth, img.naturalHeight);
+  if (!side) throw new Error('Could not read that image.');
+  const sx = (img.naturalWidth - side) / 2;
+  const sy = (img.naturalHeight - side) / 2;
+  const out = Math.min(COVER_MAX_PX, side);
+  const canvas = document.createElement('canvas');
+  canvas.width = out;
+  canvas.height = out;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, sx, sy, side, side, 0, 0, out, out);
+  const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.88));
+  if (!blob) throw new Error('Could not process image.');
+  return blob;
+}
+
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const s = String(reader.result || '');
+      resolve(s.includes(',') ? s.split(',')[1] : s);
+    };
+    reader.onerror = () => reject(new Error('Could not read that image.'));
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function coverBlobToPng(blob) {
+  const img = await loadImageFromFile(blob);
+  const canvas = document.createElement('canvas');
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  canvas.getContext('2d').drawImage(img, 0, 0);
+  const png = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+  if (!png) throw new Error('Could not process image.');
+  return png;
+}
+
+async function postCoverBlob(blob) {
+  const accessToken = await getSupabaseAccessToken();
+  const res = await fetch('/api/upload-cover', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      mime: blob.type || 'image/jpeg',
+      image: await blobToBase64(blob)
+    })
+  });
+  let data = {};
+  try { data = await res.json(); } catch (e) {}
+  if (!res.ok || !data.url) {
+    throw new Error(data.error || data.message || 'Cover upload failed');
+  }
+  return data.url;
+}
+
+async function uploadCoverBlob(blob) {
+  if (!currentUser) throw new Error('Not signed in — please log in first.');
+  try {
+    return await postCoverBlob(blob);
+  } catch (e) {
+    if (!/mime|not supported|jpeg|storage/i.test(String(e.message || ''))) throw e;
+    return await postCoverBlob(await coverBlobToPng(blob));
+  }
+}
+
+function beatCoverPickHTML(opts) {
+  const hasImg = !!opts.previewSrc;
+  const previewInner = hasImg
+    ? `<img src="${escHtml(opts.previewSrc)}" alt="">`
+    : '<i class="ti ti-photo"></i>';
+  return `<div class="beat-cover-pick">
+    <div class="beat-cover-pick-preview">${previewInner}</div>
+    <div class="beat-cover-pick-copy">
+      <input type="file" id="${escHtml(opts.inputId)}" accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp" style="display:none" onchange="${opts.onChange}">
+      <div class="beat-cover-pick-actions">
+        <button type="button" class="beat-cover-pick-btn" onclick="document.getElementById('${escHtml(opts.inputId)}').click()">${hasImg ? 'Change cover' : 'Add cover'}</button>
+        ${hasImg && opts.onClear ? `<button type="button" class="beat-cover-pick-clear" onclick="${opts.onClear}">Remove</button>` : ''}
+      </div>
+      <div class="field-hint">Optional · square crop on the swipe card</div>
+    </div>
+  </div>`;
+}
+
+function renderSingleCoverPick() {
+  const host = document.getElementById('singleCoverPick');
+  if (!host) return;
+  host.innerHTML = beatCoverPickHTML({
+    inputId: 'f-cover-file',
+    previewSrc: _singleCoverPreview,
+    onChange: 'onSingleCoverPicked(this)',
+    onClear: 'clearSingleCover()'
+  });
+}
+
+function onSingleCoverPicked(input) {
+  const file = input.files && input.files[0];
+  input.value = '';
+  if (!file) return;
+  const err = validateCoverFile(file);
+  if (err) { showToast(err, 'error'); return; }
+  revokeCoverPreview(_singleCoverPreview);
+  _singleCoverFile = file;
+  _singleCoverPreview = URL.createObjectURL(file);
+  renderSingleCoverPick();
+}
+
+function clearSingleCover() {
+  revokeCoverPreview(_singleCoverPreview);
+  _singleCoverFile = null;
+  _singleCoverPreview = '';
+  renderSingleCoverPick();
+}
+
+function renderEditCoverPick(beat) {
+  const host = document.getElementById('beatEditCoverPick');
+  if (!host) return;
+  const previewSrc = _editCoverPreview || (!_editCoverCleared && (beat?.cover || beat?.cover_url) || '');
+  host.innerHTML = beatCoverPickHTML({
+    inputId: 'beat-edit-cover-file',
+    previewSrc,
+    onChange: 'onEditCoverPicked(this)',
+    onClear: 'clearEditCover()'
+  });
+}
+
+function onEditCoverPicked(input) {
+  const file = input.files && input.files[0];
+  input.value = '';
+  if (!file) return;
+  const err = validateCoverFile(file);
+  if (err) { showToast(err, 'error'); return; }
+  revokeCoverPreview(_editCoverPreview);
+  _editCoverFile = file;
+  _editCoverPreview = URL.createObjectURL(file);
+  _editCoverCleared = false;
+  renderEditCoverPick(findMyBeatById(_editingBeatId));
+}
+
+function clearEditCover() {
+  revokeCoverPreview(_editCoverPreview);
+  _editCoverFile = null;
+  _editCoverPreview = '';
+  _editCoverCleared = true;
+  renderEditCoverPick(findMyBeatById(_editingBeatId));
+}
+
+function onQueueCoverPicked(id, input) {
+  const item = _mp3Queue.find(q => q.id === id);
+  const file = input.files && input.files[0];
+  input.value = '';
+  if (!item || !file) return;
+  const err = validateCoverFile(file);
+  if (err) { showToast(err, 'error'); return; }
+  revokeCoverPreview(item.coverPreview);
+  item.coverFile = file;
+  item.coverPreview = URL.createObjectURL(file);
+  renderUploadQueue();
+}
+
+function clearQueueCover(id) {
+  const item = _mp3Queue.find(q => q.id === id);
+  if (!item) return;
+  revokeCoverPreview(item.coverPreview);
+  item.coverFile = null;
+  item.coverPreview = '';
+  renderUploadQueue();
+}
+
 async function uploadMp3ToSupabase() {
   if (!_mp3File) throw new Error('no file');
   const progressWrap = document.getElementById('uploadProgressWrap');
@@ -671,6 +892,40 @@ function setSubmitBtnLoading(loading, label) {
   }
 }
 
+function showSubmitError(message) {
+  const msg = message || 'Something went wrong';
+  const addErr = document.getElementById('addBeatError');
+  if (addErr) {
+    addErr.hidden = false;
+    addErr.textContent = msg;
+  }
+  const mp3Group = document.getElementById('preview-mp3-group');
+  const mp3Visible = mp3Group && mp3Group.style.display !== 'none';
+  const errEl = document.getElementById('uploadError');
+  if (errEl) {
+    if (mp3Visible) {
+      errEl.textContent = msg;
+      errEl.style.display = 'block';
+    } else {
+      errEl.style.display = 'none';
+    }
+  }
+  showToast(msg, 'error', 3600);
+}
+
+function clearSubmitError() {
+  const addErr = document.getElementById('addBeatError');
+  if (addErr) {
+    addErr.hidden = true;
+    addErr.textContent = '';
+  }
+  const errEl = document.getElementById('uploadError');
+  if (errEl) {
+    errEl.style.display = 'none';
+    errEl.textContent = '';
+  }
+}
+
 function clearBeatFormAfterSubmit() {
   ['f-title', 'f-bpm', 'f-key', 'f-preview'].forEach(id => {
     const el = document.getElementById(id);
@@ -678,10 +933,22 @@ function clearBeatFormAfterSubmit() {
   });
   clearMp3Queue();
   resetUploadUI();
+  clearSingleCover();
 }
 
 // ─── SUBMIT ───────────────────────────────────────────────────────────────
 async function doSubmitForm() {
+  clearSubmitError();
+  try {
+    await doSubmitFormInner();
+  } catch (e) {
+    console.error('[BeatSwipe] submitForm error:', e);
+    setSubmitBtnLoading(false);
+    showSubmitError(e.message || 'Something went wrong');
+  }
+}
+
+async function doSubmitFormInner() {
   const producer = (_userProfile?.producer_name || document.getElementById('f-producer')?.value || '').trim();
   if (!producer) {
     showToast('Complete your page setup first — add your producer name.', 'error');
@@ -692,48 +959,48 @@ async function doSubmitForm() {
   const prodEl = document.getElementById('f-producer');
   if (prodEl) prodEl.value = producer;
 
-  const previewType = document.getElementById('f-preview-type').value;
+  const previewType = document.getElementById('f-preview-type')?.value || '';
   if (!previewType) {
-    showToast('Please select a preview type.', 'error');
+    showSubmitError('Please select a preview type.');
     return;
   }
 
   if (previewType === 'MP3') {
     if (!_mp3Queue.length) {
-      showToast('Please add at least one MP3 file.', 'error');
+      showSubmitError('Please add at least one MP3 file.');
       return;
     }
     for (const item of _mp3Queue) {
       const label = item.title.trim() || item.file.name;
       if (!item.title.trim()) {
-        showToast('Please add a title for each track.', 'error');
+        showSubmitError('Please add a title for each track.');
         expandQueueItem(item.id);
         return;
       }
       if (!item.genre.trim()) {
-        showToast(`Select a genre for "${label}".`, 'error');
+        showSubmitError(`Select a genre for "${label}".`);
         expandQueueItem(item.id);
         return;
       }
       if (!item.type.trim()) {
-        showToast(`Select a type for "${label}".`, 'error');
+        showSubmitError(`Select a type for "${label}".`);
         expandQueueItem(item.id);
         return;
       }
       const bpmErr = validateBpm(item.bpm);
       if (bpmErr) {
-        showToast(`"${label}": ${bpmErr}`, 'error');
+        showSubmitError(`"${label}": ${bpmErr}`);
         expandQueueItem(item.id);
         return;
       }
       if (!item.buyPlatform) {
-        showToast(`Select where you sell "${label}".`, 'error');
+        showSubmitError(`Select where you sell "${label}".`);
         expandQueueItem(item.id);
         return;
       }
       const buyErr = validateBuyLink(item.buyLink, item.buyPlatform);
       if (buyErr) {
-        showToast(`"${label}": ${buyErr}`, 'error');
+        showSubmitError(`"${label}": ${buyErr}`);
         expandQueueItem(item.id);
         return;
       }
@@ -741,20 +1008,20 @@ async function doSubmitForm() {
     return doSubmitMp3Batch({ producer });
   }
 
-  const genre = document.getElementById('f-genre').value.trim();
-  const type = document.getElementById('f-type').value.trim();
+  const genre = document.getElementById('f-genre')?.value.trim() || '';
+  const type = document.getElementById('f-type')?.value.trim() || '';
   if (!genre || !type) {
-    showToast('Please fill in genre and type.', 'error');
+    showSubmitError('Please fill in genre and type.');
     return;
   }
 
-  const bpm = document.getElementById('f-bpm').value.trim();
+  const bpm = document.getElementById('f-bpm')?.value.trim() || '';
   const bpmErr = validateBpm(bpm);
-  if (bpmErr) { showToast(bpmErr, 'error'); return; }
-  const key = document.getElementById('f-key').value.trim();
+  if (bpmErr) { showSubmitError(bpmErr); return; }
+  const key = document.getElementById('f-key')?.value.trim() || '';
 
-  const title = document.getElementById('f-title').value.trim();
-  if (!title) { showToast('Please enter a track title.', 'error'); return; }
+  const title = document.getElementById('f-title')?.value.trim() || '';
+  if (!title) { showSubmitError('Please enter a track title.'); return; }
 
   let previewUrl = '';
   let buyLinkOverride = '';
@@ -764,43 +1031,36 @@ async function doSubmitForm() {
       previewUrl = extractSoundCloudUrl(previewUrl) || previewUrl;
     }
     const previewErr = validatePreviewUrl(previewType, previewUrl);
-    if (previewErr) { showToast(previewErr, 'error'); return; }
+    if (previewErr) { showSubmitError(previewErr); return; }
     const buyState = getBuyWrapState('single');
     if (buyState.platform || buyState.buyLink) {
       const plat = buyState.platform || detectBuyPlatform(buyState.buyLink);
       const buyErr = validateBuyLink(buyState.buyLink, plat);
-      if (buyErr) { showToast(buyErr, 'error'); return; }
+      if (buyErr) { showSubmitError(buyErr); return; }
       buyLinkOverride = normalizeBuyLink(buyState.buyLink);
     }
   }
 
   setSubmitBtnLoading(true, 'Publishing...');
 
-  try {
-    await postBeatSubmit({
-      title,
-      bpm: parseFloat(bpm) || null,
-      key,
-      genre,
-      type,
-      previewType,
-      previewUrl,
-      buyLink: buyLinkOverride || previewUrl
-    });
-
-    finishSubmitSuccess(1);
-  } catch (e) {
-    console.error('[BeatSwipe] submitForm error:', e);
-    setSubmitBtnLoading(false);
-    const errEl = document.getElementById('uploadError');
-    if (errEl) {
-      errEl.textContent = 'Error: ' + (e.message || 'Something went wrong');
-      errEl.style.display = 'block';
-      errEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    } else {
-      showToast('Error: ' + (e.message || 'Something went wrong'), 'error', 3600);
-    }
+  let coverUrl = '';
+  if (_singleCoverFile) {
+    const blob = await fileToCoverBlob(_singleCoverFile);
+    coverUrl = await uploadCoverBlob(blob);
   }
+  await postBeatSubmit({
+    title,
+    bpm: parseFloat(bpm) || null,
+    key,
+    genre,
+    type,
+    previewType,
+    previewUrl,
+    buyLink: buyLinkOverride || previewUrl,
+    coverUrl
+  });
+
+  finishSubmitSuccess(1);
 }
 
 async function doSubmitMp3Batch(shared) {
@@ -834,6 +1094,13 @@ async function doSubmitMp3Batch(shared) {
       }
 
       progressLbl.textContent = `Saving ${n} of ${total}…`;
+      let coverUrl = '';
+      if (item.coverFile) {
+        progressLbl.textContent = `Cover ${n} of ${total}…`;
+        const blob = await fileToCoverBlob(item.coverFile);
+        coverUrl = await uploadCoverBlob(blob);
+        progressLbl.textContent = `Saving ${n} of ${total}…`;
+      }
       await postBeatSubmit({
         title: item.title.trim(),
         bpm: parseFloat(item.bpm) || null,
@@ -842,7 +1109,8 @@ async function doSubmitMp3Batch(shared) {
         type: item.type,
         previewType: 'MP3',
         previewUrl,
-        buyLink: normalizeBuyLink(item.buyLink)
+        buyLink: normalizeBuyLink(item.buyLink),
+        coverUrl
       });
       submitted.push(item.title.trim());
       progressFill.style.width = '100%';
@@ -853,15 +1121,9 @@ async function doSubmitMp3Batch(shared) {
     console.error('[BeatSwipe] batch submit error:', e);
     setSubmitBtnLoading(false);
     if (progressWrap) progressWrap.style.display = 'none';
-    if (errEl) {
-      errEl.textContent = submitted.length
-        ? `${submitted.length} uploaded. Failed on next: ${e.message}`
-        : e.message;
-      errEl.style.display = 'block';
-      errEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    } else {
-      showToast(e.message || 'Upload failed', 'error', 3600);
-    }
+    showSubmitError(submitted.length
+      ? `${submitted.length} uploaded. Failed on next: ${e.message}`
+      : (e.message || 'Upload failed'));
     if (submitted.length) {
       _mp3Queue = _mp3Queue.filter(q => !submitted.includes(q.title.trim()));
       renderUploadQueue();
@@ -871,6 +1133,7 @@ async function doSubmitMp3Batch(shared) {
 }
 
 async function finishSubmitSuccess(count) {
+  clearSubmitError();
   const successMsg = document.getElementById('successMsg');
   if (successMsg) {
     const p = successMsg.querySelector('p');
@@ -1126,6 +1389,10 @@ function openBeatEditModal(beatId) {
   const beat = findMyBeatById(beatId);
   if (!beat) return;
   _editingBeatId = beatId;
+  _editCoverFile = null;
+  revokeCoverPreview(_editCoverPreview);
+  _editCoverPreview = '';
+  _editCoverCleared = false;
   document.getElementById('beat-edit-title').value = beat.title || '';
   document.getElementById('beat-edit-genre').value = beat.genre && beat.genre !== 'Other' ? beat.genre : (beat.genre || '');
   document.getElementById('beat-edit-type').value = beat.type || '';
@@ -1136,10 +1403,15 @@ function openBeatEditModal(beatId) {
     platform: detectBuyPlatform(beat.buy),
     buyLink: beat.buy || ''
   });
+  renderEditCoverPick(beat);
   document.getElementById('beatEditModal')?.classList.add('open');
 }
 
 function closeBeatEditModal() {
+  revokeCoverPreview(_editCoverPreview);
+  _editCoverFile = null;
+  _editCoverPreview = '';
+  _editCoverCleared = false;
   _editingBeatId = null;
   document.getElementById('beatEditModal')?.classList.remove('open');
 }
@@ -1191,11 +1463,17 @@ async function saveBeatEdit() {
     btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Saving...';
   }
   try {
-    await manageBeatRequest('update', _editingBeatId, {
+    const fields = {
       title, genre, type, bpm, key, buy: normalizeBuyLink(buyState.buyLink)
-    });
+    };
+    if (_editCoverCleared) fields.cover = null;
+    else if (_editCoverFile) {
+      const blob = await fileToCoverBlob(_editCoverFile);
+      fields.cover = await uploadCoverBlob(blob);
+    }
+    const result = await manageBeatRequest('update', _editingBeatId, fields);
     closeBeatEditModal();
-    showToast('Beat updated!', 'success');
+    showToast(result?.coverSkipped ? 'Beat updated. Cover could not be saved yet.' : 'Beat updated!', result?.coverSkipped ? 'info' : 'success');
     await loadBeats({ force: true });
     renderMyPage();
   } catch (e) {

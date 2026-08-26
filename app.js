@@ -74,7 +74,21 @@ function beatArtColor(d, seed) {
   return hslToHex(seed % 360, 42, 40);
 }
 
+function allowedBeatCoverSrc(src) {
+  const s = String(src || '').trim();
+  if (!s) return '';
+  if (/^(blob:|data:image\/)/i.test(s)) return s;
+  if (s.startsWith('/')) return s;
+  if (/^https:\/\//i.test(s)) return s;
+  return '';
+}
+
 function beatCoverHTML(d, extraClass, slot) {
+  const cls = ['beat-cover', extraClass].filter(Boolean).join(' ').replace(/[^a-zA-Z0-9 _-]/g, '');
+  const photo = allowedBeatCoverSrc(d?.cover || d?.cover_url);
+  if (photo) {
+    return `<div class="${cls} beat-cover--photo" aria-hidden="true"><img src="${escHtml(photo)}" alt=""></div>`;
+  }
   const seed = hashString([d?.id, d?.title, d?.bpm, d?.key, d?.genre, d?.producer].join('|'));
   const base = beatArtColor(d, seed);
   const safeSlot = String(slot || 'a').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 24) || 'a';
@@ -89,7 +103,6 @@ function beatCoverHTML(d, extraClass, slot) {
   const r1 = 34 + ((seed >> 8) % 22);
   const cx2 = 72 - ((seed >> 3) % 44);
   const cy2 = 78 - ((seed >> 7) % 36);
-  const cls = ['beat-cover', extraClass].filter(Boolean).join(' ').replace(/[^a-zA-Z0-9 _-]/g, '');
   return `<div class="${cls}" aria-hidden="true"><svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="${uid}-g" x1="0" y1="0" x2="1" y2="1" gradientTransform="rotate(${rot} 0.5 0.5)"><stop offset="0%" stop-color="${c1}"/><stop offset="100%" stop-color="${c2}"/></linearGradient><radialGradient id="${uid}-r" cx="42%" cy="32%" r="72%"><stop offset="0%" stop-color="${c3}" stop-opacity="0.9"/><stop offset="100%" stop-color="#050505" stop-opacity="0.92"/></radialGradient><filter id="${uid}-n" x="-20%" y="-20%" width="140%" height="140%"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="${seed % 97}" result="n"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope="0.16"/></feComponentTransfer></filter></defs><rect width="80" height="80" fill="#0A0A0A"/><rect width="80" height="80" fill="url(#${uid}-g)"/><ellipse cx="${cx}" cy="${cy}" rx="${r1}" ry="${Math.round(r1 * 0.7)}" fill="url(#${uid}-r)" opacity="0.75"/><ellipse cx="${cx2}" cy="${cy2}" rx="24" ry="16" fill="${c1}" opacity="0.22"/><rect width="80" height="80" filter="url(#${uid}-n)"/><text x="40" y="49" text-anchor="middle" fill="rgba(255,255,255,0.86)" font-family="system-ui,-apple-system,sans-serif" font-size="26" font-weight="700">${letter}</text></svg></div>`;
 }
 

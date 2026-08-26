@@ -47,9 +47,14 @@ const DEMO_PORTFOLIO_SLUG = 'demo';
 const DEMO_PORTFOLIO_NAME = 'Demo';
 const DEMO_PORTFOLIO_PROFILE = {
   producer_name: DEMO_PORTFOLIO_NAME,
-  bio: 'Sample page — this is what fans see from a bio link. Beats are demos, not for sale.',
-  avatar_url: null,
-  instagram: 'beatswipe.app'
+  bio: 'Sample page — this is what fans see from a producer bio link. Dark trap, late-night R&B, and drill. Swipe through the pack, save what you like, tap through to buy. Beats here are demos, not for sale.',
+  avatar_url: '/demo-avatar.png?v=1',
+  instagram: 'beatswipe.app',
+  tiktok: 'beatswipe.app',
+  youtube: 'beatswipe.app',
+  beatstars: 'beatswipe.app',
+  soundcloud: 'beatswipe.app',
+  airbit: 'beatswipe.app'
 };
 const DEMO_PORTFOLIO_BEATS = [
   {
@@ -163,7 +168,7 @@ const _SITE_META = {
   title: 'BeatSwipe – Free Swipe Portfolio for Producers',
   description: 'Your bio link. Their next beat. Free swipe portfolio for producers — fans swipe, save favorites, and buy from your store.',
   url: 'https://beatswipe.app',
-  image: 'https://beatswipe.app/og-image.png?v=3'
+  image: 'https://beatswipe.app/og-image.png?v=5'
 };
 
 function setHeadMeta(nameOrProp, content, isProperty) {
@@ -890,6 +895,41 @@ function updatePortfolioProgress() {
   updatePortfolioLeftRail();
 }
 
+function togglePortfolioBio(ev) {
+  ev?.preventDefault?.();
+  ev?.stopPropagation?.();
+  const bioEl = document.getElementById('portfolioBio');
+  const moreBtn = document.getElementById('portfolioBioMore');
+  if (!bioEl || !moreBtn) return;
+  const expanded = bioEl.classList.toggle('portfolio-bio--expanded');
+  moreBtn.textContent = expanded ? 'Show less' : 'Read more';
+  moreBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+  if (!expanded) syncPortfolioBioClamp();
+}
+
+function syncPortfolioBioClamp() {
+  const bioEl = document.getElementById('portfolioBio');
+  const moreBtn = document.getElementById('portfolioBioMore');
+  if (!bioEl || !moreBtn) return;
+  if (!isMobileUI()) {
+    bioEl.classList.remove('portfolio-bio--expanded');
+    moreBtn.hidden = true;
+    moreBtn.textContent = 'Read more';
+    moreBtn.setAttribute('aria-expanded', 'false');
+    return;
+  }
+  if (bioEl.classList.contains('portfolio-bio--expanded')) {
+    moreBtn.hidden = false;
+    moreBtn.textContent = 'Show less';
+    moreBtn.setAttribute('aria-expanded', 'true');
+    return;
+  }
+  moreBtn.hidden = true;
+  moreBtn.textContent = 'Read more';
+  moreBtn.setAttribute('aria-expanded', 'false');
+  moreBtn.hidden = bioEl.scrollHeight <= bioEl.clientHeight + 1;
+}
+
 function renderPortfolioHeader(producerName, profile, color) {
   const header = document.getElementById('portfolioHeader');
   if (!header) return;
@@ -903,7 +943,10 @@ function renderPortfolioHeader(producerName, profile, color) {
       ${avatarEl}
       <div class="portfolio-header-text">
         <div class="portfolio-name">${escHtml(producerName)}</div>
-        <div class="portfolio-bio">${bio}</div>
+        <div class="portfolio-bio-block">
+          <div class="portfolio-bio" id="portfolioBio">${bio}</div>
+          <button type="button" class="portfolio-bio-more" id="portfolioBioMore" hidden aria-expanded="false" onclick="togglePortfolioBio(event)">Read more</button>
+        </div>
         ${socials}
       </div>
       <div class="portfolio-counter" id="portfolioCounter">1 / 1</div>
@@ -911,6 +954,7 @@ function renderPortfolioHeader(producerName, profile, color) {
     <div class="portfolio-progress"><div class="portfolio-progress-fill" id="portfolioProgressFill" style="width:0%"></div></div>`;
   updatePortfolioProgress();
   renderPortfolioSidePanel(producerName, profile);
+  requestAnimationFrame(() => requestAnimationFrame(syncPortfolioBioClamp));
 }
 
 function setPortfolioGlow(color) {
@@ -1256,6 +1300,7 @@ window.addEventListener('resize', () => {
         renderPortfolioSidePanel(_portfolioProducer, _portfolioProfile);
       }
       updatePortfolioLeftRail();
+      syncPortfolioBioClamp();
     }
   }, 120);
 });

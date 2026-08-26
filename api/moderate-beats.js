@@ -26,6 +26,7 @@ function beatFromRow(row) {
     previewUrl: row.preview_url || '',
     buyLink: row.buy_link || '',
     color: row.color || '#BA7517',
+    coverUrl: row.cover_url || '',
     createdAt: row.created_at || null
   };
 }
@@ -54,7 +55,7 @@ export default async function handler(req, res) {
   try {
     if (req.method === 'GET') {
       const dbRes = await fetch(
-        `${getSupabaseUrl()}/rest/v1/beats?status=eq.pending&select=id,producer,title,genre,type,bpm,key,preview_type,preview_url,buy_link,color,created_at&order=created_at.asc`,
+        `${getSupabaseUrl()}/rest/v1/beats?status=eq.pending&select=id,producer,title,genre,type,bpm,key,preview_type,preview_url,buy_link,color,cover_url,created_at&order=created_at.asc`,
         { headers: serviceHeaders(), cache: 'no-store' }
       );
       const text = await dbRes.text();

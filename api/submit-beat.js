@@ -1,5 +1,6 @@
 import { getServiceRoleKey, getSupabaseUrl, getSupabaseAnonKey } from './_env.js';
 import { looksLikeSoundCloudUrl, resolveSoundCloudTrackUrl } from './_soundcloud.js';
+import { normalizeCoverUrl } from './_cover.js';
 
 function serviceHeaders() {
   const key = getServiceRoleKey();
@@ -40,7 +41,7 @@ function normalizeBuyLink(raw) {
 }
 
 function isYouTubeUrl(url) {
-  return /(?:youtube\.com\/(?:watch\?|embed\/|shorts\/)|youtu\.be\/)/i.test(url);
+  return /(?:youtube\.com|youtu\.be)\//i.test(url);
 }
 
 export default async function handler(req, res) {
@@ -100,6 +101,7 @@ export default async function handler(req, res) {
   if (bpmNum != null && (Number.isNaN(bpmNum) || bpmNum < 40 || bpmNum > 240)) {
     return res.status(400).json({ error: 'BPM should be between 40 and 240' });
   }
+  const coverUrl = normalizeCoverUrl(body.coverUrl || body.cover_url, getSupabaseUrl());
 
   const row = {
     producer,
@@ -114,6 +116,7 @@ export default async function handler(req, res) {
     color: '#BA7517'
   };
   if (bpmNum != null && !Number.isNaN(bpmNum) && bpmNum > 0) row.bpm = bpmNum;
+  if (coverUrl) row.cover_url = coverUrl;
 
   try {
     const dbRes = await fetch(`${getSupabaseUrl()}/rest/v1/beats`, {
@@ -123,6 +126,29 @@ export default async function handler(req, res) {
     });
     const text = await dbRes.text();
     if (!dbRes.ok) {
+      if (coverUrl && /cover_url/i.test(text)) {
+        delete row.cover_url;
+        const retry = await fetch(`${getSupabaseUrl()}/rest/v1/beats`, {
+          method: 'POST',
+          headers: serviceHeaders(),
+          body: JSON.stringify(row)
+        });
+        const retryText = await retry.text();
+        if (!retry.ok) {
+          return res.status(retry.status >= 400 && retry.status < 500 ? retry.status : 500).json({
+            error: retryText || 'Could not submit beat',
+            status: retry.status
+          });
+        }
+        const insertedRetry = JSON.parse(retryText || '[]');
+        const beatRetry = Array.isArray(insertedRetry) ? insertedRetry[0] : insertedRetry;
+        return res.status(200).json({
+          ok: true,
+          id: beatRetry?.id,
+          title: beatRetry?.title || title,
+          coverSkipped: true
+        });
+      }
       return res.status(dbRes.status >= 400 && dbRes.status < 500 ? dbRes.status : 500).json({
         error: text || 'Could not submit beat',
         status: dbRes.status

@@ -65,7 +65,7 @@
   <meta property="og:url" content="https://beatswipe.app">
   <meta property="og:title" content="beatswipe.app – Free Swipe Portfolio for Producers">
   <meta property="og:description" content="Your bio link. Their next beat. Free swipe portfolio for producers on beatswipe.app — fans swipe, save favorites, and buy from your store.">
-  <meta property="og:image" content="https://beatswipe.app/og-image.png?v=3">
+  <meta property="og:image" content="https://beatswipe.app/og-image.png?v=5">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
 
@@ -73,7 +73,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="beatswipe.app – Free Swipe Portfolio for Producers">
   <meta name="twitter:description" content="Your bio link. Their next beat. Free swipe portfolio for producers on beatswipe.app — fans swipe, save favorites, and buy from your store.">
-  <meta name="twitter:image" content="https://beatswipe.app/og-image.png?v=3">
+  <meta name="twitter:image" content="https://beatswipe.app/og-image.png?v=5">
 
   <script type="application/ld+json">
   {
@@ -86,8 +86,8 @@
   </script>
 
   <!-- Favicon -->
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=B">
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="/favicon.png?v=1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="/styles.css">
@@ -229,7 +229,7 @@
 </div>
 
 <header class="desktop-topbar" id="desktopTopbar">
-  <button type="button" class="dtb-logo" onclick="goTo('landScreen','navHome')"><img class="brand-mark" src="/favicon.svg?v=B" alt="" width="22" height="22">Beat<span>Swipe</span></button>
+  <button type="button" class="dtb-logo" onclick="goTo('landScreen','navHome')"><img class="brand-mark" src="/favicon.png?v=1" alt="" width="22" height="22">Beat<span>Swipe</span></button>
   <nav class="dtb-nav" aria-label="Main navigation">
     <div class="dtb-nav-indicator" id="dtbNavIndicator" aria-hidden="true"></div>
     <button type="button" class="dtb-tab active" id="dtbHome" onclick="goTo('landScreen','navHome')">Home</button>
@@ -254,7 +254,7 @@
   <div class="screen active" id="landScreen">
     <div class="page-inner page-inner--wide">
     <div class="top-bar">
-      <div class="wordmark"><img class="brand-mark" src="/favicon.svg?v=B" alt="" width="22" height="22">Beat<b>Swipe</b></div>
+      <div class="wordmark"><img class="brand-mark" src="/favicon.png?v=1" alt="" width="22" height="22">Beat<b>Swipe</b></div>
       <div class="top-badge">Private Beta</div>
     </div>
     <div class="land-scroll">
@@ -589,7 +589,7 @@
 
         <div class="field-group add-card-source" id="preview-url-group" style="display:none">
           <label class="field-label" id="preview-url-label">Preview URL *</label>
-          <input type="url" id="f-preview" placeholder="https://...">
+          <input type="text" id="f-preview" inputmode="url" autocomplete="off" placeholder="https://...">
           <div class="field-hint" id="preview-hint"></div>
         </div>
 
@@ -668,11 +668,16 @@
           </div>
         </div>
         <div class="field-group" id="submitBuyStore"></div>
+        <div class="field-group">
+          <label class="field-label">Cover <span class="field-optional">(optional)</span></label>
+          <div id="singleCoverPick"></div>
+        </div>
         </div>
       </section>
       <div class="my-page-add-actions">
         <button type="button" class="add-beat-btn" id="addBeatBtn" onclick="addAnotherBeat()" hidden><i class="ti ti-plus"></i> Add another MP3</button>
         <button type="button" class="submit-btn" id="submitBeatBtn" onclick="doSubmitForm()"><i class="ti ti-upload"></i> Upload</button>
+        <div class="add-beat-error" id="addBeatError" hidden></div>
       </div>
       <div class="success-msg" id="successMsg">
         <i class="ti ti-circle-check"></i>
@@ -1205,6 +1210,10 @@
         </div>
       </div>
       <div class="field-group" id="beatEditBuyStore"></div>
+      <div class="field-group">
+        <label class="field-label">Cover <span style="color:var(--text-3);font-weight:400">(optional)</span></label>
+        <div id="beatEditCoverPick"></div>
+      </div>
       <div class="beat-edit-actions">
         <button type="button" class="btn-secondary" onclick="closeBeatEditModal()">Cancel</button>
         <button type="button" class="submit-btn" id="beatEditSaveBtn" onclick="saveBeatEdit()"><i class="ti ti-check"></i> Save</button>
