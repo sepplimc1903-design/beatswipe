@@ -565,9 +565,10 @@
     }
     .dtb-logo span { color: var(--accent-mid); }
     .brand-mark {
-      width: 22px; height: 22px; border-radius: 50%;
+      width: 22px; height: 22px; border-radius: 6px;
       display: block; flex-shrink: 0;
       margin-right: 7px;
+      overflow: hidden;
     }
     .dtb-nav {
       justify-self: center;
