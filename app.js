@@ -305,8 +305,10 @@ const PRODUCER_SETUP_KEY = 'bs_producer_setup';
 const PRODUCER_SETUP_INTENT_LEGACY = 'bs_producer_signup_intent';
 const PRODUCER_SETUP_STEPS = ['Invite', 'Account', 'Name', 'Beat', 'Link'];
 let _skipOnboardTour = false;
+let _producerSetupFromUrl = false;
 
 function hasProducerSetupIntent() {
+  if (_producerSetupFromUrl) return true;
   try {
     if (localStorage.getItem(PRODUCER_SETUP_KEY) === '1') return true;
     if (localStorage.getItem(PRODUCER_SETUP_INTENT_LEGACY) === '1') {
@@ -332,6 +334,7 @@ function setProducerSetupIntent() {
 }
 
 function clearProducerSetupIntent() {
+  _producerSetupFromUrl = false;
   try {
     localStorage.removeItem(PRODUCER_SETUP_KEY);
     localStorage.removeItem(PRODUCER_SETUP_INTENT_LEGACY);
@@ -463,19 +466,22 @@ function openProducerSignup() {
 }
 
 function maybeResumeProducerSetup() {
-  if (typeof renderMyPage !== 'function') return;
   if (_portfolioMode) return;
   if (_passwordRecoveryActive || _authRecoveryFromUrl) return;
-  if (!hasProducerSetupIntent() || !currentUser) return;
+  if (!hasProducerSetupIntent()) return;
+  if (!currentUser) return;
+  hushOnboardTour();
   if (typeof isMyPageOnboarded === 'function' && isMyPageOnboarded()) {
     clearProducerSetupIntent();
-    return;
   }
   if (document.getElementById('submitScreen')?.classList.contains('active')) {
-    void renderMyPage();
+    if (typeof renderMyPage === 'function') void renderMyPage();
     return;
   }
-  setAuthMode('signup');
+  if (typeof renderMyPage !== 'function') {
+    setTimeout(maybeResumeProducerSetup, 0);
+    return;
+  }
   goTo('submitScreen', 'navSubmit');
 }
 
@@ -1000,6 +1006,7 @@ async function initApp() {
   if (_authRecoveryFromUrl || _authCodeInUrl || _authHashTokenInUrl) {
     await resolveAuthCallbackFromUrl();
   }
+  if (!getPortfolioSlugFromURL()) maybeResumeProducerSetup();
   const portfolioSlug = getPortfolioSlugFromURL();
   if (portfolioSlug && !_portfolioMode) showPortfolioLoadingState(portfolioSlug);
   await loadBeats();
@@ -2707,6 +2714,20 @@ const _authRecoveryFromUrl = _bootAuthParams.hash.get('type') === 'recovery'
 const _authCodeInUrl = !!_bootAuthParams.query.get('code');
 const _authHashTokenInUrl = !!_bootAuthParams.hash.get('access_token');
 
+function restoreProducerSetupFromAuthQuery(query) {
+  if (!query) return;
+  if (query.get('bs_setup') === '1') {
+    _producerSetupFromUrl = true;
+    setProducerSetupIntent();
+    _skipOnboardTour = true;
+  }
+  if (query.get('bs_inv') === '1') {
+    try { localStorage.setItem('bs_invite', '1'); } catch (e) {}
+  }
+}
+restoreProducerSetupFromAuthQuery(_bootAuthParams.query);
+if (document.body) syncGuestChrome();
+
 const supa = supabase.createClient(SUPA_URL, SUPA_KEY, {
   auth: {
     autoRefreshToken: true,
@@ -2717,12 +2738,11 @@ const supa = supabase.createClient(SUPA_URL, SUPA_KEY, {
 
 function getAuthRedirectUrl() {
   try {
-    const url = new URL(window.location.href);
-    url.searchParams.delete('code');
-    url.searchParams.delete('type');
-    url.searchParams.delete('error');
-    url.searchParams.delete('error_description');
-    url.hash = '';
+    const url = new URL('/', window.location.origin);
+    if (hasProducerSetupIntent()) {
+      url.searchParams.set('bs_setup', '1');
+      if (hasInviteAccess()) url.searchParams.set('bs_inv', '1');
+    }
     return url.toString();
   } catch (e) {
     return `${window.location.origin}/`;
@@ -2808,6 +2828,7 @@ async function resolveAuthCallbackFromUrl() {
       return;
     }
     session = data?.session || null;
+    if (session?.user) currentUser = session.user;
     if (!_authRecoveryFromUrl) clearAuthCallbackFromUrl();
   } else if (hash.get('access_token') && hash.get('refresh_token')) {
     const { data, error } = await supa.auth.setSession({
@@ -2820,9 +2841,11 @@ async function resolveAuthCallbackFromUrl() {
       return;
     }
     session = data?.session || null;
+    if (session?.user) currentUser = session.user;
   } else {
     const { data } = await supa.auth.getSession();
     session = data?.session || null;
+    if (session?.user) currentUser = session.user;
   }
 
   if (_authRecoveryFromUrl && session) {
@@ -2861,6 +2884,9 @@ supa.auth.onAuthStateChange(async (event, session) => {
   }
   updateDesktopTopbarAuth();
   if (currentUser) {
+    if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+      maybeResumeProducerSetup();
+    }
     if (event === 'SIGNED_IN') {
       const merged = await mergePendingGuestCrate();
       if (!merged) await syncCrateFromDB();
@@ -3281,7 +3307,9 @@ async function handleGoogleAuth() {
   const btn = authEl('authGoogleBtn');
   if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Redirecting…'; }
   stashGuestCrateForAuthRedirect();
-  if (hasProducerSetupIntent()) setProducerSetupIntent();
+  if (hasProducerSetupIntent() || document.getElementById('submitScreen')?.classList.contains('active')) {
+    setProducerSetupIntent();
+  }
   const { error } = await supa.auth.signInWithOAuth({
     provider: 'google',
     options: { redirectTo: getAuthRedirectUrl() }
