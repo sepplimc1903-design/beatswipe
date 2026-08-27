@@ -50,6 +50,20 @@
             }
           } catch (e) {}
         }
+      } else {
+        try {
+          var q = new URLSearchParams(location.search);
+          var setup = q.get('bs_setup') === '1'
+            || localStorage.getItem('bs_producer_setup') === '1'
+            || localStorage.getItem('bs_producer_signup_intent') === '1'
+            || (document.cookie && /(?:^|; )bs_setup=1(?:;|$)/.test(document.cookie));
+          if (setup) {
+            document.documentElement.classList.add('producer-setup-boot');
+            var bootStyle = document.createElement('style');
+            bootStyle.textContent = 'html.producer-setup-boot #landScreen{display:none!important}html.producer-setup-boot #submitScreen{display:flex!important;flex-direction:column;flex:1;min-height:0}';
+            document.head.appendChild(bootStyle);
+          }
+        } catch (e) {}
       }
     })();
   </script>
@@ -97,6 +111,13 @@
   <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body class="invite-locked land-active">
+<script>
+(function () {
+  if (!document.documentElement.classList.contains('producer-setup-boot')) return;
+  document.body.classList.remove('land-active');
+  document.body.classList.add('mypage-active');
+})();
+</script>
 
 <div class="bg-desktop">
   <div class="bg-grid"></div>
@@ -1256,6 +1277,30 @@
 
   <button type="button" id="swipeKbdFocus" class="swipe-kbd-focus" tabindex="-1" aria-hidden="true"></button>
 
+<script>
+(function () {
+  if (!document.documentElement.classList.contains('producer-setup-boot')) return;
+  document.body.classList.remove('land-active');
+  document.body.classList.add('mypage-active');
+  try {
+    var q = new URLSearchParams(location.search);
+    if (q.get('bs_inv') === '1' || localStorage.getItem('bs_invite') === '1') {
+      document.body.classList.remove('invite-locked');
+    }
+  } catch (e) {}
+  var land = document.getElementById('landScreen');
+  var page = document.getElementById('submitScreen');
+  if (land) land.classList.remove('active');
+  if (page) page.classList.add('active');
+  document.querySelectorAll('.nav-tab.active, .dtb-tab.active').forEach(function (el) {
+    el.classList.remove('active');
+  });
+  var navSubmit = document.getElementById('navSubmit');
+  var dtbSubmit = document.getElementById('dtbSubmit');
+  if (navSubmit) navSubmit.classList.add('active');
+  if (dtbSubmit) dtbSubmit.classList.add('active');
+})();
+</script>
 <script src="/app.js"></script>
 <script src="/mypage.js"></script>
 <script src="/portfolio.js"></script>

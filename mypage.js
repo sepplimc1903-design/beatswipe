@@ -1191,7 +1191,6 @@ function isMyPageOnboarded() {
   if (!currentUser) return false;
   const key = myPageStorageKey('page_setup');
   if (key && localStorage.getItem(key) === '1') return true;
-  if (typeof hasProducerSetupIntent === 'function' && hasProducerSetupIntent()) return false;
   const name = _userProfile?.producer_name?.trim();
   if (name && getMyLiveBeats().length >= 1) {
     if (key) localStorage.setItem(key, '1');
@@ -2210,12 +2209,6 @@ async function renderMyPage() {
   const stagger = typeof window.takeListEnter === 'function' && window.takeListEnter();
 
   if (!isMyPageOnboarded()) {
-    if (_myPageObStep === 0) {
-      const hasName = !!_userProfile?.producer_name?.trim();
-      const beatCount = getMyLiveBeats().length + getMyPendingBeats().length;
-      if (hasName && beatCount >= 1) _myPageObStep = 2;
-      else if (hasName) _myPageObStep = 1;
-    }
     main.innerHTML = renderMyPageOnboarding(stagger);
   } else {
     if (typeof clearProducerSetupIntent === 'function') clearProducerSetupIntent();

@@ -42,6 +42,13 @@
 
     html { height: 100%; }
     html.portfolio-route-boot #landScreen { display: none !important; }
+    html.producer-setup-boot #landScreen { display: none !important; }
+    html.producer-setup-boot #submitScreen {
+      display: flex !important;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+    }
     html.portfolio-route-boot #portfolioScreen {
       display: flex !important;
       flex-direction: column;

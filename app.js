@@ -501,6 +501,7 @@ function maybeResumeProducerSetup() {
 
   const finished = typeof isMyPageOnboarded === 'function' && isMyPageOnboarded();
   if (finished) clearProducerSetupIntent();
+  else if (typeof _myPageObStep !== 'undefined') _myPageObStep = 0;
 
   if (typeof applyGoTo !== 'function') {
     setTimeout(maybeResumeProducerSetup, 0);
@@ -562,6 +563,7 @@ function applyGoTo(screenId, navId) {
   if (!next) return;
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active', 'screen-fade-out', 'screen-entering'));
   next.classList.add('active');
+  document.documentElement.classList.remove('producer-setup-boot');
   playScreenEnterAnim(next);
   document.body.classList.toggle('land-active', screenId === 'landScreen');
   document.body.classList.toggle('discover-active', screenId === 'discoverScreen');
@@ -606,6 +608,14 @@ function applyGoTo(screenId, navId) {
 }
 
 function goTo(screenId, navId) {
+  if (
+    screenId === 'landScreen' &&
+    document.documentElement.classList.contains('producer-setup-boot') &&
+    hasProducerSetupIntent()
+  ) {
+    screenId = 'submitScreen';
+    navId = 'navSubmit';
+  }
   const currentScreen = document.querySelector('.screen.active');
   if (currentScreen?.id === 'profileScreen' && screenId !== 'profileScreen' && !confirmDiscardProfileChanges()) return;
   if (INVITE_PROTECTED.has(screenId) && !hasInviteAccess()) {
@@ -673,6 +683,7 @@ function syncDesktopScrollMode() {
 
 function bootLandingReveal() {
   if (getPortfolioSlugFromURL()) return;
+  if (document.documentElement.classList.contains('producer-setup-boot')) return;
   if (!document.getElementById('landScreen')?.classList.contains('active')) return;
   syncDesktopScrollMode();
   initScrollReveal();
@@ -730,6 +741,7 @@ const ONBOARD_STEPS = 4;
 function initOnboard() {
   if (localStorage.getItem('bs_onboarded')) return;
   if (_portfolioMode) return;
+  if (document.documentElement.classList.contains('producer-setup-boot')) return;
   if (_skipOnboardTour || hasProducerSetupIntent()) return;
   document.querySelectorAll('.onboard-demo-art').forEach((el, i) => {
     el.innerHTML = beatCoverHTML(HERO_DEMO_FALLBACK, '', 'ob' + i);
