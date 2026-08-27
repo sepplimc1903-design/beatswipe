@@ -1457,6 +1457,13 @@ initApp().then(() => {
     setTimeout(maybeResumeProducerSetup, 0);
     setTimeout(maybeResumeProducerSetup, 250);
     setTimeout(maybeResumeProducerSetup, 1000);
+  } else if (
+    !currentUser &&
+    hasProducerSetupIntent() &&
+    document.getElementById('submitScreen')?.classList.contains('active') &&
+    typeof renderMyPage === 'function'
+  ) {
+    void renderMyPage();
   }
   if (isDesktop() && !_portfolioMode) {
     syncDesktopScrollMode();
