@@ -53,11 +53,13 @@
       } else {
         try {
           var q = new URLSearchParams(location.search);
+          var invited = q.get('bs_inv') === '1'
+            || localStorage.getItem('bs_invite') === '1';
           var setup = q.get('bs_setup') === '1'
             || localStorage.getItem('bs_producer_setup') === '1'
             || localStorage.getItem('bs_producer_signup_intent') === '1'
             || (document.cookie && /(?:^|; )bs_setup=1(?:;|$)/.test(document.cookie));
-          if (setup) {
+          if (setup && (invited || q.get('bs_setup') === '1')) {
             document.documentElement.classList.add('producer-setup-boot');
             var bootStyle = document.createElement('style');
             bootStyle.textContent = 'html.producer-setup-boot #landScreen{display:none!important}html.producer-setup-boot #submitScreen{display:flex!important;flex-direction:column;flex:1;min-height:0}';
