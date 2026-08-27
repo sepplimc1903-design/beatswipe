@@ -261,12 +261,12 @@
       <div class="land-site-wrap">
       <div class="hero">
         <div class="hero-copy reveal-on-scroll">
-          <div class="hero-badge"><span class="hero-badge-dot" aria-hidden="true"></span>Free swipe portfolio for producers</div>
-          <h1 class="hero-title">Your swipe page for the <span>bio</span></h1>
-          <p class="hero-sub">One link in your bio. Fans swipe your beats — skip, save, buy from your store.</p>
+          <p class="hero-kicker">Private beta</p>
+          <h1 class="hero-title">Your swipe page for the bio</h1>
+          <p class="hero-sub">One link in Instagram. Fans swipe your beats, save favorites, and buy from your store. We take no cut.</p>
           <div class="hero-btns" id="producer-start">
-            <button class="btn-primary" onclick="openProducerSignup()"><i class="ti ti-link"></i> Get your free page</button>
-            <a class="btn-secondary" href="/p/demo"><i class="ti ti-bolt"></i> See a live page</a>
+            <button class="btn-primary" onclick="openProducerSignup()">Get your page</button>
+            <a class="hero-demo-link" href="/p/demo">See a live page</a>
             <p class="hero-invite-hint">Invite only · DM <a href="https://instagram.com/beatswipe.app" target="_blank" rel="noopener">@beatswipe.app</a> for a code</p>
           </div>
         </div>
@@ -283,10 +283,7 @@
                         <div class="cover-box"></div>
                         <div style="flex:1;min-width:0">
                           <div class="track-name">Midnight Drive</div>
-                          <div class="track-by" style="color:var(--accent-mid)">by Demo</div>
-                        </div>
-                        <div class="card-head-meta">
-                          <span class="type-pill type-pill--head">Beat</span>
+                          <div class="track-by">by Demo</div>
                         </div>
                       </div>
                       <div class="tag-row">
@@ -311,7 +308,7 @@
                               <span class="time-lbl">2:04</span>
                             </div>
                           </div>
-                          <span class="buy-link"><i class="ti ti-shopping-cart" style="font-size:15px"></i>Buy</span>
+                          <span class="buy-link">Buy</span>
                         </div>
                       </div>
                     </div>
@@ -324,7 +321,7 @@
               </div>
             </span>
           </a>
-          <p class="hero-preview-caption">What fans see from your bio · beatswipe.app/p/demo</p>
+          <p class="hero-preview-caption">beatswipe.app/p/demo</p>
         </div>
       </div>
       <div class="stats-row reveal-on-scroll" id="landStatsRow" hidden>
@@ -344,114 +341,52 @@
           <div class="stat-lbl">Always</div>
         </div>
       </div>
-      <div class="land-section-head reveal-on-scroll">
-        <h2 class="land-section-title">How it works</h2>
-        <p class="land-section-desc">One link for your bio — fans swipe, save, and buy from you directly.</p>
-      </div>
-      <div class="land-steps">
-        <div class="land-step reveal-on-scroll">
-          <div class="land-step-icon"><i class="ti ti-upload"></i></div>
-          <div class="land-step-body">
-            <div class="land-step-num">01</div>
-            <div class="land-step-title">Upload your beats</div>
-            <div class="land-step-desc">Add short preview clips on My Page — YouTube, SoundCloud, or MP3 (~30–60s). Link your store. Beats go live on your page right away.</div>
+      <ol class="land-how reveal-on-scroll" aria-label="How it works">
+        <li>
+          <span class="land-how-num">1</span>
+          <div>
+            <div class="land-how-title">Upload previews</div>
+            <p class="land-how-desc">YouTube, SoundCloud, or a short MP3. Link your store. Live on your page right away.</p>
           </div>
-        </div>
-        <div class="land-step reveal-on-scroll reveal-delay-1">
-          <div class="land-step-icon"><i class="ti ti-link"></i></div>
-          <div class="land-step-body">
-            <div class="land-step-num">02</div>
-            <div class="land-step-title">Share your link</div>
-            <div class="land-step-desc">beatswipe.app/p/yourname in your Instagram bio. One tap for fans.</div>
+        </li>
+        <li>
+          <span class="land-how-num">2</span>
+          <div>
+            <div class="land-how-title">Drop the link in your bio</div>
+            <p class="land-how-desc">beatswipe.app/p/yourname — one tap from Instagram.</p>
           </div>
-        </div>
-        <div class="land-step reveal-on-scroll reveal-delay-2">
-          <div class="land-step-icon"><i class="ti ti-arrows-left-right"></i></div>
-          <div class="land-step-body">
-            <div class="land-step-num">03</div>
-            <div class="land-step-title">Fans swipe &amp; buy</div>
-            <div class="land-step-desc">Skip left, save right. Buy links go to your store — we take no cut.</div>
+        </li>
+        <li>
+          <span class="land-how-num">3</span>
+          <div>
+            <div class="land-how-title">Fans swipe and buy from you</div>
+            <p class="land-how-desc">Skip left, save right. Buy goes to BeatStars, Airbit, Traktrain, or your site. No cut.</p>
           </div>
-        </div>
-      </div>
-      <section class="land-platforms reveal-on-scroll" aria-labelledby="landPlatformsTitle">
-        <div class="land-section-head land-section-head--platforms">
-          <h2 class="land-section-title" id="landPlatformsTitle">Link the store you already use</h2>
-          <p class="land-section-desc">BeatStars, Airbit, Traktrain, or your own site. Fans tap Buy and go straight there — we take no cut.</p>
-        </div>
-        <div class="land-platforms-grid" role="list">
-          <div class="land-platform-card" role="listitem" data-platform="beatstars" style="--platform-brand:#EB0000">
-            <div class="land-platform-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="m17.217 11.996-3.308 1.079v3.478l-2.052-2.818-3.309 1.079 2.043-2.818-2.043-2.819 3.31 1.08 2.05-2.819v3.487zm0 0v7.277H6.854V4.584h10.363v7.412l4.585-1.49v-7.67L19.135 0H2.198v24h16.92l2.684-2.685v-7.83z"/></svg>
-            </div>
-            <span class="land-platform-name">BeatStars</span>
-          </div>
-          <div class="land-platform-card" role="listitem" data-platform="airbit" style="--platform-brand:#6900FF">
-            <div class="land-platform-icon land-platform-icon--airbit" aria-hidden="true">
-              <svg viewBox="0 0 506.36 680.25" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M-714.09,311V461.92a24.73,24.73,0,0,1-24.73,24.73h-33.59a24.73,24.73,0,0,1-24.73-24.73V335.73A24.73,24.73,0,0,1-772.41,311h58.32Z" transform="translate(1220.45 -28.37)"/><path fill="currentColor" d="M-1220.45,311V461.92a24.73,24.73,0,0,0,24.73,24.73h33.59a24.73,24.73,0,0,0,24.73-24.73V335.73A24.73,24.73,0,0,0-1162.13,311h-58.32Z" transform="translate(1220.45 -28.37)"/><path fill="currentColor" d="M-967.27,28.37c-139.83,0-253.18,113.35-253.18,253.18h43a208.8,208.8,0,0,1,61.56-148.62A208.79,208.79,0,0,1-967.27,71.37a208.8,208.8,0,0,1,148.62,61.56,208.8,208.8,0,0,1,61.56,148.62h43C-714.09,141.72-827.44,28.37-967.27,28.37Z" transform="translate(1220.45 -28.37)"/><rect fill="currentColor" x="463.36" y="253.18" width="43" height="177.57"/><rect fill="currentColor" y="253.18" width="43" height="177.57"/><rect fill="currentColor" x="144.23" y="285.79" width="43" height="145.13"/><rect fill="currentColor" x="144.23" y="470.61" width="43" height="109.33"/><rect fill="currentColor" x="231.68" y="356.49" width="43" height="122.81"/><rect fill="currentColor" x="231.68" y="518.84" width="43" height="60.96"/><rect fill="currentColor" x="231.68" y="619.46" width="43" height="60.79"/><rect fill="currentColor" x="319.13" y="285.79" width="43" height="86.82"/><rect fill="currentColor" x="319.13" y="412.31" width="43" height="94.26"/><rect fill="currentColor" x="319.13" y="546.26" width="43" height="61.52"/></svg>
-            </div>
-            <span class="land-platform-name">Airbit</span>
-          </div>
-          <div class="land-platform-card" role="listitem" data-platform="traktrain" style="--platform-brand:#746BFC">
-            <div class="land-platform-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Traktrain">
-                <text x="12" y="16.5" text-anchor="middle" fill="currentColor" font-family="system-ui, -apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="800" letter-spacing="-0.6">TT</text>
-              </svg>
-            </div>
-            <span class="land-platform-name">Traktrain</span>
-          </div>
-        </div>
-      </section>
+        </li>
+      </ol>
       <div class="faq-block">
       <div class="land-section-head land-section-head--faq reveal-on-scroll">
-        <h2 class="land-section-title">FAQ</h2>
-        <p class="land-section-desc">Common questions about producer portfolio pages.</p>
+        <h2 class="land-section-title">Questions</h2>
       </div>
       <div class="faq-section reveal-on-scroll">
         <div class="faq-item">
-          <button class="faq-q" onclick="toggleFaq(this)">Is BeatSwipe free to use?<i class="ti ti-plus"></i></button>
-          <div class="faq-a">Yes — always. Your swipe portfolio page is free. Fans discover and save beats for free. They only pay when they license directly from you.</div>
+          <button class="faq-q" onclick="toggleFaq(this)">Is it free? Do you take a cut?<i class="ti ti-plus"></i></button>
+          <div class="faq-a">Yes, and no. Your page is free. Fans buy on your store at your price — BeatSwipe adds no fees.</div>
         </div>
         <div class="faq-item">
           <button class="faq-q" onclick="toggleFaq(this)">How do fans buy a beat?<i class="ti ti-plus"></i></button>
-          <div class="faq-a">They save a beat, then tap Buy. It opens your store — BeatStars, Airbit, Traktrain, or your own site. We don't handle payments.</div>
+          <div class="faq-a">They tap Buy on the card or from Favorites. It opens BeatStars, Airbit, Traktrain, or your own site. We don’t handle payments.</div>
         </div>
         <div class="faq-item">
-          <button class="faq-q" onclick="toggleFaq(this)">How do I get my producer page?<i class="ti ti-plus"></i></button>
-          <div class="faq-a">Private beta — DM <a href="https://instagram.com/beatswipe.app" target="_blank" rel="noopener">@beatswipe.app</a> for an invite code, then create your free account, add beats on My Page, and share beatswipe.app/p/yourname in your bio. Upload short previews only (YouTube, SoundCloud, or MP3 ~30–60s) — not full masters. Add a buy link to your store for each beat — they go live on your page right away.</div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-q" onclick="toggleFaq(this)">Do I need an account?<i class="ti ti-plus"></i></button>
-          <div class="faq-a">Fans need no account to swipe your portfolio. Producers need a free account to submit beats and manage their page.</div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-q" onclick="toggleFaq(this)">What should I upload?<i class="ti ti-plus"></i></button>
-          <div class="faq-a">Short preview clips only (~30–60s) — not full masters. YouTube, SoundCloud, or MP3. Add a real store link (BeatStars, Airbit, Traktrain, or your site) so fans can buy. Three beats is a good start before you put the link in your bio.</div>
-        </div>
-        <div class="faq-item">
-          <button class="faq-q" onclick="toggleFaq(this)">Does BeatSwipe take a cut from sales?<i class="ti ti-plus"></i></button>
-          <div class="faq-a">No. BeatSwipe is completely free. Fans buy directly from you at whatever price you set — we don't add any fees.</div>
+          <button class="faq-q" onclick="toggleFaq(this)">How do I get a page?<i class="ti ti-plus"></i></button>
+          <div class="faq-a">Private beta — DM <a href="https://instagram.com/beatswipe.app" target="_blank" rel="noopener">@beatswipe.app</a> for an invite, then add short previews (~30–60s) on My Page and share beatswipe.app/p/yourname. Fans need no account to swipe.</div>
         </div>
       </div>
-      </div>
-      <div class="cta-strip reveal-on-scroll">
-        <div class="cta-banner">
-          <div class="cta-banner-glow" aria-hidden="true"></div>
-          <div class="cta-banner-inner">
-            <div class="cta-banner-copy">
-              <div class="cta-banner-title">Ready for your bio link?</div>
-              <div class="cta-banner-sub">Free forever · No cut · Invite only</div>
-              <div class="cta-invite-hint">No code? DM <a href="https://instagram.com/beatswipe.app" target="_blank" rel="noopener">@beatswipe.app</a></div>
-            </div>
-            <button class="btn-primary cta-banner-btn" onclick="openProducerSignup()"><i class="ti ti-link"></i> Get your free page</button>
-          </div>
-        </div>
       </div>
       <footer class="site-footer reveal-on-scroll">
-        <span>BeatSwipe · Your bio link. Their next beat.</span>
+        <span>beatswipe.app · Your bio link. Their next beat.</span>
         <nav class="site-footer-nav" id="landFooterNav" aria-label="Footer navigation">
           <a href="/p/demo">Live demo</a>
-          <a href="#signup" onclick="event.preventDefault();openProducerSignup()">Get your page</a>
         </nav>
         <div class="site-footer-legal">
           <a href="#legal" onclick="event.preventDefault();openInfoModal('impressumModal')">Legal Notice</a>
@@ -1010,35 +945,17 @@
 
         <!-- Slide 1: Welcome -->
         <div class="onboard-slide">
-          <div class="onboard-icon"><i class="ti ti-flame"></i></div>
-          <div class="onboard-title">Welcome to <span>BeatSwipe</span></div>
-          <div class="onboard-desc">Your bio link. Their next beat. Free swipe portfolio for producers.</div>
-          <div class="onboard-demo onboard-demo--pills">
-            <div class="onboard-pill">
-              <div class="onboard-pill-icon onboard-pill-icon--swipe"><i class="ti ti-arrows-left-right"></i></div>
-              <div class="onboard-pill-label">Swipe</div>
-              <div class="onboard-pill-sub">skip or save fast</div>
-            </div>
-            <div class="onboard-pill">
-              <div class="onboard-pill-icon onboard-pill-icon--free"><i class="ti ti-gift"></i></div>
-              <div class="onboard-pill-label">Free</div>
-              <div class="onboard-pill-sub">always, for everyone</div>
-            </div>
-            <div class="onboard-pill">
-              <div class="onboard-pill-icon onboard-pill-icon--link"><i class="ti ti-link"></i></div>
-              <div class="onboard-pill-label">Bio link</div>
-              <div class="onboard-pill-sub">beatswipe.app/p/you</div>
-            </div>
-          </div>
+          <div class="onboard-title">Your bio link.<br>Their next beat.</div>
+          <div class="onboard-desc">Free swipe portfolio for producers. Fans skip, save, and buy from your store — we take no cut.</div>
         </div>
 
         <!-- Slide 2: Fans swipe -->
         <div class="onboard-slide">
           <div class="onboard-icon"><i class="ti ti-arrows-left-right"></i></div>
-          <div class="onboard-title">Fans <span>swipe</span> your beats</div>
+          <div class="onboard-title">Fans swipe your beats</div>
           <div class="onboard-desc">One tap from your bio. They skip left, save right — hear a beat and decide in seconds.</div>
           <div class="onboard-demo onboard-demo--swipe">
-            <div class="onboard-demo-card demo-card-anim">
+            <div class="onboard-demo-card">
               <div class="onboard-demo-art"><i class="ti ti-music"></i></div>
               <div class="onboard-demo-meta">
                 <div class="onboard-demo-title">Midnight Drive</div>
@@ -1055,7 +972,7 @@
         <!-- Slide 3: Buy from store -->
         <div class="onboard-slide">
           <div class="onboard-icon"><i class="ti ti-shopping-cart"></i></div>
-          <div class="onboard-title">They buy from <span>your store</span></div>
+          <div class="onboard-title">They buy from your store</div>
           <div class="onboard-desc">Saved beats keep a Buy button to BeatStars, Airbit, Traktrain, or your site. We take no cut.</div>
           <div class="onboard-demo onboard-demo--stack">
             <div class="onboard-fav-row">
@@ -1073,7 +990,7 @@
         <!-- Slide 4: Get your page -->
         <div class="onboard-slide">
           <div class="onboard-icon"><i class="ti ti-link"></i></div>
-          <div class="onboard-title">Get your <span>free page</span></div>
+          <div class="onboard-title">Get your free page</div>
           <div class="onboard-desc">Add short preview clips, share beatswipe.app/p/yourname in your bio. Beats go live as soon as you add them.</div>
           <div class="onboard-demo onboard-demo--stack onboard-demo--checks">
             <div class="onboard-check-item"><i class="ti ti-check"></i><span>beatswipe.app/p/yourname</span></div>
@@ -1113,8 +1030,7 @@
   <!-- INVITE GATE (private beta — Home stays open) -->
   <div class="invite-gate-backdrop" id="inviteGate" onclick="closeInviteIfBackdrop(event)">
     <div class="invite-gate-sheet" onclick="event.stopPropagation()">
-      <div class="invite-gate-icon"><i class="ti ti-lock"></i></div>
-      <div class="invite-gate-title">Private Beta</div>
+      <div class="invite-gate-title">Private beta</div>
       <div class="invite-gate-desc" id="inviteGateDesc">BeatSwipe is invite-only. Enter your code to get your free swipe page for the bio.</div>
       <input type="text" class="invite-gate-input" id="inviteCodeInput" placeholder="Invite code" autocomplete="off" autocapitalize="off" spellcheck="false" onkeydown="if(event.key==='Enter')submitInviteCode()">
       <div class="invite-gate-err" id="inviteCodeErr">Invalid code. DM us on Instagram for access.</div>

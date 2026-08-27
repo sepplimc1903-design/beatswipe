@@ -351,9 +351,7 @@ function syncGuestChrome() {
   const footNav = document.getElementById('landFooterNav');
   if (footNav) {
     if (locked) {
-      footNav.innerHTML =
-        '<a href="/p/demo">Live demo</a>' +
-        '<a href="#signup" onclick="event.preventDefault();openProducerSignup()">Get your page</a>';
+      footNav.innerHTML = '<a href="/p/demo">Live demo</a>';
     } else {
       footNav.innerHTML =
         '<a href="#discover" onclick="event.preventDefault();goTo(\'discoverScreen\',\'navDiscover\')">Discover</a>' +
@@ -578,20 +576,6 @@ function initHeroDemoCard() {
   stopHeroDemoCard();
   hydrateHeroDemoCard();
   buildHeroWaveBars();
-  const wf = document.getElementById('heroWaveform');
-  const card = document.getElementById('heroBeatCard');
-  const glow = document.getElementById('heroCardGlow');
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  if (card) card.classList.add('hero-demo-live');
-  if (glow) glow.classList.add('hero-glow-live');
-  if (wf) {
-    _heroWaveTimer = setInterval(() => {
-      if (!document.getElementById('landScreen')?.classList.contains('active')) return;
-      wf.querySelectorAll('.wbar').forEach(b => {
-        b.style.height = Math.round(Math.random() * 14 + 3) + 'px';
-      });
-    }, 600);
-  }
 }
 function stopHeroDemoCard() {
   if (_heroWaveTimer) {

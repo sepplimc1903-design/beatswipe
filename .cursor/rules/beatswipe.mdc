@@ -108,24 +108,21 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 - **`/p/` mobile overflow:** `#portfolioPageInner` ist CSS-Grid (`min-width: auto`) — nowrap-Titel in der Done-Liste weiten die Spalte über den Viewport, `overflow-x: hidden` clippt dann links/rechts. Handy: Grid-Items `min-width: 0; max-width: 100%`. Glow auf Mobile nicht 120%+ (sonst ~20px Seiten-Scroll). Platform-Grid auf Home nicht als Horizontal-Carousel (leakt Page-Scroll).
 - **`/p/` mobile header:** Bio 1-Zeile + „Read more“ öffnet Overlay `#portfolioBioPopover` (nicht expandieren — Card rutscht). Desktop ≥1100: Bio+Socials nur in der Sidepanel. Display-Name Demo = `Demo`, Slug bleibt `/p/demo`.
 
-- **App ambient:** `html:not(.portfolio-route-boot) body:not(.portfolio-active)` — charcoal `#0E0E12` + blue bloom auf Landing **und** App-Pages (nicht reines `#000`). White aurora nur auf `/p/` (`portfolio-active` / `portfolio-route-boot`). Nie Landing-Blau auf Portfolio.
+- **App ambient:** `html:not(.portfolio-route-boot) body:not(.portfolio-active)` — charcoal `#0E0E12` + a *light* blue wash (not a neon bloom) on Landing and App-Pages. `/p/` is near-black with a faint top wash — no drifting aurora, no left-rail SHORTCUTS/SESSION/PROGRESS. Never Landing-Blau on Portfolio.
 
-## Aktuell (2026-08-26)
+## Aktuell (2026-08-27)
 
-- **Live:** Private Beta. Bio-Popover Handy schon live (`ad9fd74`). Dieser Push: Play/Pause-Fix + Waveform freeze.
-- **Handy `/p/`:** Bio 1-Zeile, Read more = Overlay. Erster Tap startet Beat; Play pausiert und startet wieder; Pause lässt Waveform still.
-- **Cover:** Optional Add/Edit. `/api/manage-beat` `upload-cover` → Bucket `covers`. **SQL in Supabase noch nicht bestätigt.**
-- **OG / Mark:** `og-image.png?v=5`; Mark = B-Tile `favicon.png?v=2` (abgerundetes Quadrat 6px). Demo `/p/demo`, Lucas `/p/clyriax`.
-- **Insta:** Carousel bereit (`marketing/insta-v2/ig/`) — Caption `/p/demo`. DM: fragen → Demo → Key.
-- **Offen:** Cover-SQL. Testdaten `/p/clyriax`. Carousel nicht gepostet. Producer-DMs. TikTok-Clip.
+- **Visual:** Editorial pass on landing + `/p/` — fewer pills/glows/CTAs. Hero + live demo + one Get-page CTA. Public `/p/` desktop: larger card, no left rails.
+- **Live (unchanged until Luca deploys):** Private Beta. Demo `/p/demo`, Luca `/p/clyriax`.
+- **Cover SQL** still unconfirmed in Supabase.
+- **Offen:** Cover-SQL. Testdaten `/p/clyriax`. Carousel. Producer-DMs.
 
 ## Nächster Schritt
 
-1. Supabase SQL: `supabase/beats-cover-url.sql` + `supabase/covers-bucket.sql`
-2. Insta-Carousel posten (`marketing/insta-v2/ig/` — Caption `/p/demo`)
-3. Testdaten auf My Page runter (`wtf`, 2 BPM, `tiktok.com` …)
-4. Echte Beats auf `/p/clyriax` — dann 2–3 Producer per DM (erst fragen, kein Link in Nachricht 1)
-5. Später: Invite-Gate pausieren (`INVITE_GATE_PAUSED = true`)
+1. Review editorial PR on Vercel preview (home, `/p/demo`, Get-page invite)
+2. Supabase SQL: `supabase/beats-cover-url.sql` + `supabase/covers-bucket.sql`
+3. Testdaten auf My Page runter; echte Beats auf `/p/clyriax`
+4. Insta-Carousel + Producer-DMs (erst fragen, kein Link in Nachricht 1)
 
 ## Rules pflegen (Agent)
 
