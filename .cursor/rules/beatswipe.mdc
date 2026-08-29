@@ -100,6 +100,7 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 - **Portfolio social icons:** `buildPortfolioSocialsHTML()` — Instagram-Gradient braucht **eindeutige** `linearGradient`-IDs pro Instanz (Header + Sidepanel = 2×); sonst leerer Button. TikTok = Mehrfarben-SVG (nicht `ti-brand-tiktok`).
 - **Portfolio swipe glow (Preview/`/p/`):** `#portfolioCardGlow` (nicht Discover-`#cardGlow` — doppelte ID hat Preview-Glow totgemacht). Sibling **hinter** `.portfolio-surface` (glasiger Hintergrund) → schwächer als Discover. Versuch Glow in Surface → zurückgesetzt.
 - **Upload goes live immediately:** `/api/submit-beat` setzt `status: 'approved'` — Beats sofort auf `/p/`. Kein 48h-Pending als Producer-Pfad. Moderation nur für alte Pending / Takedowns. Buy-Link Pflicht nur bei **MP3**. YouTube/SoundCloud: kein Store-Picker — Preview-URL ist der Tap-through. BPM 40–240 wenn gesetzt. **SoundCloud-Preview:** Widget braucht Track-URL — Short-Links (`on.soundcloud.com`) via oEmbed nach `api.soundcloud.com/tracks/id` auflösen (`api/_soundcloud.js`); Buy/Tap bleibt der öffentliche Link. **Add-Form:** `#addBeatBtn` = weiteren MP3 in die Queue (`addAnotherBeat()`); `#submitBeatBtn` = `doSubmitForm()` / Upload. Nicht einen Plus-Button für beides. My Page left-rail „pending“ nur wenn Count > 0.
+- **Submit errors once:** `showSubmitError()` nur `#addBeatError` unter dem Upload-Button — nicht zusätzlich Toast + `#uploadError` (dreifach, User-Report). `#uploadError` nur für MP3-File-Drop. **Buy-Link:** Store-Pills sind nur Label — jeder gültige `https://`-Link durch (`validateBuyLink` prüft kein Host). Kurzlinks wie `bsta.rs` nicht blocken.
 - **Hobby 12 Functions:** Nur 12 `api/*.js` ohne `_`-Prefix. Cover-Upload **nicht** als eigene Datei — `manage-beat` `action: 'upload-cover'`. Extra Endpoint → Vercel Deploy Error (Build ok, Deploying outputs fail).
 - **Beat covers:** `beatCoverHTML(d, class, slot)` in `app.js` — Foto wenn `d.cover` / `cover_url`, sonst generated SVG. `slot` unique. Cover-Upload **nie** in den `beats`-Bucket (nur Audio-MIME → `mime type image/jpeg is not supported`). Client → `/api/manage-beat` `action: 'upload-cover'` → Bucket `covers` (JPEG/PNG/WebP). Fallback `avatars/covers/`. SQL: `supabase/covers-bucket.sql` + `supabase/beats-cover-url.sql`.
 - **Wordmark + Mark:** `.dtb-logo` / `.wordmark` **kein** Flex-`gap` — Icon, „Beat“ und `<span>Swipe</span>` sind drei Items, Gap trennt das Wort. Abstand nur `.brand-mark { margin-right }`. Mark = weißes **B** auf Blau (`favicon.png`) — **abgerundetes Quadrat** `border-radius: 6px` (wie die alten Tiles), nicht Kreis, nicht der Zwei-Karten-Stack, nicht das Pfad-B.
@@ -110,13 +111,12 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 
 - **App ambient:** `html:not(.portfolio-route-boot) body:not(.portfolio-active)` — charcoal `#0E0E12` + blue bloom auf Landing **und** App-Pages (nicht reines `#000`). White aurora nur auf `/p/` (`portfolio-active` / `portfolio-route-boot`). Nie Landing-Blau auf Portfolio.
 
-## Aktuell (2026-08-26)
+## Aktuell (2026-08-29)
 
-- **Live:** Private Beta. Bio-Popover Handy schon live (`ad9fd74`). Dieser Push: Play/Pause-Fix + Waveform freeze.
-- **Handy `/p/`:** Bio 1-Zeile, Read more = Overlay. Erster Tap startet Beat; Play pausiert und startet wieder; Pause lässt Waveform still.
-- **Cover:** Optional Add/Edit. `/api/manage-beat` `upload-cover` → Bucket `covers`. **SQL in Supabase noch nicht bestätigt.**
-- **OG / Mark:** `og-image.png?v=5`; Mark = B-Tile `favicon.png?v=2` (abgerundetes Quadrat 6px). Demo `/p/demo`, Lucas `/p/clyriax`.
-- **Insta:** Carousel bereit (`marketing/insta-v2/ig/`) — Caption `/p/demo`. DM: fragen → Demo → Key.
+- **Live:** Private Beta. Dieser Push: Upload-Fehler nur 1×, Buy-Link jeder `https://` (kein Host-Check — `bsta.rs` etc.).
+- **Handy `/p/`:** Bio 1-Zeile + Overlay. Play/Pause + Waveform freeze. Mark = B-Tile `favicon.png?v=2` (6px).
+- **Cover:** Optional. **SQL in Supabase noch nicht bestätigt.**
+- **Demo `/p/demo`**, Lucas `/p/clyriax`. OG `og-image.png?v=5`.
 - **Offen:** Cover-SQL. Testdaten `/p/clyriax`. Carousel nicht gepostet. Producer-DMs. TikTok-Clip.
 
 ## Nächster Schritt

@@ -155,18 +155,12 @@ function updatePreviewLabel() {
 const SUBMIT_GENRES = ['Trap','Drill','R&B','Lo-Fi','Afrobeats','Synthwave','Acoustic','Boom Bap','Other'];
 const SUBMIT_TYPES = ['Full Beat','Loop','Drum Kit','Sample'];
 const BUY_STORE_PLATFORMS = [
-  { id: 'beatstars', label: 'BeatStars', placeholder: 'https://beatstars.com/beat/...' },
-  { id: 'airbit', label: 'Airbit', placeholder: 'https://airbit.com/...' },
-  { id: 'traktrain', label: 'Traktrain', placeholder: 'https://traktrain.com/...' },
-  { id: 'soundcloud', label: 'SoundCloud', placeholder: 'https://soundcloud.com/you/track' },
-  { id: 'other', label: 'Custom website', placeholder: 'https://yourstore.com/...' }
+  { id: 'beatstars', label: 'BeatStars', placeholder: 'https://…' },
+  { id: 'airbit', label: 'Airbit', placeholder: 'https://…' },
+  { id: 'traktrain', label: 'Traktrain', placeholder: 'https://…' },
+  { id: 'soundcloud', label: 'SoundCloud', placeholder: 'https://…' },
+  { id: 'other', label: 'Custom website', placeholder: 'https://…' }
 ];
-const BUY_STORE_HOSTS = {
-  beatstars: 'beatstars.com',
-  airbit: 'airbit.com',
-  traktrain: 'traktrain.com',
-  soundcloud: 'soundcloud.com'
-};
 const BPM_MIN = 40;
 const BPM_MAX = 240;
 
@@ -180,7 +174,7 @@ function normalizeBuyLink(raw) {
 
 function detectBuyPlatform(url) {
   const u = (url || '').toLowerCase();
-  if (u.includes('beatstars.com')) return 'beatstars';
+  if (u.includes('beatstars.com') || u.includes('bsta.rs')) return 'beatstars';
   if (u.includes('airbit.com')) return 'airbit';
   if (u.includes('traktrain.com')) return 'traktrain';
   if (u.includes('soundcloud.com') || u.includes('snd.sc')) return 'soundcloud';
@@ -194,15 +188,6 @@ function validateBuyLink(raw, platform) {
   if (!trimmed) return 'Paste the store link for this beat.';
   const normalized = normalizeBuyLink(trimmed);
   if (!normalized) return 'Enter a full link (https://…).';
-  const host = BUY_STORE_HOSTS[platform];
-  const label = BUY_STORE_PLATFORMS.find(p => p.id === platform)?.label;
-  if (platform === 'soundcloud') {
-    if (!/soundcloud\.com|snd\.sc\//i.test(normalized)) {
-      return `That doesn't look like a ${label} link.`;
-    }
-  } else if (host && !normalized.toLowerCase().includes(host)) {
-    return `That doesn't look like a ${label} link.`;
-  }
   return null;
 }
 
@@ -899,19 +884,8 @@ function showSubmitError(message) {
   if (addErr) {
     addErr.hidden = false;
     addErr.textContent = msg;
+    addErr.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
-  const mp3Group = document.getElementById('preview-mp3-group');
-  const mp3Visible = mp3Group && mp3Group.style.display !== 'none';
-  const errEl = document.getElementById('uploadError');
-  if (errEl) {
-    if (mp3Visible) {
-      errEl.textContent = msg;
-      errEl.style.display = 'block';
-    } else {
-      errEl.style.display = 'none';
-    }
-  }
-  showToast(msg, 'error', 3600);
 }
 
 function clearSubmitError() {
