@@ -111,12 +111,13 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 
 - **App ambient:** `html:not(.portfolio-route-boot) body:not(.portfolio-active)` — charcoal `#0E0E12` + blue bloom auf Landing **und** App-Pages (nicht reines `#000`). White aurora nur auf `/p/` (`portfolio-active` / `portfolio-route-boot`). Nie Landing-Blau auf Portfolio.
 
-## Aktuell (2026-08-29)
+## Aktuell (2026-08-31)
 
-- **Live:** Private Beta. Dieser Push: Upload-Fehler nur 1×, Buy-Link jeder `https://` (kein Host-Check — `bsta.rs` etc.).
-- **Handy `/p/`:** Bio 1-Zeile + Overlay. Play/Pause + Waveform freeze. Mark = B-Tile `favicon.png?v=2` (6px).
-- **Cover:** Optional. **SQL in Supabase noch nicht bestätigt.**
-- **Demo `/p/demo`**, Lucas `/p/clyriax`. OG `og-image.png?v=5`.
+- **Live:** Private Beta. Producer-Name auf Beat-Cards ist tappable (Button, kein Swipe-Target); Ghost-Card nach Discover→`/p/`→zurück gefixt (scoped `#theCard`, Portfolio-Slot clear).
+- **Handy `/p/`:** Bio 1-Zeile, Read more = Overlay. Erster Tap startet Beat; Play pausiert/startet; Pause → Waveform still.
+- **Mark:** B-Tile `favicon.png?v=2` — abgerundetes Quadrat 6px, nicht Kreis. OG `og-image.png?v=5`.
+- **Demo `/p/demo`**, Lucas `/p/clyriax`. Cover optional. **SQL in Supabase noch nicht bestätigt.**
+- **Insta:** Carousel bereit (`marketing/insta-v2/ig/`) — Caption `/p/demo`. DM: fragen → Demo → Key.
 - **Offen:** Cover-SQL. Testdaten `/p/clyriax`. Carousel nicht gepostet. Producer-DMs. TikTok-Clip.
 
 ## Nächster Schritt

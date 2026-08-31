@@ -519,7 +519,7 @@ function flyOutPortfolioCard(dir, onReplaced) {
 
 function flyOutDiscoverCard(dir, onReplaced) {
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const flyEl = document.getElementById('theCard');
+  const flyEl = document.querySelector('#cardWrap #theCard');
   const wrap = document.getElementById('cardWrap');
   if (reduced || !flyEl || !wrap) {
     onReplaced();
@@ -621,7 +621,7 @@ function buildBeatCardHTML(d, opts) {
         ${buyUrl ? `<a href="${buyUrl}" target="_blank" rel="noopener" class="buy-link"${buyTrack}><i class="ti ti-shopping-cart" style="font-size:15px"></i>Buy</a>` : ''}
       </div>
     </div>`;
-  const producerLine = hideProducer ? '' : `<div class="track-by" style="cursor:pointer;color:var(--accent-mid)" onclick="openProducerProfile('${d.producer.replace(/'/g,"\\'")}')">by ${d.producer} <i class="ti ti-arrow-right" style="font-size:10px"></i></div>`;
+  const producerLine = hideProducer ? '' : `<button type="button" class="track-by" onclick="event.stopPropagation();openProducerProfile('${d.producer.replace(/'/g,"\\'")}')">by ${d.producer} <i class="ti ti-arrow-right" style="font-size:10px"></i></button>`;
   const cardInner = `
       <div class="card-head">
         <span class="swipe-label swipe-label-skip" id="labelSkip">SKIP</span>
@@ -1097,6 +1097,7 @@ async function openPortfolio(producerName, opts) {
 
   setPortfolioBackVisible(!opts.fromRoute);
 
+  resetSwipeGestureState();
   _portfolioMode = true;
   _portfolioPreview = !!opts.preview;
   _portfolioDemo = isDemo;
@@ -1159,6 +1160,8 @@ function exitPortfolioMode() {
   stripDemoBeatsFromCrate();
   document.body.classList.remove('portfolio-active', 'portfolio-swipe-done');
   document.body.style.removeProperty('--pf-glow');
+  const slot = document.getElementById('portfolioCardSlot');
+  if (slot) slot.innerHTML = '';
   clearPortfolioDesktopPanels();
   resetSiteMeta();
 }
@@ -1174,6 +1177,7 @@ async function handlePortfolioPopstate() {
   if (_portfolioMode) {
     closePortfolioBioPopover();
     setPortfolioBackVisible(false);
+    resetSwipeGestureState();
     _portfolioMode = false;
     _portfolioPreview = false;
     _portfolioDemo = false;
@@ -1181,6 +1185,9 @@ async function handlePortfolioPopstate() {
     _portfolioProducer = null;
     stripDemoBeatsFromCrate();
     document.body.classList.remove('portfolio-active', 'portfolio-swipe-done');
+    document.body.style.removeProperty('--pf-glow');
+    const slot = document.getElementById('portfolioCardSlot');
+    if (slot) slot.innerHTML = '';
     clearPortfolioDesktopPanels();
     resetSiteMeta();
     stopTrack();

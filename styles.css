@@ -1780,8 +1780,21 @@
         margin-bottom: 4px;
       }
       .crate-preview-producer {
-        font-size: 13px; color: var(--accent-mid); cursor: pointer;
+        font-size: 13px; color: var(--accent-mid);
       }
+      .crate-preview-producer-btn {
+        display: inline;
+        border: none;
+        background: none;
+        padding: 4px 0;
+        margin: 0;
+        font: inherit;
+        font-size: inherit;
+        color: inherit;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .crate-preview-producer-btn:active { opacity: 0.7; }
       .crate-preview-tags {
         display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 16px;
       }
@@ -2645,7 +2658,23 @@
       display: block;
     }
     .track-name { font-size: 20px; font-weight: 700; margin-bottom: 3px; line-height: 1.15; letter-spacing: -0.4px; }
-    .track-by { font-size: 13px; color: var(--text-2); font-weight: 400; }
+    .track-by {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      margin: -6px 0;
+      padding: 6px 0;
+      border: none;
+      background: none;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--accent-mid);
+      cursor: pointer;
+      text-align: left;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .track-by:active { opacity: 0.7; }
     .type-pill { font-size: 10px; font-weight: 600; padding: 3px 10px; border-radius: 100px; background: var(--bg-3); border: 0.5px solid var(--border-2); color: var(--text-3); letter-spacing: 0.2px; white-space: nowrap; }
     .tag-row { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
     .tag { background: var(--bg-3); border: 0.5px solid var(--border); border-radius: 100px; padding: 5px 12px; font-size: 12px; color: var(--text-2); font-weight: 500; }
@@ -2820,7 +2849,19 @@
       font-size: 11px; color: var(--text-3);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .crate-meta-producer { color: var(--accent-mid); cursor: pointer; }
+    .crate-meta-producer {
+      display: inline;
+      border: none;
+      background: none;
+      padding: 0;
+      margin: 0;
+      font: inherit;
+      font-size: inherit;
+      color: var(--accent-mid);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .crate-meta-producer:active { opacity: 0.7; }
     .crate-actions {
       display: flex; align-items: center; gap: 6px; flex-shrink: 0;
     }

@@ -970,8 +970,9 @@ let _pendingFlyTransform = '';
 let resetSwipeGestureState = () => {};
 
 function purgeOrphanSwipeNodes() {
-  document.querySelectorAll('body > .portfolio-surface, body > .beat-card.swipe-drag-pinned').forEach(el => el.remove());
+  document.querySelectorAll('body > .portfolio-surface, body > .beat-card').forEach(el => el.remove());
   document.querySelectorAll('.swipe-drag-spacer').forEach(el => el.remove());
+  document.querySelectorAll('.portfolio-fly-clone, .discover-fly-clone').forEach(el => el.remove());
 }
 
 function isPlayToggleTarget(el) {
@@ -1578,7 +1579,7 @@ function renderCard(opts) {
         </div>
         <div style="flex:1;min-width:0">
           <div class="track-name">${d.title}</div>
-          <div class="track-by" style="cursor:pointer;color:var(--accent-mid)" onclick="openProducerProfile('${d.producer.replace(/'/g,"\\'")}')">by ${d.producer} <i class="ti ti-arrow-right" style="font-size:10px"></i></div>
+          <button type="button" class="track-by" onclick="event.stopPropagation();openProducerProfile('${d.producer.replace(/'/g,"\\'")}')">by ${d.producer} <i class="ti ti-arrow-right" style="font-size:10px"></i></button>
         </div>
         <div class="card-head-meta">
           <span class="type-pill type-pill--head">${d.type}</span>
@@ -1601,7 +1602,7 @@ function renderCard(opts) {
   }
 
   if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    const card = document.getElementById('theCard');
+    const card = document.querySelector('#cardWrap #theCard');
     if (card) {
       card.classList.add('card-enter');
       card.addEventListener('animationend', () => card.classList.remove('card-enter'), { once: true });
@@ -1737,7 +1738,8 @@ function renderCard(opts) {
 
     const liveSurface = document.querySelector('#portfolioCardSlot .portfolio-surface:not(.portfolio-fly-clone)');
     if (liveSurface) clearPinnedCardStyles(liveSurface);
-    const liveCard = document.getElementById('theCard');
+    const liveCard = document.querySelector('#cardWrap #theCard')
+      || document.querySelector('#portfolioCardSlot #theCard');
     if (liveCard) clearPinnedCardStyles(liveCard);
 
     resetActBtnChrome();
@@ -1757,15 +1759,20 @@ function renderCard(opts) {
   resetSwipeGestureState = forceCleanupSwipeDrag;
 
   function getCard() {
+    if (_dragPin?.card && document.contains(_dragPin.card)) return _dragPin.card;
     if (_portfolioMode) {
-      return document.querySelector('#portfolioCardSlot .portfolio-surface') || document.getElementById('theCard');
+      return document.querySelector('#portfolioCardSlot .portfolio-surface')
+        || document.querySelector('#portfolioCardSlot #theCard');
     }
-    return document.getElementById('theCard');
+    return document.querySelector('#cardWrap #theCard');
   }
   function canStartSwipe() {
-    if (!document.getElementById('theCard')) return false;
-    if (_portfolioMode && document.getElementById('portfolioPageInner')?.classList.contains('page-inner--swipe-done')) return false;
-    return true;
+    if (_portfolioMode) {
+      if (!document.querySelector('#portfolioCardSlot #theCard')) return false;
+      if (document.getElementById('portfolioPageInner')?.classList.contains('page-inner--swipe-done')) return false;
+      return true;
+    }
+    return !!document.querySelector('#cardWrap #theCard');
   }
   function isSwipeGestureTarget(el) {
     if (!canStartSwipe()) return false;
@@ -1776,7 +1783,7 @@ function renderCard(opts) {
       if (!el.closest('#cardWrap')) return false;
       if (el.closest('.action-row,.act-btn,.discover-toolbar,.swipe-hint')) return false;
     }
-    if (el.closest('iframe,button,a,.progress-bar,.waveform-wrap,.yt-overlay')) return false;
+    if (el.closest('iframe,button,a,.progress-bar,.waveform-wrap,.yt-overlay,.track-by')) return false;
     return true;
   }
   function getGlow() {
@@ -2256,7 +2263,9 @@ function queueSaveBeatToDB(beat) {
 }
 
 function doSwipe(dir, opts = {}) {
-  const card = document.getElementById('theCard');
+  const card = _portfolioMode
+    ? document.querySelector('#portfolioCardSlot #theCard')
+    : document.querySelector('#cardWrap #theCard');
   if (!card) return;
   if (_portfolioMode && _portfolioSwipeLock) return;
   if (!_audioUnlocked) _audioUnlocked = true;
@@ -2396,7 +2405,7 @@ function buildCratePreviewHTML(d, opts = {}) {
       <div class="crate-preview-cover">${beatCoverHTML(d, '', 'preview')}</div>
       <div>
         <div class="crate-preview-title">${d.title}</div>
-        <div class="crate-preview-producer" onclick="openProducerProfile('${prodEsc}')">by ${d.producer}</div>
+        <div class="crate-preview-producer"><button type="button" class="crate-preview-producer-btn" onclick="openProducerProfile('${prodEsc}')">by ${d.producer}</button></div>
       </div>
     </div>
     <div class="crate-preview-tags">
@@ -2517,7 +2526,7 @@ function renderCrate() {
       <div class="mini-cover">${beatCoverHTML(d, '', 'crate')}</div>
       <div class="crate-info">
         <div class="crate-name">${d.title}</div>
-        <div class="crate-meta"><span class="crate-meta-producer" onclick="openProducerProfile('${prodEsc}')">${d.producer}</span> · ${d.bpm} · ${d.genre}</div>
+        <div class="crate-meta"><button type="button" class="crate-meta-producer" onclick="event.stopPropagation();openProducerProfile('${prodEsc}')">${d.producer}</button> · ${d.bpm} · ${d.genre}</div>
       </div>
       <div class="crate-actions">
         ${actionHTML}
