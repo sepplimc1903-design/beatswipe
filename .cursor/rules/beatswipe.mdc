@@ -113,9 +113,9 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 
 ## Aktuell (2026-08-31)
 
-- **Live:** Private Beta. Producer-Name auf Beat-Cards ist tappable (Button, kein Swipe-Target); Ghost-Card nach Discover→`/p/`→zurück gefixt (scoped `#theCard`, Portfolio-Slot clear).
-- **Handy `/p/`:** Bio 1-Zeile, Read more = Overlay. Erster Tap startet Beat; Play pausiert/startet; Pause → Waveform still.
-- **Mark:** B-Tile `favicon.png?v=2` — abgerundetes Quadrat 6px, nicht Kreis. OG `og-image.png?v=5`.
+- **Live:** Private Beta. Landing polish (Sora, quieter chrome, store logos back). Profile mobile: Identity first, Social links as accordion under it; compact bio.
+- **Handy `/p/`:** Bio 1-Zeile, Read more = Overlay. Producer-Name auf Cards tappable; Ghost-Card nach Discover→`/p/` gefixt.
+- **Mark:** B-Tile `favicon.png?v=2` — abgerundetes Quadrat 6px. OG `og-image.png?v=5`.
 - **Demo `/p/demo`**, Lucas `/p/clyriax`. Cover optional. **SQL in Supabase noch nicht bestätigt.**
 - **Insta:** Carousel bereit (`marketing/insta-v2/ig/`) — Caption `/p/demo`. DM: fragen → Demo → Key.
 - **Offen:** Cover-SQL. Testdaten `/p/clyriax`. Carousel nicht gepostet. Producer-DMs. TikTok-Clip.

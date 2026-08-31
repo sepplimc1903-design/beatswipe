@@ -2950,6 +2950,13 @@ function renderProfile() {
     const slug = p.producer_name ? portfolioSlugFromName(p.producer_name) : '';
     const heroLink = slug ? `beatswipe.app/p/${escHtml(slug)}` : '';
     const sidebarLink = profileDesktopSide() && p.producer_name;
+    const socialConnected = SOCIAL_PLATFORMS.filter(s => (p[s.key] || '').trim()).length;
+    const socialsOpen = wrap._socialsOpen === true || !!wrap._focusSocials;
+    const socialStatus = `<button type="button" class="profile-social-status${socialConnected === 0 ? ' profile-social-status--empty' : ''}" onclick="focusProfileSocialLinks()">
+            <i class="ti ti-share"></i>
+            <span>${socialConnected === 0 ? 'Add Instagram, TikTok &amp; stores' : `${socialConnected} of ${SOCIAL_PLATFORMS.length} socials linked`}</span>
+            <i class="ti ti-chevron-down"></i>
+          </button>`;
     const heroActions = p.producer_name ? `
           <div class="profile-hero-link-row">
             <span class="profile-live-badge"><i class="ti ti-circle-filled"></i> Live</span>
@@ -2974,6 +2981,7 @@ function renderProfile() {
         <div class="profile-hero-body">
           <div class="profile-hero-name">${escHtml(displayName)}</div>
           <div class="profile-hero-email">${escHtml(currentUser.email)}</div>
+          ${socialStatus}
           ${heroActions}
         </div>
       </div>
@@ -2989,7 +2997,7 @@ function renderProfile() {
 
       <div class="profile-tab-content ${activeTab==='profile'?'active':''}" id="ptProfile">
         <div class="profile-section-wrap">
-          <div class="profile-section-title">Identity <span class="profile-section-hint">shown on your swipe page</span></div>
+          <div class="profile-section-title">Identity <span class="profile-section-hint">name &amp; bio</span></div>
           <div class="profile-section profile-glass">
             <div class="field-group">
               <label class="field-label">Producer name</label>
@@ -3001,15 +3009,27 @@ function renderProfile() {
             </div>
           </div>
         </div>
-        <div class="profile-section-wrap">
-          <div class="profile-section-title">Links</div>
-          <div class="profile-section profile-glass">
-            <div class="profile-social-grid">
-              ${SOCIAL_PLATFORMS.map(s => `
-              <div class="social-field">
-                ${socialFieldIconMarkup(s)}
-                <input type="text" id="ep-${s.key}" value="${escHtml(p[s.key] || '')}" placeholder="${escHtml(s.placeholder)}">
-              </div>`).join('')}
+        <div class="profile-section-wrap" id="profileLinksSection">
+          <button type="button" class="profile-socials-toggle${socialsOpen ? ' open' : ''}${socialConnected === 0 ? ' profile-socials-toggle--empty' : ''}" onclick="toggleProfileSocials()" aria-expanded="${socialsOpen ? 'true' : 'false'}" aria-controls="profileSocialsPanel">
+            <span class="profile-socials-toggle-left">
+              <i class="ti ti-share"></i>
+              <span class="profile-socials-toggle-copy">
+                <span class="profile-socials-toggle-title">Social links</span>
+                <span class="profile-socials-toggle-sub">${socialConnected === 0 ? 'Instagram, TikTok, stores…' : 'Shown on your /p/ page'}</span>
+              </span>
+            </span>
+            <span class="profile-section-count${socialConnected === 0 ? ' profile-section-count--empty' : ''}">${socialConnected}/${SOCIAL_PLATFORMS.length}</span>
+            <i class="ti ti-chevron-down profile-socials-chev" aria-hidden="true"></i>
+          </button>
+          <div class="profile-socials-panel${socialsOpen ? ' open' : ''}" id="profileSocialsPanel"${socialsOpen ? '' : ' hidden'}>
+            <div class="profile-section profile-glass profile-section--socials">
+              <div class="profile-social-grid">
+                ${SOCIAL_PLATFORMS.map(s => `
+                <div class="social-field${(p[s.key] || '').trim() ? ' social-field--filled' : ''}">
+                  ${socialFieldIconMarkup(s)}
+                  <input type="text" id="ep-${s.key}" value="${escHtml(p[s.key] || '')}" placeholder="${escHtml(s.placeholder)}" aria-label="${escHtml(s.label)}">
+                </div>`).join('')}
+              </div>
             </div>
           </div>
         </div>
@@ -3067,6 +3087,16 @@ function renderProfile() {
     bindProfileFormWatch();
     renderProfileSidePanel();
     if (_userProfile?.producer_name) void refreshMyPageStats();
+    if (wrap._focusSocials) {
+      wrap._focusSocials = false;
+      wrap._socialsOpen = true;
+      requestAnimationFrame(() => {
+        const section = document.getElementById('profileLinksSection');
+        const input = document.getElementById('ep-instagram');
+        section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setTimeout(() => input?.focus(), 280);
+      });
+    }
   } else {
     _profileFormSnapshot = null;
     wrap.innerHTML = `
@@ -3139,6 +3169,42 @@ function switchProfileTab(tab) {
   if (activeTab === 'profile' && tab !== 'profile' && !confirmDiscardProfileChanges()) return;
   wrap._activeTab = tab;
   renderProfile();
+}
+
+function toggleProfileSocials(forceOpen) {
+  const wrap = document.getElementById('profileWrap');
+  if (!wrap) return;
+  const panel = document.getElementById('profileSocialsPanel');
+  const toggle = wrap.querySelector('.profile-socials-toggle');
+  const next = typeof forceOpen === 'boolean' ? forceOpen : !wrap._socialsOpen;
+  wrap._socialsOpen = next;
+  if (panel) {
+    panel.classList.toggle('open', next);
+    panel.hidden = !next;
+  }
+  if (toggle) {
+    toggle.classList.toggle('open', next);
+    toggle.setAttribute('aria-expanded', next ? 'true' : 'false');
+  }
+}
+
+function focusProfileSocialLinks() {
+  const wrap = document.getElementById('profileWrap');
+  if (!wrap) return;
+  const needSwitch = (wrap._activeTab || 'profile') !== 'profile';
+  wrap._socialsOpen = true;
+  if (needSwitch) {
+    if (!confirmDiscardProfileChanges()) return;
+    wrap._activeTab = 'profile';
+    wrap._focusSocials = true;
+    renderProfile();
+    return;
+  }
+  toggleProfileSocials(true);
+  const section = document.getElementById('profileLinksSection');
+  const input = document.getElementById('ep-instagram');
+  section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  setTimeout(() => input?.focus(), 280);
 }
 
 function setAuthMode(mode) {
