@@ -7036,3 +7036,44 @@
       background: rgba(251,191,36,0.12); color: #fbbf24;
     }
     .profile-stat-card--moderate .crate-sync-badge:empty { display: none; }
+
+    /* Premium editorial refinement */
+    :root {
+      --accent: #7eb8ff;
+      --accent-dark: #5799e8;
+      --accent-light: rgba(126,184,255,0.12);
+      --accent-mid: #a9d1ff;
+      --bg: #0d0f12;
+      --bg-2: #15181d;
+      --bg-3: #1b1f25;
+      --text: #f3f5f7;
+      --text-2: #a3aab4;
+      --text-3: #707985;
+      --border: #2a3038;
+      --border-2: #3a424d;
+      --font-display: "Sora", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      --radius-card: 18px;
+      --radius-btn: 10px;
+    }
+    body { background: #090b0e; letter-spacing: -0.01em; }
+    .bg-desktop { background: #090b0e; }
+    .bg-desktop::before { background: linear-gradient(180deg, rgba(126,184,255,0.07), transparent 32%); }
+    .bg-desktop::after { background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(126,184,255,0.045), transparent 75%); }
+    .bg-grid, .bg-noise { opacity: 0.18; }
+    .shell { background: var(--bg); box-shadow: 0 0 0 1px rgba(255,255,255,0.04), 0 28px 80px rgba(0,0,0,0.45); }
+    .topbar, .nav-bar { border-color: rgba(255,255,255,0.08); background: rgba(13,15,18,0.92); backdrop-filter: blur(18px); }
+    .card, .panel, .profile-stat-card, .beat-card, .hero-beat-card, .auth-card { border-color: rgba(255,255,255,0.1); background: var(--bg-2); box-shadow: 0 12px 32px rgba(0,0,0,0.16); }
+    button, .btn, .nav-item, input, textarea, select { font-family: var(--font-ui); }
+    button, .btn { transition: transform .18s ease, background-color .18s ease, border-color .18s ease; }
+    button:hover, .btn:hover { transform: translateY(-1px); }
+    .section-title, h1, h2, h3 { letter-spacing: -0.045em; }
+    .eyebrow, .section-kicker, .label, .meta-label { letter-spacing: 0.12em; text-transform: uppercase; font-size: 10px; font-weight: 700; color: var(--text-3); }
+    .accent, .active, .nav-item.active { color: var(--accent); }
+    .primary-btn, .btn-primary, .cta-btn { background: var(--accent); color: #08111c; box-shadow: 0 8px 22px rgba(126,184,255,0.16); }
+    .primary-btn:hover, .btn-primary:hover, .cta-btn:hover { background: var(--accent-mid); }
+    @media (min-width: 900px) {
+      .shell { max-width: 1180px; height: min(900px, 94vh); border-radius: 24px; overflow: hidden; }
+    }
+    @media (max-width: 899px) {
+      .shell { box-shadow: none; }
+    }
