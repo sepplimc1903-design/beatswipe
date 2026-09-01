@@ -1,0 +1,13 @@
+/* BeatSwipe semantic design tokens */
+:root {
+  --bs-background: #090b0e;
+  --bs-surface: #11151a;
+  --bs-surface-raised: #171c22;
+  --bs-foreground: #f2f4f6;
+  --bs-muted: #929aa5;
+  --bs-subtle: #68717d;
+  --bs-border: #29313a;
+  --bs-accent: #8bc2ff;
+  --bs-radius: 14px;
+}
+html { background: var(--bs-background); }
