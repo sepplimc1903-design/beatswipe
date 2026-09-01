@@ -1401,6 +1401,7 @@ if (document.readyState === 'loading') {
 }
 
 initApp().then(() => {
+  reconcileMobileChrome();
   if (_authRecoveryFromUrl && !_passwordRecoveryActive) resolveAuthCallbackFromUrl();
   initOnboard();
   initCookie();

@@ -2076,7 +2076,7 @@
 
     /* NAV */
     .nav-bar {
-      display: flex; position: relative;
+      display: flex; position: relative; z-index: 2;
       border-top: 0.5px solid rgba(255,255,255,0.08);
       background: rgba(14,14,18,0.92);
       backdrop-filter: blur(16px);
@@ -2105,6 +2105,22 @@
     .nav-tab i { font-size: 22px; transition: color 0.28s cubic-bezier(0.22,1,0.36,1); }
     .nav-tab.active i { color: var(--accent-mid); }
     .nav-dot { display: none; }
+    @media (max-width: 899px) {
+      /* Pin nav to viewport bottom — avoids iOS 100dvh + flex-center clipping the bar */
+      body:not(.portfolio-active):not(.moderate-active) .nav-bar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        margin-inline: auto;
+        width: 100%;
+        max-width: 440px;
+        z-index: 12;
+      }
+      body:not(.portfolio-active):not(.moderate-active) .shell {
+        padding-bottom: calc(52px + env(safe-area-inset-bottom, 0px));
+      }
+    }
     @media (prefers-reduced-motion: reduce) {
       .nav-indicator, .dtb-nav-indicator, .cat-segment-indicator { transition: none !important; }
       .shell > .screen { transition: none !important; }

@@ -235,8 +235,11 @@ function updateNavIndicator(navId) {
   const mobileTab = document.getElementById(navId);
   const mobileBar = document.querySelector('.nav-bar');
   const mobileInd = document.getElementById('navIndicator');
-  if (mobileTab && mobileBar && mobileInd && mobileBar.offsetParent !== null) {
-    positionNavIndicator(mobileInd, mobileBar, mobileTab, { padX: 10, pillH: 52 });
+  if (mobileTab && mobileBar && mobileInd) {
+    const barCs = getComputedStyle(mobileBar);
+    if (barCs.display !== 'none' && barCs.visibility !== 'hidden') {
+      positionNavIndicator(mobileInd, mobileBar, mobileTab, { padX: 10, pillH: 52 });
+    }
   }
   const dtbTab = document.getElementById(dtbId);
   const dtbNav = document.querySelector('.dtb-nav');
@@ -344,6 +347,27 @@ function closeInviteIfBackdrop(e) {
   if (e.target === document.getElementById('inviteGate')) closeInviteGate();
 }
 
+/** Re-sync nav/chrome after BFCache restore or stale portfolio body classes on app routes. */
+function reconcileMobileChrome() {
+  const slug = typeof getPortfolioSlugFromURL === 'function' ? getPortfolioSlugFromURL() : null;
+  const onPortfolioRoute = !!slug;
+  if (!onPortfolioRoute) {
+    document.documentElement.classList.remove('portfolio-route-boot');
+    if (document.body.classList.contains('portfolio-active')) {
+      if (typeof _portfolioMode !== 'undefined' && _portfolioMode && typeof exitPortfolioMode === 'function') {
+        exitPortfolioMode();
+        const activeScreen = document.querySelector('.screen.active');
+        if (!activeScreen || activeScreen.id === 'portfolioScreen') {
+          applyGoTo(_prevScreen || 'landScreen', _prevNav || 'navHome');
+        }
+      } else {
+        document.body.classList.remove('portfolio-active', 'portfolio-swipe-done');
+      }
+    }
+  }
+  syncGuestChrome();
+}
+
 /** Guest chrome: hide gated nav; footer shows live demo + get page. */
 function syncGuestChrome() {
   const locked = !hasInviteAccess();
@@ -423,8 +447,24 @@ function submitInviteCode() {
   }
 }
 
-if (document.body) syncGuestChrome();
-else document.addEventListener('DOMContentLoaded', syncGuestChrome, { once: true });
+if (document.body) reconcileMobileChrome();
+else document.addEventListener('DOMContentLoaded', reconcileMobileChrome, { once: true });
+
+window.addEventListener('pageshow', () => {
+  reconcileMobileChrome();
+  const activeNavId = document.querySelector('.nav-tab.active')?.id;
+  if (activeNavId) {
+    requestAnimationFrame(() => requestAnimationFrame(() => updateNavIndicator(activeNavId)));
+  }
+});
+
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', () => {
+    if (!isMobileUI() || document.body.classList.contains('portfolio-active')) return;
+    const activeNavId = document.querySelector('.nav-tab.active')?.id;
+    if (activeNavId) updateNavIndicator(activeNavId);
+  });
+}
 
 let _listEnterNext = false;
 
