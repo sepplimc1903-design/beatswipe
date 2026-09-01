@@ -4,7 +4,43 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=overlays-content">
+  <style>
+    @media (max-width: 899px) {
+      html:not(.portfolio-route-boot),
+      html:not(.portfolio-route-boot) body:not(.portfolio-active) {
+        position: fixed !important;
+        inset: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        overflow: hidden !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      html:not(.portfolio-route-boot) body:not(.portfolio-active) .nav-bar {
+        position: fixed !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        z-index: 100 !important;
+        width: 100% !important;
+        max-width: 440px !important;
+        margin-inline: auto !important;
+      }
+    }
+  </style>
   <script>
+    (function () {
+      function setAppVh() {
+        var h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+        document.documentElement.style.setProperty('--app-vh', (h * 0.01) + 'px');
+      }
+      setAppVh();
+      window.addEventListener('resize', setAppVh, { passive: true });
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', setAppVh, { passive: true });
+        window.visualViewport.addEventListener('scroll', setAppVh, { passive: true });
+      }
+    })();
     (function () {
       var isPortfolio = /^\/p\/[^/]+\/?$/i.test(location.pathname);
       var meta = document.createElement('meta');
@@ -93,7 +129,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/styles.css?v=nav4">
   <script>
     window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
   </script>
@@ -748,18 +784,6 @@
     </div>
   </div>
 
-  <!-- BOTTOM NAV -->
-  <div class="nav-bar">
-    <div class="nav-indicator" id="navIndicator" aria-hidden="true"></div>
-    <button class="nav-tab active" id="navHome" onclick="goTo('landScreen','navHome')"><i class="ti ti-home"></i>Home<div class="nav-dot"></div></button>
-    <button class="nav-tab nav-tab--guest" id="navLiveDemo" onclick="location.href='/p/demo'"><i class="ti ti-bolt"></i>Live<div class="nav-dot"></div></button>
-    <button class="nav-tab nav-tab--guest" id="navGetPage" onclick="openProducerSignup()"><i class="ti ti-link"></i>Get page<div class="nav-dot"></div></button>
-    <button class="nav-tab nav-tab--app" id="navDiscover" onclick="goTo('discoverScreen','navDiscover')"><i class="ti ti-headphones"></i>Discover<div class="nav-dot"></div></button>
-    <button class="nav-tab nav-tab--app" id="navCrate" onclick="goTo('crateScreen','navCrate')"><i class="ti ti-flame"></i>Favorites<div class="nav-dot"></div></button>
-    <button class="nav-tab nav-tab--app" id="navSubmit" onclick="goTo('submitScreen','navSubmit')"><i class="ti ti-link"></i>My Page<div class="nav-dot"></div></button>
-    <button class="nav-tab nav-tab--app" id="navProfile" onclick="goTo('profileScreen','navProfile')"><i class="ti ti-user"></i>Profile<div class="nav-dot"></div></button>
-  </div>
-
   <!-- IMPRESSUM MODAL -->
   <div class="info-modal-backdrop" id="impressumModal" onclick="closeInfoIfBackdrop(event,'impressumModal')">
     <div class="info-modal-sheet">
@@ -1001,143 +1025,6 @@
       </div>
     </div>
   </div>
-  <!-- ONBOARDING TUTORIAL -->
-  <div class="onboard-backdrop" id="onboardBackdrop" onclick="closeOnboardIfBackdrop(event)">
-    <div class="onboard-sheet" onclick="event.stopPropagation()">
-      <div class="onboard-handle" aria-hidden="true"></div>
-      <div class="onboard-slides" id="onboardSlides">
-
-        <!-- Slide 1: Welcome -->
-        <div class="onboard-slide">
-          <div class="onboard-icon"><i class="ti ti-flame"></i></div>
-          <div class="onboard-title">Welcome to <span>BeatSwipe</span></div>
-          <div class="onboard-desc">Your bio link. Their next beat. Free swipe portfolio for producers.</div>
-          <div class="onboard-demo onboard-demo--pills">
-            <div class="onboard-pill">
-              <div class="onboard-pill-icon onboard-pill-icon--swipe"><i class="ti ti-arrows-left-right"></i></div>
-              <div class="onboard-pill-label">Swipe</div>
-              <div class="onboard-pill-sub">skip or save fast</div>
-            </div>
-            <div class="onboard-pill">
-              <div class="onboard-pill-icon onboard-pill-icon--free"><i class="ti ti-gift"></i></div>
-              <div class="onboard-pill-label">Free</div>
-              <div class="onboard-pill-sub">always, for everyone</div>
-            </div>
-            <div class="onboard-pill">
-              <div class="onboard-pill-icon onboard-pill-icon--link"><i class="ti ti-link"></i></div>
-              <div class="onboard-pill-label">Bio link</div>
-              <div class="onboard-pill-sub">beatswipe.app/p/you</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Slide 2: Fans swipe -->
-        <div class="onboard-slide">
-          <div class="onboard-icon"><i class="ti ti-arrows-left-right"></i></div>
-          <div class="onboard-title">Fans <span>swipe</span> your beats</div>
-          <div class="onboard-desc">One tap from your bio. They skip left, save right — hear a beat and decide in seconds.</div>
-          <div class="onboard-demo onboard-demo--swipe">
-            <div class="onboard-demo-card demo-card-anim">
-              <div class="onboard-demo-art"><i class="ti ti-music"></i></div>
-              <div class="onboard-demo-meta">
-                <div class="onboard-demo-title">Midnight Drive</div>
-                <div class="onboard-demo-sub">Demo · 140 BPM</div>
-              </div>
-              <div class="onboard-demo-actions">
-                <div class="onboard-demo-act onboard-demo-act--skip"><i class="ti ti-x"></i></div>
-                <div class="onboard-demo-act onboard-demo-act--save"><i class="ti ti-flame"></i></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Slide 3: Buy from store -->
-        <div class="onboard-slide">
-          <div class="onboard-icon"><i class="ti ti-shopping-cart"></i></div>
-          <div class="onboard-title">They buy from <span>your store</span></div>
-          <div class="onboard-desc">Saved beats keep a Buy button to BeatStars, Airbit, Traktrain, or your site. We take no cut.</div>
-          <div class="onboard-demo onboard-demo--stack">
-            <div class="onboard-fav-row">
-              <div class="onboard-demo-art onboard-demo-art--sm"><i class="ti ti-music"></i></div>
-              <div class="onboard-demo-meta">
-                <div class="onboard-demo-title">Midnight Drive</div>
-                <div class="onboard-demo-sub">Trap · 140 BPM</div>
-              </div>
-              <div class="onboard-fav-badge"><i class="ti ti-flame"></i></div>
-            </div>
-            <button type="button" class="onboard-store-btn" tabindex="-1"><i class="ti ti-shopping-cart"></i> Get on BeatStars</button>
-          </div>
-        </div>
-
-        <!-- Slide 4: Get your page -->
-        <div class="onboard-slide">
-          <div class="onboard-icon"><i class="ti ti-link"></i></div>
-          <div class="onboard-title">Get your <span>free page</span></div>
-          <div class="onboard-desc">Add short preview clips, share beatswipe.app/p/yourname in your bio. Beats go live as soon as you add them.</div>
-          <div class="onboard-demo onboard-demo--stack onboard-demo--checks">
-            <div class="onboard-check-item"><i class="ti ti-check"></i><span>beatswipe.app/p/yourname</span></div>
-            <div class="onboard-check-item"><i class="ti ti-check"></i><span>Preview via YouTube, SoundCloud or MP3 (~30–60s)</span></div>
-            <div class="onboard-check-item"><i class="ti ti-check"></i><span>Goes live on your page immediately</span></div>
-            <div class="onboard-check-item"><i class="ti ti-check"></i><span>Buy links to your store — no cut</span></div>
-          </div>
-        </div>
-
-      </div>
-      <div class="onboard-bottom">
-        <div class="onboard-dots" id="onboardDots">
-          <div class="onboard-dot active"></div>
-          <div class="onboard-dot"></div>
-          <div class="onboard-dot"></div>
-          <div class="onboard-dot"></div>
-        </div>
-        <button class="onboard-btn" id="onboardBtn" onclick="onboardNext()">
-          <i class="ti ti-arrow-right"></i> Get started
-        </button>
-        <button class="onboard-skip" onclick="closeOnboard()">Skip tour</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- SYNC MODAL (mobile — after first save as guest) -->
-  <div class="sync-modal-backdrop" id="syncModal" onclick="closeSyncModalIfBackdrop(event)">
-    <div class="sync-modal-sheet" onclick="event.stopPropagation()">
-      <div class="sync-modal-icon"><i class="ti ti-cloud-upload"></i></div>
-      <div class="sync-modal-title">Save your Favorites</div>
-      <div class="sync-modal-desc">You saved a beat! Sign in to keep your Favorites across devices — they won't disappear after reload.</div>
-      <button type="button" class="sync-modal-primary" onclick="syncModalSignIn()">Sign in</button>
-      <button type="button" class="sync-modal-secondary" onclick="dismissSyncModal()">Not now</button>
-    </div>
-  </div>
-
-  <!-- INVITE GATE (private beta — Home stays open) -->
-  <div class="invite-gate-backdrop" id="inviteGate" onclick="closeInviteIfBackdrop(event)">
-    <div class="invite-gate-sheet" onclick="event.stopPropagation()">
-      <div class="invite-gate-icon"><i class="ti ti-lock"></i></div>
-      <div class="invite-gate-title">Private Beta</div>
-      <div class="invite-gate-desc" id="inviteGateDesc">BeatSwipe is invite-only. Enter your code to get your free swipe page for the bio.</div>
-      <input type="text" class="invite-gate-input" id="inviteCodeInput" placeholder="Invite code" autocomplete="off" autocapitalize="off" spellcheck="false" onkeydown="if(event.key==='Enter')submitInviteCode()">
-      <div class="invite-gate-err" id="inviteCodeErr">Invalid code. DM us on Instagram for access.</div>
-      <button type="button" class="invite-gate-submit" onclick="submitInviteCode()">Get my page</button>
-      <button type="button" class="invite-gate-back" onclick="closeInviteGate()">Back to Home</button>
-      <div class="invite-gate-foot">No code yet? DM us on <a href="https://instagram.com/beatswipe.app" target="_blank" rel="noopener">@beatswipe.app</a> for access.</div>
-    </div>
-  </div>
-
-  <!-- COOKIE BANNER -->
-  <div class="cookie-banner" id="cookieBanner">
-    <div class="cookie-inner">
-      <div class="cookie-text">
-        We only use essential storage (login session, swipe progress, cookie preference, invite flag). No tracking or advertising cookies. Page views are measured cookieless by our host (Vercel).
-        <a href="#legal" onclick="event.preventDefault();openLegalModal('impressumModal')">Legal Notice</a>
-        ·
-        <a href="#privacy" onclick="event.preventDefault();openLegalModal('privacyModal')">Privacy Policy</a>
-      </div>
-      <div class="cookie-btns">
-        <button type="button" class="cookie-accept" onclick="closeCookie()">Got it</button>
-      </div>
-    </div>
-  </div>
-
   <!-- AVATAR CROP MODAL -->
   <div class="crop-backdrop" id="cropBackdrop">
     <div class="crop-title">Crop profile photo</div>
@@ -1253,6 +1140,153 @@
   </div>
 
   <button type="button" id="swipeKbdFocus" class="swipe-kbd-focus" tabindex="-1" aria-hidden="true"></button>
+
+  <div class="nav-bar" id="mobileNavBar">
+    <div class="nav-indicator" id="navIndicator" aria-hidden="true"></div>
+    <button class="nav-tab active" id="navHome" onclick="goTo('landScreen','navHome')"><i class="ti ti-home"></i>Home<div class="nav-dot"></div></button>
+    <button class="nav-tab nav-tab--guest" id="navLiveDemo" onclick="location.href='/p/demo'"><i class="ti ti-bolt"></i>Live<div class="nav-dot"></div></button>
+    <button class="nav-tab nav-tab--guest" id="navGetPage" onclick="openProducerSignup()"><i class="ti ti-link"></i>Get page<div class="nav-dot"></div></button>
+    <button class="nav-tab nav-tab--app" id="navDiscover" onclick="goTo('discoverScreen','navDiscover')"><i class="ti ti-headphones"></i>Discover<div class="nav-dot"></div></button>
+    <button class="nav-tab nav-tab--app" id="navCrate" onclick="goTo('crateScreen','navCrate')"><i class="ti ti-flame"></i>Favorites<div class="nav-dot"></div></button>
+    <button class="nav-tab nav-tab--app" id="navSubmit" onclick="goTo('submitScreen','navSubmit')"><i class="ti ti-link"></i>My Page<div class="nav-dot"></div></button>
+    <button class="nav-tab nav-tab--app" id="navProfile" onclick="goTo('profileScreen','navProfile')"><i class="ti ti-user"></i>Profile<div class="nav-dot"></div></button>
+  </div>
+
+  <div class="cookie-banner" id="cookieBanner">
+    <div class="cookie-inner">
+      <div class="cookie-text">
+        We only use essential storage (login session, swipe progress, cookie preference, invite flag). No tracking or advertising cookies. Page views are measured cookieless by our host (Vercel).
+        <a href="#legal" onclick="event.preventDefault();openLegalModal('impressumModal')">Legal Notice</a>
+        ·
+        <a href="#privacy" onclick="event.preventDefault();openLegalModal('privacyModal')">Privacy Policy</a>
+      </div>
+      <div class="cookie-btns">
+        <button type="button" class="cookie-accept" onclick="closeCookie()">Got it</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SYNC MODAL (mobile — after first save as guest) -->
+  <div class="sync-modal-backdrop" id="syncModal" onclick="closeSyncModalIfBackdrop(event)">
+    <div class="sync-modal-sheet" onclick="event.stopPropagation()">
+      <div class="sync-modal-icon"><i class="ti ti-cloud-upload"></i></div>
+      <div class="sync-modal-title">Save your Favorites</div>
+      <div class="sync-modal-desc">You saved a beat! Sign in to keep your Favorites across devices — they won't disappear after reload.</div>
+      <button type="button" class="sync-modal-primary" onclick="syncModalSignIn()">Sign in</button>
+      <button type="button" class="sync-modal-secondary" onclick="dismissSyncModal()">Not now</button>
+    </div>
+  </div>
+
+  <!-- INVITE GATE (private beta — Home stays open) -->
+  <div class="invite-gate-backdrop" id="inviteGate" onclick="closeInviteIfBackdrop(event)">
+    <div class="invite-gate-sheet" onclick="event.stopPropagation()">
+      <div class="invite-gate-icon"><i class="ti ti-lock"></i></div>
+      <div class="invite-gate-title">Private Beta</div>
+      <div class="invite-gate-desc" id="inviteGateDesc">BeatSwipe is invite-only. Enter your code to get your free swipe page for the bio.</div>
+      <input type="text" class="invite-gate-input" id="inviteCodeInput" placeholder="Invite code" autocomplete="off" autocapitalize="off" spellcheck="false" onkeydown="if(event.key==='Enter')submitInviteCode()">
+      <div class="invite-gate-err" id="inviteCodeErr">Invalid code. DM us on Instagram for access.</div>
+      <button type="button" class="invite-gate-submit" onclick="submitInviteCode()">Get my page</button>
+      <button type="button" class="invite-gate-back" onclick="closeInviteGate()">Back to Home</button>
+      <div class="invite-gate-foot">No code yet? DM us on <a href="https://instagram.com/beatswipe.app" target="_blank" rel="noopener">@beatswipe.app</a> for access.</div>
+    </div>
+  </div>
+
+  <!-- ONBOARDING TUTORIAL -->
+  <div class="onboard-backdrop" id="onboardBackdrop" onclick="closeOnboardIfBackdrop(event)">
+    <div class="onboard-sheet" onclick="event.stopPropagation()">
+      <div class="onboard-handle" aria-hidden="true"></div>
+      <div class="onboard-slides" id="onboardSlides">
+
+        <!-- Slide 1: Welcome -->
+        <div class="onboard-slide">
+          <div class="onboard-icon"><i class="ti ti-flame"></i></div>
+          <div class="onboard-title">Welcome to <span>BeatSwipe</span></div>
+          <div class="onboard-desc">Your bio link. Their next beat. Free swipe portfolio for producers.</div>
+          <div class="onboard-demo onboard-demo--pills">
+            <div class="onboard-pill">
+              <div class="onboard-pill-icon onboard-pill-icon--swipe"><i class="ti ti-arrows-left-right"></i></div>
+              <div class="onboard-pill-label">Swipe</div>
+              <div class="onboard-pill-sub">skip or save fast</div>
+            </div>
+            <div class="onboard-pill">
+              <div class="onboard-pill-icon onboard-pill-icon--free"><i class="ti ti-gift"></i></div>
+              <div class="onboard-pill-label">Free</div>
+              <div class="onboard-pill-sub">always, for everyone</div>
+            </div>
+            <div class="onboard-pill">
+              <div class="onboard-pill-icon onboard-pill-icon--link"><i class="ti ti-link"></i></div>
+              <div class="onboard-pill-label">Bio link</div>
+              <div class="onboard-pill-sub">beatswipe.app/p/you</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slide 2: Fans swipe -->
+        <div class="onboard-slide">
+          <div class="onboard-icon"><i class="ti ti-arrows-left-right"></i></div>
+          <div class="onboard-title">Fans <span>swipe</span> your beats</div>
+          <div class="onboard-desc">One tap from your bio. They skip left, save right — hear a beat and decide in seconds.</div>
+          <div class="onboard-demo onboard-demo--swipe">
+            <div class="onboard-demo-card demo-card-anim">
+              <div class="onboard-demo-art"><i class="ti ti-music"></i></div>
+              <div class="onboard-demo-meta">
+                <div class="onboard-demo-title">Midnight Drive</div>
+                <div class="onboard-demo-sub">Demo · 140 BPM</div>
+              </div>
+              <div class="onboard-demo-actions">
+                <div class="onboard-demo-act onboard-demo-act--skip"><i class="ti ti-x"></i></div>
+                <div class="onboard-demo-act onboard-demo-act--save"><i class="ti ti-flame"></i></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slide 3: Buy from store -->
+        <div class="onboard-slide">
+          <div class="onboard-icon"><i class="ti ti-shopping-cart"></i></div>
+          <div class="onboard-title">They buy from <span>your store</span></div>
+          <div class="onboard-desc">Saved beats keep a Buy button to BeatStars, Airbit, Traktrain, or your site. We take no cut.</div>
+          <div class="onboard-demo onboard-demo--stack">
+            <div class="onboard-fav-row">
+              <div class="onboard-demo-art onboard-demo-art--sm"><i class="ti ti-music"></i></div>
+              <div class="onboard-demo-meta">
+                <div class="onboard-demo-title">Midnight Drive</div>
+                <div class="onboard-demo-sub">Trap · 140 BPM</div>
+              </div>
+              <div class="onboard-fav-badge"><i class="ti ti-flame"></i></div>
+            </div>
+            <button type="button" class="onboard-store-btn" tabindex="-1"><i class="ti ti-shopping-cart"></i> Get on BeatStars</button>
+          </div>
+        </div>
+
+        <!-- Slide 4: Get your page -->
+        <div class="onboard-slide">
+          <div class="onboard-icon"><i class="ti ti-link"></i></div>
+          <div class="onboard-title">Get your <span>free page</span></div>
+          <div class="onboard-desc">Add short preview clips, share beatswipe.app/p/yourname in your bio. Beats go live as soon as you add them.</div>
+          <div class="onboard-demo onboard-demo--stack onboard-demo--checks">
+            <div class="onboard-check-item"><i class="ti ti-check"></i><span>beatswipe.app/p/yourname</span></div>
+            <div class="onboard-check-item"><i class="ti ti-check"></i><span>Preview via YouTube, SoundCloud or MP3 (~30–60s)</span></div>
+            <div class="onboard-check-item"><i class="ti ti-check"></i><span>Goes live on your page immediately</span></div>
+            <div class="onboard-check-item"><i class="ti ti-check"></i><span>Buy links to your store — no cut</span></div>
+          </div>
+        </div>
+
+      </div>
+      <div class="onboard-bottom">
+        <div class="onboard-dots" id="onboardDots">
+          <div class="onboard-dot active"></div>
+          <div class="onboard-dot"></div>
+          <div class="onboard-dot"></div>
+          <div class="onboard-dot"></div>
+        </div>
+        <button class="onboard-btn" id="onboardBtn" onclick="onboardNext()">
+          <i class="ti ti-arrow-right"></i> Get started
+        </button>
+        <button class="onboard-skip" onclick="closeOnboard()">Skip tour</button>
+      </div>
+    </div>
+  </div>
 
 <script src="/app.js"></script>
 <script src="/mypage.js"></script>

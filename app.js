@@ -348,6 +348,21 @@ function closeInviteIfBackdrop(e) {
 }
 
 /** Re-sync nav/chrome after BFCache restore or stale portfolio body classes on app routes. */
+function ensureMobileNavDock() {
+  if (!isMobileUI() || document.body.classList.contains('portfolio-active')) return;
+  const bar = document.getElementById('mobileNavBar') || document.querySelector('.nav-bar');
+  if (!bar) return;
+  if (bar.parentElement !== document.body) document.body.appendChild(bar);
+  bar.style.removeProperty('bottom');
+  bar.style.removeProperty('transform');
+  bar.style.removeProperty('top');
+}
+
+function updateAppVh() {
+  const h = window.visualViewport?.height || window.innerHeight;
+  document.documentElement.style.setProperty('--app-vh', (h * 0.01) + 'px');
+}
+
 function reconcileMobileChrome() {
   const slug = typeof getPortfolioSlugFromURL === 'function' ? getPortfolioSlugFromURL() : null;
   const onPortfolioRoute = !!slug;
@@ -366,6 +381,12 @@ function reconcileMobileChrome() {
     }
   }
   syncGuestChrome();
+  ensureMobileNavDock();
+  updateAppVh();
+  const activeNavId = document.querySelector('.nav-tab.active')?.id;
+  if (activeNavId) {
+    requestAnimationFrame(() => requestAnimationFrame(() => updateNavIndicator(activeNavId)));
+  }
 }
 
 /** Guest chrome: hide gated nav; footer shows live demo + get page. */
@@ -447,24 +468,30 @@ function submitInviteCode() {
   }
 }
 
-if (document.body) reconcileMobileChrome();
-else document.addEventListener('DOMContentLoaded', reconcileMobileChrome, { once: true });
+if (document.body) {
+  ensureMobileNavDock();
+  reconcileMobileChrome();
+} else {
+  document.addEventListener('DOMContentLoaded', () => {
+    ensureMobileNavDock();
+    reconcileMobileChrome();
+  }, { once: true });
+}
 
 window.addEventListener('pageshow', () => {
+  ensureMobileNavDock();
   reconcileMobileChrome();
-  const activeNavId = document.querySelector('.nav-tab.active')?.id;
-  if (activeNavId) {
-    requestAnimationFrame(() => requestAnimationFrame(() => updateNavIndicator(activeNavId)));
-  }
 });
 
 if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', () => {
+    updateAppVh();
     if (!isMobileUI() || document.body.classList.contains('portfolio-active')) return;
     const activeNavId = document.querySelector('.nav-tab.active')?.id;
     if (activeNavId) updateNavIndicator(activeNavId);
   });
 }
+window.addEventListener('resize', updateAppVh, { passive: true });
 
 let _listEnterNext = false;
 

@@ -70,6 +70,8 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 - **Discover tab after reload:** always **Beats** (`full`) — don’t restore `bs_cat`
 - **Swipe overflow:** both axes `visible` or clip breaks; never `overflow-x:visible` + `overflow-y:hidden`
 - **Portfolio mobile:** never `pinCardForMobileDrag` on `.portfolio-surface` (ghost card)
+- **Mobile bottom nav:** `<900px` (not portfolio/moderate) — `html`/`body` `position:fixed` + critical inline CSS; `.nav-bar` + cookie/onboard/invite **outside** `.shell` (shell `z-index` traps overlays). Nav `bottom:0`; cookie `bottom` above nav. `ensureMobileNavDock()` + `reconcileMobileChrome()` on boot/`pageshow`. Scroll nur innen (`.land-scroll`, etc.).
+- **Discover `#theCard` collision:** Discover + Portfolio share `id="theCard"` — never global `getElementById('theCard')`; scope `#cardWrap` / `#portfolioCardSlot`, clear portfolio slot on exit. Producer line = `<button class="track-by">` excluded from swipe handler.
 - **Swipe perf:** `queueSaveBeatToDB` — don’t await before fly; fly before `renderCard`; no `cloneNode` on YT iframe (`buildFlyCardShell`)
 - **Favorites:** `syncCrateFromDB` replace not merge; saves via `/api/crate`; no guest→DB merge on iOS session restore
 - **Upload:** multi-MP3 accordion, no genre/type prefill, title from filename only
@@ -111,22 +113,24 @@ Producer swipe portfolio for Instagram bio links. Fans swipe beats, save Favorit
 
 - **App ambient:** `html:not(.portfolio-route-boot) body:not(.portfolio-active)` — charcoal `#0E0E12` + blue bloom auf Landing **und** App-Pages (nicht reines `#000`). White aurora nur auf `/p/` (`portfolio-active` / `portfolio-route-boot`). Nie Landing-Blau auf Portfolio.
 
-## Aktuell (2026-08-31)
+## Aktuell (2026-09-01)
 
-- **Live:** Private Beta. Landing polish (Sora, quieter chrome, store logos back). Profile mobile: Identity first, Social links as accordion under it; compact bio.
-- **Handy `/p/`:** Bio 1-Zeile, Read more = Overlay. Producer-Name auf Cards tappable; Ghost-Card nach Discover→`/p/` gefixt.
-- **Mark:** B-Tile `favicon.png?v=2` — abgerundetes Quadrat 6px. OG `og-image.png?v=5`.
+- **Live:** Private Beta (`a2bd73c`). Mobile bottom nav: fixed am Viewport + `reconcileMobileChrome` (BFCache/`portfolio-active`).
+- **Landing:** Sora, ruhigeres Chrome, BeatStars/Airbit/Traktrain-Logos. Profile mobile: Identity zuerst, Socials Accordion, kompaktes Bio.
+- **Handy:** Producer-Name auf Cards tappable; Ghost-Card Discover→`/p/`→zurück gefixt. `/p/` Bio 1 Zeile + Read-more-Overlay. Erster Swipe/Tap auf `/p/` kann auf iOS kurz haken (Cold start + Audio) — Lag-Optimierung probiert, zurückgerollt.
+- **Mark:** B-Tile `favicon.png?v=2` (6px). OG `og-image.png?v=5`.
 - **Demo `/p/demo`**, Lucas `/p/clyriax`. Cover optional. **SQL in Supabase noch nicht bestätigt.**
-- **Insta:** Carousel bereit (`marketing/insta-v2/ig/`) — Caption `/p/demo`. DM: fragen → Demo → Key.
-- **Offen:** Cover-SQL. Testdaten `/p/clyriax`. Carousel nicht gepostet. Producer-DMs. TikTok-Clip.
+- **Insta:** Carousel bereit (`marketing/insta-v2/ig/`). Noch nicht gepostet.
+- **Codebase:** ~18k LOC (Vanilla JS + CSS, kein Framework). Stack-Wechsel jetzt kein ROI.
+- **Offen:** Cover-SQL. Testdaten `/p/clyriax`. Carousel. Producer-DMs. TikTok-Clip.
 
 ## Nächster Schritt
 
 1. Supabase SQL: `supabase/beats-cover-url.sql` + `supabase/covers-bucket.sql`
 2. Insta-Carousel posten (`marketing/insta-v2/ig/` — Caption `/p/demo`)
-3. Testdaten auf My Page runter (`wtf`, 2 BPM, `tiktok.com` …)
-4. Echte Beats auf `/p/clyriax` — dann 2–3 Producer per DM (erst fragen, kein Link in Nachricht 1)
-5. Später: Invite-Gate pausieren (`INVITE_GATE_PAUSED = true`)
+3. Testdaten auf My Page runter; echte Beats auf `/p/clyriax`
+4. 2–3 Producer per DM (erst fragen, kein Link in Nachricht 1)
+5. Später: `/p/` schlankeres Bundle (nur Portfolio-JS) · Invite-Gate pausieren (`INVITE_GATE_PAUSED = true`)
 
 ## Rules pflegen (Agent)
 

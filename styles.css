@@ -208,10 +208,44 @@
 
     /* Mobile — same aurora wash as laptop app pages (/p/ overrides below) */
     @media (max-width: 899px) {
-      html, body {
-        overflow-x: hidden;
-        max-width: 100%;
-        overscroll-behavior-x: none;
+      html:not(.portfolio-route-boot),
+      html:not(.portfolio-route-boot) body:not(.portfolio-active):not(.moderate-active) {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        overscroll-behavior: none;
+        padding: 0 !important;
+        margin: 0;
+        display: block;
+      }
+      html:not(.portfolio-route-boot) body:not(.portfolio-active):not(.moderate-active) .desktop-layout {
+        position: absolute;
+        inset: 0;
+        display: block;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+      html:not(.portfolio-route-boot) body:not(.portfolio-active):not(.moderate-active) .desktop-right {
+        height: 100%;
+        width: 100%;
+        display: block;
+      }
+      html:not(.portfolio-route-boot) body:not(.portfolio-active):not(.moderate-active) .shell {
+        height: 100% !important;
+        max-height: 100% !important;
+        min-height: 0 !important;
+        width: 100%;
+        margin-inline: auto;
+        padding-bottom: calc(52px + env(safe-area-inset-bottom, 0px));
+      }
+      #landScreen.active,
+      #landScreen.active .page-inner,
+      #landScreen.active .page-inner--wide {
+        height: 100%;
+        min-height: 0;
       }
       .shell { background: transparent; }
       .bg-desktop {
@@ -266,7 +300,7 @@
     .desktop-right { display: flex; align-items: center; justify-content: center; width: 100%; gap: 0; }
     .desktop-crate { display: none; }
 
-    @media (min-width: 600px) {
+    @media (min-width: 900px) {
       body { padding: 32px 20px; align-items: center; min-height: 100vh; }
       .desktop-right { width: auto; }
       .shell {
@@ -2106,8 +2140,7 @@
     .nav-tab.active i { color: var(--accent-mid); }
     .nav-dot { display: none; }
     @media (max-width: 899px) {
-      /* Pin nav to viewport bottom — avoids iOS 100dvh + flex-center clipping the bar */
-      body:not(.portfolio-active):not(.moderate-active) .nav-bar {
+      html:not(.portfolio-route-boot) body:not(.portfolio-active):not(.moderate-active) .nav-bar {
         position: fixed;
         left: 0;
         right: 0;
@@ -2115,10 +2148,20 @@
         margin-inline: auto;
         width: 100%;
         max-width: 440px;
-        z-index: 12;
+        z-index: 100;
       }
-      body:not(.portfolio-active):not(.moderate-active) .shell {
-        padding-bottom: calc(52px + env(safe-area-inset-bottom, 0px));
+      body.discover-active .desktop-layout,
+      body.discover-active .desktop-right {
+        height: 100%;
+        min-height: 0;
+        width: 100%;
+        align-items: stretch;
+        justify-content: stretch;
+      }
+      body.discover-active .shell {
+        height: 100%;
+        max-height: 100%;
+        min-height: 0;
       }
     }
     @media (prefers-reduced-motion: reduce) {
@@ -5197,6 +5240,7 @@
         overflow-y: auto;
         touch-action: pan-y;
         overscroll-behavior-x: none;
+        overscroll-behavior-y: contain;
       }
       #landScreen .faq-section .faq-title-mobile {
         display: none;
@@ -5386,12 +5430,11 @@
         overflow: visible;
       }
       body.discover-active {
-        display: block;
-        height: auto;
-        min-height: calc(100dvh + 1px);
-        overflow-x: hidden;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+        overflow: hidden;
+        overscroll-behavior: none;
       }
       body.portfolio-active {
         display: block;
@@ -6668,9 +6711,15 @@
     }
 
     /* ── COOKIE BANNER ── */
-    .cookie-banner { position: fixed; bottom: 0; left: 0; right: 0; z-index: 350; display: none; justify-content: center; padding: 0 0 env(safe-area-inset-bottom); pointer-events: none; }
+    .cookie-banner { position: fixed; bottom: 0; left: 0; right: 0; z-index: 360; display: none; justify-content: center; padding: 0 0 env(safe-area-inset-bottom); pointer-events: none; }
     .cookie-banner.open { pointer-events: all; }
     .cookie-banner.open { display: flex; }
+    @media (max-width: 899px) {
+      body:not(.portfolio-active) .cookie-banner.open {
+        bottom: calc(52px + env(safe-area-inset-bottom, 0px));
+        padding-bottom: 0;
+      }
+    }
     .cookie-inner { width: 100%; max-width: 440px; background: var(--bg-2); border-top: 0.5px solid var(--border-2); padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
     .cookie-text { font-size: 12px; color: var(--text-2); line-height: 1.6; }
     .cookie-text a { color: var(--accent-mid); text-decoration: none; cursor: pointer; }
