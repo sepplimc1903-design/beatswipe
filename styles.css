@@ -7077,3 +7077,52 @@
     @media (max-width: 899px) {
       .shell { box-shadow: none; }
     }
+
+    /* Editorial layout system */
+    .top-bar { padding: 20px var(--px) 18px; border-bottom: 1px solid var(--border); }
+    .wordmark { font-size: 15px; letter-spacing: -0.035em; }
+    .top-badge { border: 1px solid var(--border-2); background: transparent; color: var(--text-2); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+    .land-scroll { scroll-behavior: smooth; }
+    .land-site-wrap { max-width: 1080px; margin-inline: auto; }
+    .hero { min-height: 560px; padding: 86px clamp(24px, 6vw, 72px) 76px; align-items: center; }
+    .hero-copy { max-width: 500px; }
+    .hero-eyebrow { margin-bottom: 20px; color: var(--accent); font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+    .hero-title { max-width: 620px; font-size: clamp(42px, 5vw, 68px); line-height: 1.03; font-weight: 600; }
+    .hero-title span { color: var(--accent); }
+    .hero-sub { max-width: 460px; color: var(--text-2); line-height: 1.65; }
+    .hero-invite-hint { color: var(--text-3); font-size: 11px; }
+    .hero-invite-hint a, .cta-invite-hint a { color: var(--text); text-decoration: underline; text-underline-offset: 3px; }
+    .btn-primary, .btn-secondary { min-height: 46px; padding: 0 18px; border-radius: var(--radius-btn); font-size: 13px; font-weight: 700; }
+    .btn-secondary { border: 1px solid var(--border-2); background: transparent; color: var(--text); }
+    .btn-secondary:hover { background: var(--bg-3); }
+    .hero-phone { filter: drop-shadow(0 24px 40px rgba(0,0,0,.3)); }
+    .hero-preview-caption { color: var(--text-3); font-size: 10px; letter-spacing: .02em; }
+    .land-section-head { max-width: 620px; margin: 0 auto 30px; text-align: center; }
+    .land-section-title { font-size: clamp(26px, 3vw, 38px); line-height: 1.12; font-weight: 600; }
+    .land-section-desc { color: var(--text-2); line-height: 1.6; }
+    .land-steps { max-width: 860px; margin-inline: auto; border-top: 1px solid var(--border); }
+    .land-step { display: grid; grid-template-columns: 56px 1fr; gap: 22px; padding: 26px 0; border-bottom: 1px solid var(--border); }
+    .land-step-num { color: var(--accent); font-family: var(--font-display); font-size: 12px; font-weight: 700; }
+    .land-step-title { margin-bottom: 6px; font-size: 16px; font-weight: 700; }
+    .land-step-desc { max-width: 620px; color: var(--text-2); line-height: 1.6; }
+    .land-platforms, .faq-block, .cta-strip { max-width: 860px; margin-inline: auto; }
+    .land-platforms { padding-top: 92px; }
+    .land-platform-card { border: 1px solid var(--border); background: transparent; border-radius: 12px; transition: border-color .18s ease, background .18s ease; }
+    .land-platform-card:hover { border-color: var(--border-2); background: var(--bg-2); }
+    .faq-block { padding-top: 92px; }
+    .faq-item { border-color: var(--border); }
+    .faq-q { padding: 22px 0; color: var(--text); font-size: 14px; }
+    .faq-a { max-width: 680px; padding: 0 0 22px; color: var(--text-2); line-height: 1.65; }
+    .cta-strip { padding-top: 92px; }
+    .cta-banner { border: 1px solid var(--border-2); background: var(--bg-2); border-radius: var(--radius-card); }
+    .cta-banner-title { font-size: 22px; letter-spacing: -.035em; }
+    .site-footer { margin-top: 92px; padding: 24px 0 34px; border-top: 1px solid var(--border); color: var(--text-3); font-size: 11px; }
+    @media (max-width: 899px) {
+      .hero { min-height: auto; padding: 58px 22px 52px; gap: 42px; }
+      .hero-title { font-size: clamp(38px, 11vw, 52px); }
+      .hero-visual { order: 2; }
+      .land-section-head { text-align: left; }
+      .land-platforms, .faq-block, .cta-strip { padding-top: 64px; }
+      .land-step { grid-template-columns: 38px 1fr; gap: 14px; }
+      .site-footer { margin-top: 64px; }
+    }
